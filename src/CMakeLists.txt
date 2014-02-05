@@ -42,7 +42,10 @@ add_dependencies(${PROJECT_NAME}-tester ${PROJECT_NAME})
 
 
 target_link_libraries(${PROJECT_NAME}-tester ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}-tester pthread rt)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  target_link_libraries(${PROJECT_NAME}-tester pthread rt)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 
 

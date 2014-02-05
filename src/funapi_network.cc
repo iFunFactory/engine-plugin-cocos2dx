@@ -14,6 +14,8 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <iostream>
@@ -97,8 +99,8 @@ const char kSessionClosedMessageType[] = "_session_closed";
 // Global variables.
 
 bool initialized = false;
-struct timespec epoch;
-uint64_t funapi_session_timeout = 3600;
+time_t epoch = 0;
+time_t funapi_session_timeout = 3600;
 std::ostream *logstream = &(std::cout);
 
 typedef std::list<AsyncRequest> AsyncQueue;
@@ -260,6 +262,7 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
   }
 
   LOG("Thread for async operation is terminating.");
+  return NULL;
 }
 
 
@@ -820,7 +823,7 @@ class FunapiNetworkImpl {
   string session_id_;
   typedef map<string, MessageHandler> MessageHandlerMap;
   MessageHandlerMap message_handlers_;
-  struct timespec last_received_;
+  time_t last_received_;
 };
 
 
@@ -831,8 +834,7 @@ FunapiNetworkImpl::FunapiNetworkImpl(FunapiTransport *transport,
     : started_(false), transport_(transport),
       on_session_initiated_(on_session_initiated),
       on_session_closed_(on_session_closed),
-      session_id_("") {
-  last_received_.tv_sec = last_received_.tv_nsec = 0;
+      session_id_(""), last_received_(0) {
   transport_->RegisterEventHandlers(
       FunapiTcpTransport::OnReceived(
           &FunapiNetworkImpl::OnTransportReceivedWrapper, (void *) this),
@@ -872,8 +874,7 @@ void FunapiNetworkImpl::Start() {
 
   // Ok. We are ready.
   started_ = true;
-  clock_gettime(CLOCK_MONOTONIC, &epoch);
-  last_received_ = epoch;
+  last_received_ = epoch = time(NULL);
 }
 
 
@@ -891,9 +892,8 @@ void FunapiNetworkImpl::Stop() {
 void FunapiNetworkImpl::SendMessage(const string &msg_type,
                                     rapidjson::Document &body) {
   // Invalidates session id if it is too stale.
-  struct timespec delta = {funapi_session_timeout, 0};
-  struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC, &now);
+  time_t now = time(NULL);
+  time_t delta = funapi_session_timeout;
 
   if (last_received_ != epoch && last_received_ + delta < now) {
     LOG("Session is too stale. "
@@ -959,7 +959,7 @@ void FunapiNetworkImpl::OnTransportReceived(
     const HeaderType &header, rapidjson::Document &body) {
   LOG("OnReceived invoked");
 
-  clock_gettime(CLOCK_REALTIME, &last_received_);
+  last_received_ = time(NULL);
 
   const rapidjson::Value &msg_type_node = body[kMsgTypeBodyField];
   assert(msg_type_node.IsString());
@@ -1067,7 +1067,7 @@ bool FunapiTcpTransport::Started() const {
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiNetwork implementation.
 
-void FunapiNetwork::Initialize(uint64_t session_timeout, std::ostream &stream) {
+void FunapiNetwork::Initialize(time_t session_timeout, std::ostream &stream) {
   assert(not initialized);
 
   // Remembers the session timeout setting.

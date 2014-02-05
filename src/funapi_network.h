@@ -9,6 +9,8 @@
 #ifndef SRC_FUNAPI_NETWORK_H_
 #define SRC_FUNAPI_NETWORK_H_
 
+#include <time.h>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -123,7 +125,7 @@ class FunapiNetwork {
   typedef helper::Binder1<void, const string &, void *> OnSessionInitiated;
   typedef helper::Binder0<void, void *> OnSessionClosed;
 
-  static void Initialize(uint64_t session_timeout = 3600, std::ostream &logstream = std::cout);
+  static void Initialize(time_t session_timeout = 3600, std::ostream &logstream = std::cout);
   static void Finalize();
 
   FunapiNetwork(FunapiTransport *funapi_transport,

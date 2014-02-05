@@ -4,6 +4,8 @@
 // must not be used, disclosed, copied, or distributed without the prior
 // consent of iFunFactory Inc.
 
+#include <unistd.h>
+
 #include <iostream>
 #include <string>
 
@@ -35,7 +37,7 @@ void on_echo(
 
 
 int main(int argc, char **argv) {
-  fun::FunapiNetwork::Initialize(5);
+  fun::FunapiNetwork::Initialize(3600);
   fun::FunapiNetwork *network =
       new fun::FunapiNetwork(
           new fun::FunapiTcpTransport("127.0.0.1", 8012),
