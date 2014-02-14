@@ -79,6 +79,7 @@ struct AsyncRequest {
 
 // Buffer-related constants.
 const int kUnitBufferSize = 65536;
+const int kUnitBufferPaddingSize = 1;
 
 // Funapi header-related constants.
 const char kHeaderDelimeter[] = "\n";
@@ -409,7 +410,8 @@ FunapiTcpTransportImpl::FunapiTcpTransportImpl(const string &hostname_or_ip,
   endpoint_.sin_port = htons(port);
 
   receiving_.iov_len = kUnitBufferSize;
-  receiving_.iov_base = new uint8_t[receiving_.iov_len];
+  receiving_.iov_base =
+      new uint8_t[receiving_.iov_len + kUnitBufferPaddingSize];
   assert(receiving_.iov_base);
 }
 
@@ -666,7 +668,7 @@ void FunapiTcpTransportImpl::ReceiveBytesCb(ssize_t nRead) {
     } else {
       size_t new_size = receiving_.iov_len + kUnitBufferSize;
       LOG("Resizing a buffer to " << new_size << "bytes.");
-      uint8_t *new_buffer = new uint8_t[new_size];
+      uint8_t *new_buffer = new uint8_t[new_size + kUnitBufferPaddingSize];
       memmove(new_buffer, receiving_.iov_base, received_size_);
       receiving_.iov_base = new_buffer;
       receiving_.iov_len = new_size;
@@ -759,12 +761,14 @@ bool FunapiTcpTransportImpl::TryToDecodeBody() {
 
   // Generates a null-termianted string for convenience.
   char *base = reinterpret_cast<char *>(receiving_.iov_base);
+  char tmp = base[next_decoding_offset_ + body_length];
   base[next_decoding_offset_ + body_length] = '\0';
 
   // Parses the given json string.
   rapidjson::Document json;
   json.Parse<0>(base + next_decoding_offset_);
   assert(json.IsObject());
+  base[next_decoding_offset_ + body_length] = tmp;
 
   // Moves the read offset.
   next_decoding_offset_ += body_length;
