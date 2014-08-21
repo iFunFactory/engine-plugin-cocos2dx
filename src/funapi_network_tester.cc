@@ -46,8 +46,9 @@ int main(int argc, char **argv) {
     std::cout << "** Select number" << std::endl;
     std::cout << "1. connect tcp" << std::endl;
     std::cout << "2. connect udp" << std::endl;
-    std::cout << "3. echo message" << std::endl;
-    std::cout << "4. disconnect" << std::endl;
+    std::cout << "3. connect http" << std::endl;
+    std::cout << "e. echo message" << std::endl;
+    std::cout << "q. disconnect" << std::endl;
 
     std::string input;
     std::getline(std::cin, input);
@@ -56,7 +57,7 @@ int main(int argc, char **argv) {
       break;
     }
 
-    if (input == "1" || input == "2") {
+    if (input == "1" || input == "2" || input == "3") {
       if (network != NULL && network->Started()) {
         std::cout << "Already connected. Disconnect first." << std::endl;
         continue;
@@ -67,12 +68,14 @@ int main(int argc, char **argv) {
         transport = new fun::FunapiTcpTransport(kServerIp, 8012);
       } else if (input == "2") {
         transport = new fun::FunapiUdpTransport(kServerIp, 8013);
+      } else if (input == "3") {
+        transport = new fun::FunapiHttpTransport(kServerIp, 8018);
       }
 
       network = new fun::FunapiNetwork(transport,
-        fun::FunapiNetwork::OnSessionInitiated(on_session_initiated, NULL),
-        fun::FunapiNetwork::OnSessionClosed(on_session_closed, NULL));
-        network->RegisterHandler("echo", fun::FunapiNetwork::MessageHandler(on_echo, NULL));
+          fun::FunapiNetwork::OnSessionInitiated(on_session_initiated, NULL),
+          fun::FunapiNetwork::OnSessionClosed(on_session_closed, NULL));
+      network->RegisterHandler("echo", fun::FunapiNetwork::MessageHandler(on_echo, NULL));
 
       network->Start();
       // network->Start() works asynchronously.
@@ -92,13 +95,13 @@ int main(int argc, char **argv) {
         std::cout << "Connection failed. Stopping." << std::endl;
         network->Stop();
       }
-    } else if (input == "4") {
+    } else if (input == "q") {
       if (network->Started() == false) {
         std::cout << "You should connect first." << std::endl;
         continue;
       }
       network->Stop();
-    } else if (input.compare(0, 1, "3") == 0) {
+    } else if (input.compare(0, 1, "e") == 0) {
       if (network->Started() == false) {
         std::cout << "You should connect first." << std::endl;
       } else {
@@ -118,4 +121,3 @@ int main(int argc, char **argv) {
 
   return 0;
 }
-

@@ -42,6 +42,7 @@ add_dependencies(${PROJECT_NAME}-tester ${PROJECT_NAME})
 
 
 target_link_libraries(${PROJECT_NAME}-tester ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}-tester ${libcurl4-openssl-dev})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   target_link_libraries(${PROJECT_NAME}-tester pthread rt)

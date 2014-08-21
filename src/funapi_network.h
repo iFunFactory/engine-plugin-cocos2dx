@@ -125,6 +125,23 @@ class FunapiUdpTransport : public FunapiTransport {
 };
 
 
+class FunapiHttpTransportImpl;
+class FunapiHttpTransport : public FunapiTransport {
+ public:
+  FunapiHttpTransport(const string &hostname_or_ip, uint16_t port, bool https = false);
+  virtual ~FunapiHttpTransport();
+
+  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
+  virtual void Start();
+  virtual void Stop();
+  virtual void SendMessage(rapidjson::Document &message);
+  virtual bool Started() const;
+
+ private:
+  FunapiHttpTransportImpl *impl_;
+};
+
+
 class FunapiNetworkImpl;
 class FunapiNetwork {
  public:

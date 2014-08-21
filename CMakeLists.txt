@@ -35,6 +35,8 @@ endfunction ()
 # Checks if everything is ready.
 CheckRequirements()
 
+find_library(libcurl4-openssl-dev libcurl.so)
+
 
 
 ###############################################################################

@@ -22,7 +22,9 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <sstream>
 
+#include "curl/curl.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -41,6 +43,8 @@ typedef sockaddr_in Endpoint;
 typedef helper::Binder1<void, int, void *> AsyncConnectCallback;
 typedef helper::Binder1<void, ssize_t, void *> AsyncSendCallback;
 typedef helper::Binder1<void, ssize_t, void *> AsyncReceiveCallback;
+typedef helper::Binder1<void, int, void *> AsyncWebRequestCallback;
+typedef helper::Binder2<void, void *, int, void *> AsyncWebResponseCallback;
 
 
 enum FunapiTransportType {
@@ -50,6 +54,20 @@ enum FunapiTransportType {
 };
 
 
+enum FunapiTransportState {
+  kDisconnected = 0,
+  kConnecting,
+  kConnected,
+};
+
+
+enum WebRequestState {
+  kWebRequestStart = 0,
+  kWebRequestEnd
+};
+
+
+
 struct AsyncRequest {
   enum RequestType {
     kConnect = 0,
@@ -57,6 +75,7 @@ struct AsyncRequest {
     kSendTo,
     kReceive,
     kReceiveFrom,
+    kWebRequest,
   };
 
   RequestType type_;
@@ -87,6 +106,16 @@ struct AsyncRequest {
   struct AsyncReceiveFromContext : AsyncReceiveContext {
     Endpoint endpoint_;
   } recvfrom_;
+
+  struct WebRequestContext {
+    AsyncWebRequestCallback request_callback_;
+    AsyncWebResponseCallback receive_header_;
+    AsyncWebResponseCallback receive_body_;
+    const char *url_;
+    const char *header_;
+    uint8_t *body_;
+    size_t body_len_;
+  } web_request_;
 };
 
 
@@ -119,6 +148,7 @@ const char kSessionClosedMessageType[] = "_session_closed";
 // Global variables.
 
 bool initialized = false;
+bool curl_initialized = false;
 time_t epoch = 0;
 time_t funapi_session_timeout = 3600;
 std::ostream *logstream = &(std::cout);
@@ -172,6 +202,15 @@ inline bool operator!=(const struct timespec &t1, const struct timespec &t2) {
     << x << std::endl
 
 
+size_t HttpResponseCb(void *data, size_t size, size_t count, void *cb) {
+  AsyncWebResponseCallback *callback = (AsyncWebResponseCallback*)(cb);
+  if (callback != NULL)
+    (*callback)(data, size * count);
+  return size * count;
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Asynchronous operation related..
 
@@ -199,40 +238,44 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
     int max_fd = -1;
     for (AsyncQueue::const_iterator i = work_queue.begin();
          i != work_queue.end(); ++i) {
-      if (i->type_ == AsyncRequest::kConnect) {
-        // LOG("Checking connect with fd [" << i->sock_ << "]");
+      switch (i->type_) {
+      case AsyncRequest::kConnect:
+      case AsyncRequest::kSend:
+      case AsyncRequest::kSendTo:
+        //LOG("Checking " << i->type_ << " with fd [" << i->sock_ << "]");
         FD_SET(i->sock_, &wset);
-      } else if (i->type_ == AsyncRequest::kSend) {
-        // LOG("Checking send with fd [" << i->sock_ << "]");
-        FD_SET(i->sock_, &wset);
-      } else if (i->type_ == AsyncRequest::kReceive) {
-        // LOG("Checking recv with fd [" << i->sock_ << "]");
+        max_fd = std::max(max_fd, i->sock_);
+        break;
+      case AsyncRequest::kReceive:
+      case AsyncRequest::kReceiveFrom:
+        //LOG("Checking " << i->type_ << " with fd [" << i->sock_ << "]");
         FD_SET(i->sock_, &rset);
-      } else if (i->type_ == AsyncRequest::kSendTo) {
-        // LOG("Checking sendto with fd [" << i->sock_ << "]");
-        FD_SET(i->sock_, &wset);
-      } else if (i->type_ == AsyncRequest::kReceiveFrom) {
-        // LOG("Checking recvfrom with fd [" << i->sock_ << "]");
-        FD_SET(i->sock_, &rset);
-      } else {
+        max_fd = std::max(max_fd, i->sock_);
+        break;
+      case AsyncRequest::kWebRequest:
+        break;
+      default:
         assert(false);
+        break;
       }
-      max_fd = std::max(max_fd, i->sock_);
     }
 
     // Waits until some events happen to fd in the sets.
-    struct timeval timeout = {0, 1};
-    int r = select(max_fd + 1, &rset, &wset, NULL, &timeout);
+    if (max_fd != -1) {
+      struct timeval timeout = {0, 1};
+      int r = select(max_fd + 1, &rset, &wset, NULL, &timeout);
 
-    // Some fd can be invalidated if other thread closed.
-    assert(r >= 0 || (r < 0 && errno == EBADF));
-    // LOG("woke up: " << r);
+      // Some fd can be invalidated if other thread closed.
+      assert(r >= 0 || (r < 0 && errno == EBADF));
+      // LOG("woke up: " << r);
+    }
 
     // Checks if the fd is ready.
     for (AsyncQueue::iterator i = work_queue.begin(); i != work_queue.end(); ) {
       bool remove_request = true;
       // Ready. Handles accordingly.
-      if (i->type_ == AsyncRequest::kConnect) {
+      switch (i->type_) {
+      case AsyncRequest::kConnect:
         if (not FD_ISSET(i->sock_, &wset)) {
           remove_request = false;
         } else {
@@ -245,7 +288,8 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
             assert(r < 0 && errno == EBADF);
           }
         }
-      } else if (i->type_ == AsyncRequest::kSend) {
+        break;
+      case AsyncRequest::kSend:
         if (not FD_ISSET(i->sock_, &wset)) {
           remove_request = false;
         } else {
@@ -261,7 +305,8 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
             remove_request = false;
           }
         }
-      } else if (i->type_ == AsyncRequest::kReceive) {
+        break;
+      case AsyncRequest::kReceive:
         if (not FD_ISSET(i->sock_, &rset)) {
           remove_request = false;
         } else {
@@ -269,7 +314,8 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
               recv(i->sock_, i->recv_.buf_, i->recv_.capacity_, 0);
           i->recv_.callback_(nRead);
         }
-      } else if (i->type_ == AsyncRequest::kSendTo) {
+        break;
+      case AsyncRequest::kSendTo:
         if (not FD_ISSET(i->sock_, &wset)) {
           remove_request = false;
         } else {
@@ -287,7 +333,8 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
             remove_request = false;
           }
         }
-      } else if (i->type_ == AsyncRequest::kReceiveFrom) {
+        break;
+      case AsyncRequest::kReceiveFrom:
         if (not FD_ISSET(i->sock_, &rset)) {
           remove_request = false;
         } else {
@@ -297,6 +344,41 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
               (struct sockaddr *)&i->recvfrom_.endpoint_, &len);
           i->recvfrom_.callback_(nRead);
         }
+        break;
+      case AsyncRequest::kWebRequest: {
+          CURL *ctx = curl_easy_init();
+          if (ctx == NULL) {
+            LOG("Unable to initialize cURL interface.");
+            break;
+          }
+
+          i->web_request_.request_callback_(kWebRequestStart);
+
+          // TODO : 비동기로 변경 (use curl_multi~)
+          struct curl_slist *chunk = NULL;
+          chunk = curl_slist_append(chunk, i->web_request_.header_);
+          curl_easy_setopt(ctx, CURLOPT_HTTPHEADER, chunk);
+
+          curl_easy_setopt(ctx, CURLOPT_URL, i->web_request_.url_);
+          curl_easy_setopt(ctx, CURLOPT_POST, 1L);
+          curl_easy_setopt(ctx, CURLOPT_POSTFIELDS, i->web_request_.body_);
+          curl_easy_setopt(ctx, CURLOPT_POSTFIELDSIZE, i->web_request_.body_len_);
+          curl_easy_setopt(ctx, CURLOPT_HEADERDATA, &i->web_request_.receive_header_);
+          curl_easy_setopt(ctx, CURLOPT_WRITEDATA, &i->web_request_.receive_body_);
+          curl_easy_setopt(ctx, CURLOPT_WRITEFUNCTION, &HttpResponseCb);
+
+          CURLcode res = curl_easy_perform(ctx);
+          if (res != CURLE_OK) {
+            LOG("Error from cURL: " << curl_easy_strerror(res));
+            assert(false);
+          } else {
+            i->web_request_.request_callback_(kWebRequestEnd);
+          }
+
+          curl_easy_cleanup(ctx);
+          curl_slist_free_all(chunk);
+        }
+        break;
       }
 
       // If we should keep the fd, puts it back to the queue.
@@ -320,8 +402,8 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
 }
 
 
-void AsyncConnect(
-    int sock, const Endpoint &endpoint, const AsyncConnectCallback &callback) {
+void AsyncConnect(int sock,
+    const Endpoint &endpoint, const AsyncConnectCallback &callback) {
   // Makes the fd non-blocking.
   int flag = fcntl(sock, F_GETFL);
   assert(flag >= 0);
@@ -348,7 +430,8 @@ void AsyncConnect(
 }
 
 
-void AsyncSend(int sock, const IoVecList &sending, AsyncSendCallback callback) {
+void AsyncSend(int sock,
+    const IoVecList &sending, AsyncSendCallback callback) {
   assert(not sending.empty());
   LOG("Queueing " << sending.size() << " async sends.");
 
@@ -371,8 +454,8 @@ void AsyncSend(int sock, const IoVecList &sending, AsyncSendCallback callback) {
 }
 
 
-void AsyncReceive(
-    int sock, const struct iovec &receiving, AsyncReceiveCallback callback) {
+void AsyncReceive(int sock,
+    const struct iovec &receiving, AsyncReceiveCallback callback) {
   assert(receiving.iov_len != 0);
   LOG("Queueing 1 async receive.");
 
@@ -436,43 +519,62 @@ void AsyncReceiveFrom(int sock, const Endpoint &ep,
 }
 
 
+void AsyncWebRequest(const char* host_url, const IoVecList &sending,
+    AsyncWebRequestCallback callback,
+    AsyncWebResponseCallback receive_header,
+    AsyncWebResponseCallback receive_body) {
+  assert(not sending.empty());
+  LOG("Queueing " << sending.size() << " async sends.");
+
+  pthread_mutex_lock(&async_queue_mutex);
+  for (IoVecList::const_iterator itr = sending.begin(), itr_end = sending.end();
+      itr != itr_end;
+      ++itr) {
+    const struct IoVecEx &header = *itr;
+    const struct IoVecEx &body = *(++itr);
+
+    AsyncRequest r;
+    r.type_ = AsyncRequest::kWebRequest;
+    r.web_request_.url_ = host_url;
+    r.web_request_.request_callback_ = callback;
+    r.web_request_.receive_header_ = receive_header;
+    r.web_request_.receive_body_ = receive_body;
+    r.web_request_.header_ = reinterpret_cast<char *>(header.iov_base);
+    r.web_request_.body_ = reinterpret_cast<uint8_t *>(body.iov_base);
+    r.web_request_.body_len_ = body.iov_len;
+    async_queue.push_back(r);
+  }
+  pthread_cond_signal(&async_queue_cond);
+  pthread_mutex_unlock(&async_queue_mutex);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
-// FunapiTransportImpl implementation.
+// FunapiTransportBase implementation.
 
-class FunapiTransportImpl {
+class FunapiTransportBase {
  public:
-  typedef FunapiTcpTransport::HeaderType HeaderType;
-  typedef FunapiTcpTransport::OnReceived OnReceived;
-  typedef FunapiTcpTransport::OnStopped OnStopped;
+  typedef FunapiTransport::OnReceived OnReceived;
+  typedef FunapiTransport::OnStopped OnStopped;
 
-  FunapiTransportImpl(FunapiTransportType type,
-                      const string &hostname_or_ip, uint16_t port);
-  ~FunapiTransportImpl();
+  FunapiTransportBase(FunapiTransportType type);
+  virtual ~FunapiTransportBase();
 
   void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
-  void Start();
-  void Stop();
-  void SendMessage(rapidjson::Document &message);
-  bool Started() const;
 
  private:
-  enum FunapiTransportState {
-    kDisconnected = 0,
-    kConnecting,
-    kConnected,
-  };
-
-  static void StartCbWrapper(int rc, void *arg);
-  static void SendBytesCbWrapper(ssize_t rc, void *arg);
-  static void ReceiveBytesCbWrapper(ssize_t nRead, void *arg);
-
-  void StartCb(int rc);
-  void SendBytesCb(ssize_t rc);
-  void ReceiveBytesCb(ssize_t nRead);
-  void SendMessage();
+  virtual void SendMessage() = 0;
 
   bool TryToDecodeHeader();
   bool TryToDecodeBody();
+
+ protected:
+  typedef map<string, string> HeaderFields;
+
+  void Init();
+  bool EncodeMessage();
+  bool DecodeMessage(int nRead);
 
   // Registered event handlers.
   OnReceived on_received_;
@@ -482,55 +584,19 @@ class FunapiTransportImpl {
   mutable pthread_mutex_t mutex_;
   FunapiTransportType type_;
   FunapiTransportState state_;
-  Endpoint endpoint_;
-  Endpoint recv_endpoint_;
-  int sock_;
   IoVecList sending_;
   IoVecList pending_;
   struct iovec receiving_;
   bool header_decoded_;
   int received_size_;
   int next_decoding_offset_;
-  typedef map<string, string> HeaderFields;
   HeaderFields header_fields_;
 };
 
 
-FunapiTransportImpl::FunapiTransportImpl(FunapiTransportType type,
-                                         const string &hostname_or_ip,
-                                         uint16_t port)
-    : type_(type), state_(kDisconnected), sock_(-1), header_decoded_(false),
+FunapiTransportBase::FunapiTransportBase(FunapiTransportType type)
+    : type_(type), state_(kDisconnected), header_decoded_(false),
       received_size_(0), next_decoding_offset_(0) {
-  pthread_mutex_init(&mutex_, NULL);
-
-  struct hostent *entry = gethostbyname(hostname_or_ip.c_str());
-  if (entry == NULL)
-  {
-    LOG("Failed to get a host entry.");
-    assert(false);
-  }
-
-  struct in_addr **l = reinterpret_cast<struct in_addr **>(entry->h_addr_list);
-  if (l == NULL || l[0] == NULL)
-  {
-    LOG("Failed to convert to in_addr.");
-    assert(false);
-  }
-
-  if (type == kTcp) {
-    endpoint_.sin_family = AF_INET;
-    endpoint_.sin_addr = *l[0];
-    endpoint_.sin_port = htons(port);
-  } else if (type == kUdp) {
-    endpoint_.sin_family = AF_INET;
-    endpoint_.sin_addr = *l[0];
-    endpoint_.sin_port = htons(port);
-
-    recv_endpoint_.sin_family = AF_INET;
-    recv_endpoint_.sin_addr.s_addr = htonl(INADDR_ANY);
-    recv_endpoint_.sin_port = htons(port);
-  }
-
   receiving_.iov_len = kUnitBufferSize;
   receiving_.iov_base =
       new uint8_t[receiving_.iov_len + kUnitBufferPaddingSize];
@@ -538,7 +604,7 @@ FunapiTransportImpl::FunapiTransportImpl(FunapiTransportType type,
 }
 
 
-FunapiTransportImpl::~FunapiTransportImpl() {
+FunapiTransportBase::~FunapiTransportBase() {
   header_fields_.clear();
 
   IoVecList::iterator itr, itr_end;
@@ -566,7 +632,7 @@ FunapiTransportImpl::~FunapiTransportImpl() {
 }
 
 
-void FunapiTransportImpl::RegisterEventHandlers(
+void FunapiTransportBase::RegisterEventHandlers(
     const OnReceived &on_received, const OnStopped &on_stopped) {
   pthread_mutex_lock(&mutex_);
   on_received_ = on_received;
@@ -575,9 +641,7 @@ void FunapiTransportImpl::RegisterEventHandlers(
 }
 
 
-void FunapiTransportImpl::Start() {
-  pthread_mutex_lock(&mutex_);
-
+void FunapiTransportBase::Init() {
   // Resets states.
   header_decoded_ = false;
   received_size_ = 0;
@@ -589,6 +653,294 @@ void FunapiTransportImpl::Start() {
     delete [] reinterpret_cast<uint8_t *>(itr->iov_base);
   }
   sending_.clear();
+}
+
+
+bool FunapiTransportBase::EncryptMessage() {
+  assert(not sending_.empty());
+
+  for (IoVecList::iterator itr = sending_.begin(), itr_end = sending_.end();
+      itr != itr_end;
+      ++itr) {
+    struct IoVecEx &body_as_bytes = *itr;
+
+    char header[1024];
+    size_t offset = 0;
+    if (type_ == kTcp || type_ == kUdp) {
+      offset += snprintf(header + offset, sizeof(header) - offset, "%s%s%d%s",
+                         kVersionHeaderField, kHeaderFieldDelimeter,
+                         kCurrentFunapiProtocolVersion, kHeaderDelimeter);
+      offset += snprintf(header + offset, sizeof(header)- offset, "%s%s%lu%s",
+                         kLengthHeaderField, kHeaderFieldDelimeter,
+                         body_as_bytes.iov_len, kHeaderDelimeter);
+      offset += snprintf(header + offset, sizeof(header)- offset, "%s",
+                          kHeaderDelimeter);
+    }
+
+    char *b = reinterpret_cast<char *>(body_as_bytes.iov_base);
+    b[body_as_bytes.iov_len] = '\0';
+    header[offset] = '\0';
+    LOG("Header to send: " << header);
+    LOG("JSON to send: " << b);
+
+    if (type_ == kTcp || type_ == kHttp) {
+      struct IoVecEx header_as_bytes;
+      header_as_bytes.iov_len = offset;
+      // LOG 출력을 위하여 null 문자를 위한 + 1
+      header_as_bytes.iov_base = new uint8_t[header_as_bytes.iov_len + 1];
+      memcpy(header_as_bytes.iov_base,
+             header,
+             header_as_bytes.iov_len + 1);
+
+      sending_.insert(itr, header_as_bytes);
+    } else if (type_ == kUdp) {
+      uint8_t* bytes = new uint8_t[offset + body_as_bytes.iov_len];
+      memcpy(bytes, header, offset);
+      memcpy(&bytes[offset], body_as_bytes.iov_base, body_as_bytes.iov_len);
+      delete [] reinterpret_cast<uint8_t *>(body_as_bytes.iov_base);
+      body_as_bytes.iov_base = bytes;
+      body_as_bytes.iov_len = offset + body_as_bytes.iov_len;
+    }
+  }
+
+  return true;
+}
+
+
+bool FunapiTransportBase::DecodeMessage(int nRead) {
+  if (nRead <= 0) {
+    if (nRead < 0) {
+      LOG("receive failed: " << strerror(errno));
+    } else {
+      if (received_size_ > next_decoding_offset_) {
+        LOG("Buffer has " << (received_size_ - next_decoding_offset_) \
+            << "bytes. But they failed to decode. Discarding.");
+      }
+    }
+    return false;
+  }
+
+  LOG("Received " << nRead << "bytes. " \
+      << "Buffer has " << (received_size_ - next_decoding_offset_) << "bytes.");
+  pthread_mutex_lock(&mutex_);
+  received_size_ += nRead;
+
+  // Tries to decode as many messags as possible.
+  while (true) {
+    if (header_decoded_ == false) {
+      if (TryToDecodeHeader() == false) {
+        break;
+      }
+    }
+    if (header_decoded_) {
+      if (TryToDecodeBody() == false) {
+        break;
+      }
+    }
+  }
+
+  // Checks buvffer space before starting another async receive.
+  if (receiving_.iov_len - received_size_ == 0) {
+    // If there are space can be collected, compact it first.
+    // Otherwise, increase the receiving buffer size.
+    if (next_decoding_offset_ > 0) {
+      LOG("Compacting a receive buffer to save " \
+          << next_decoding_offset_ << "bytes.");
+      uint8_t *base = reinterpret_cast<uint8_t *>(receiving_.iov_base);
+      memmove(base, base + next_decoding_offset_,
+              received_size_ - next_decoding_offset_);
+      received_size_ -= next_decoding_offset_;
+      next_decoding_offset_ = 0;
+    } else {
+      size_t new_size = receiving_.iov_len + kUnitBufferSize;
+      LOG("Resizing a buffer to " << new_size << "bytes.");
+      uint8_t *new_buffer = new uint8_t[new_size + kUnitBufferPaddingSize];
+      memmove(new_buffer, receiving_.iov_base, received_size_);
+      delete [] reinterpret_cast<uint8_t *>(receiving_.iov_base);
+      receiving_.iov_base = new_buffer;
+      receiving_.iov_len = new_size;
+    }
+  }
+  pthread_mutex_unlock(&mutex_);
+  return true;
+}
+
+
+// The caller must lock mutex_ before call this function.
+bool FunapiTransportBase::TryToDecodeHeader() {
+  LOG("Trying to decode header fields.");
+  for (; next_decoding_offset_ < received_size_; ) {
+    char *base = reinterpret_cast<char *>(receiving_.iov_base);
+    char *ptr =
+        std::search(base + next_decoding_offset_,
+                    base + received_size_,
+                    kHeaderDelimeter,
+                    kHeaderDelimeter + sizeof(kHeaderDelimeter) - 1);
+
+    ssize_t eol_offset = ptr - base;
+    if (eol_offset >= received_size_) {
+      // Not enough bytes. Wait for more bytes to come.
+      LOG("We need more bytes for a header field. Waiting.");
+      return false;
+    }
+
+    // Generates a null-termianted string by replacing the delimeter with \0.
+    *ptr = '\0';
+    char *line = base + next_decoding_offset_;
+    LOG("Header line: " << line);
+
+    ssize_t line_length = eol_offset - next_decoding_offset_;
+    next_decoding_offset_ = eol_offset + 1;
+
+    if (line_length == 0) {
+      // End of header.
+      header_decoded_ = true;
+      LOG("End of header reached. Will decode body from now.");
+      return true;
+    }
+
+    ptr = std::search(
+        line, line + line_length, kHeaderFieldDelimeter,
+        kHeaderFieldDelimeter + sizeof(kHeaderFieldDelimeter) - 1);
+    assert((ptr - base) < eol_offset);
+
+    // Generates null-terminated string by replacing the delimeter with \0.
+    *ptr = '\0';
+    char *e1 = line, *e2 = ptr + 1;
+    while (*e2 == ' ' || *e2 == '\t') ++e2;
+    LOG("Decoded header field '" << e1 << "' => '" << e2 << "'");
+    header_fields_[e1] = e2;
+  }
+  return false;
+}
+
+
+// The caller must lock mutex_ before call this function.
+bool FunapiTransportBase::TryToDecodeBody() {
+  // version header 읽기
+  HeaderFields::const_iterator it = header_fields_.find(kVersionHeaderField);
+  assert(it != header_fields_.end());
+  int version = atoi(it->second.c_str());
+  assert(version == kCurrentFunapiProtocolVersion);
+
+  // length header 읽기
+  it = header_fields_.find(kLengthHeaderField);
+  int body_length = atoi(it->second.c_str());
+  LOG("We need " << body_length << "bytes for a message body. " \
+      << "Buffer has " << (received_size_ - next_decoding_offset_) << "bytes.");
+
+  if (received_size_ - next_decoding_offset_ < body_length) {
+    // Need more bytes.
+    LOG("We need more bytes for a message body. Waiting.");
+    return false;
+  }
+
+  if (body_length > 0) {
+    assert(state_ == kConnected);
+
+    if (state_ != kConnected) {
+      LOG("unexpected message");
+      return false;
+    }
+
+    char *base = reinterpret_cast<char *>(receiving_.iov_base);
+
+    // Generates a null-termianted string for convenience.
+    char tmp = base[next_decoding_offset_ + body_length];
+    base[next_decoding_offset_ + body_length] = '\0';
+
+    // Parses the given json string.
+    rapidjson::Document json;
+    json.Parse<0>(base + next_decoding_offset_);
+    assert(json.IsObject());
+    base[next_decoding_offset_ + body_length] = tmp;
+
+    // Moves the read offset.
+    next_decoding_offset_ += body_length;
+
+    // Parsed JSON message should have reserved fields.
+    // The network module eats the fields and invokes registered handler
+    // with a remaining JSON body.
+    LOG("Invoking a receive handler.");
+    on_received_(header_fields_, json);
+  }
+
+  // Prepares for a next message.
+  header_decoded_ = false;
+  header_fields_.clear();
+  return true;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// FunapiTransportImpl implementation.
+
+class FunapiTransportImpl : public FunapiTransportBase {
+ public:
+  FunapiTransportImpl(FunapiTransportType type,
+                      const string &hostname_or_ip, uint16_t port);
+  virtual ~FunapiTransportImpl();
+
+  void Start();
+  void Stop();
+  void SendMessage(rapidjson::Document &message);
+  bool Started() const;
+
+ private:
+  static void StartCbWrapper(int rc, void *arg);
+  static void SendBytesCbWrapper(ssize_t rc, void *arg);
+  static void ReceiveBytesCbWrapper(ssize_t nRead, void *arg);
+
+  void StartCb(int rc);
+  void SendBytesCb(ssize_t rc);
+  void ReceiveBytesCb(ssize_t nRead);
+
+  virtual void SendMessage();
+
+  // State-related.
+  Endpoint endpoint_;
+  Endpoint recv_endpoint_;
+  int sock_;
+};
+
+
+FunapiTransportImpl::FunapiTransportImpl(FunapiTransportType type,
+                                         const string &hostname_or_ip,
+                                         uint16_t port)
+    : FunapiTransportBase(type), sock_(-1) {
+  pthread_mutex_init(&mutex_, NULL);
+
+  struct hostent *entry = gethostbyname(hostname_or_ip.c_str());
+  assert(entry);
+
+  struct in_addr **l = reinterpret_cast<struct in_addr **>(entry->h_addr_list);
+  assert(l);
+  assert(l[0]);
+
+  if (type == kTcp) {
+    endpoint_.sin_family = AF_INET;
+    endpoint_.sin_addr = *l[0];
+    endpoint_.sin_port = htons(port);
+  } else if (type == kUdp) {
+    endpoint_.sin_family = AF_INET;
+    endpoint_.sin_addr = *l[0];
+    endpoint_.sin_port = htons(port);
+
+    recv_endpoint_.sin_family = AF_INET;
+    recv_endpoint_.sin_addr.s_addr = htonl(INADDR_ANY);
+    recv_endpoint_.sin_port = htons(port);
+  }
+}
+
+
+FunapiTransportImpl::~FunapiTransportImpl() {
+}
+
+
+void FunapiTransportImpl::Start() {
+  pthread_mutex_lock(&mutex_);
+  Init();
 
   // Initiates a new socket.
   if (type_ == kTcp) {
@@ -610,7 +962,6 @@ void FunapiTransportImpl::Start() {
                      AsyncReceiveCallback(&FunapiTransportImpl::ReceiveBytesCbWrapper,
                      (void *)this));
   }
-
   pthread_mutex_unlock(&mutex_);
 }
 
@@ -632,10 +983,10 @@ void FunapiTransportImpl::SendMessage(rapidjson::Document &message) {
   message.Accept(writer);
   const char *body = string_buffer.GetString();
 
-  iovec body_as_bytes;
+  IoVecEx body_as_bytes;
   body_as_bytes.iov_len = strlen(body);
 
-  // LOG 출력을 하기 위하여 null 문자를 위한 + 1
+  // SendMessage() 에서 LOG 출력을 하기 위하여 null 문자를 위한 + 1
   body_as_bytes.iov_base = new uint8_t[body_as_bytes.iov_len + 1];
   memcpy(body_as_bytes.iov_base, body, body_as_bytes.iov_len);
 
@@ -723,9 +1074,8 @@ void FunapiTransportImpl::SendBytesCb(ssize_t nSent) {
 
   bool sendable = false;
 
-  pthread_mutex_lock(&mutex_);
-
   // Now releases memory that we have been holding for transmission.
+  pthread_mutex_lock(&mutex_);
   assert(not sending_.empty());
 
   IoVecList::iterator itr = sending_.begin();
@@ -735,14 +1085,13 @@ void FunapiTransportImpl::SendBytesCb(ssize_t nSent) {
   if (sending_.size() > 0) {
     if (type_ == kUdp) {
       AsyncSendTo(sock_, endpoint_, sending_,
-                  AsyncSendCallback(&FunapiTransportImpl::SendBytesCbWrapper,
-                  (void *) this));
+          AsyncSendCallback(&FunapiTransportImpl::SendBytesCbWrapper,
+          (void *) this));
     }
   } else if (pending_.size() > 0) {
     sending_.swap(pending_);
     sendable = true;
   }
-
   pthread_mutex_unlock(&mutex_);
 
   if (sendable)
@@ -751,63 +1100,17 @@ void FunapiTransportImpl::SendBytesCb(ssize_t nSent) {
 
 
 void FunapiTransportImpl::ReceiveBytesCb(ssize_t nRead) {
-  if (nRead <= 0) {
-    if (nRead < 0) {
-      LOG("receive failed: " << strerror(errno));
-    } else {
+  if (!DecodeMessage(nRead)) {
+    if (nRead == 0)
       LOG("Socket [" << sock_ << "] closed.");
-      if (received_size_ > next_decoding_offset_) {
-        LOG("Buffer has " << (received_size_ - next_decoding_offset_) \
-            << "bytes. But they failed to decode. Discarding.");
-      }
-    }
+
     Stop();
     on_stopped_();
     return;
   }
 
-  LOG("Received " << nRead << "bytes. " \
-      << "Buffer has " << (received_size_ - next_decoding_offset_) << "bytes.");
-  pthread_mutex_lock(&mutex_);
-  received_size_ += nRead;
-
-  // Tries to decode as many messags as possible.
-  while (true) {
-    if (header_decoded_ == false) {
-      if (TryToDecodeHeader() == false) {
-        break;
-      }
-    }
-    if (header_decoded_) {
-      if (TryToDecodeBody() == false) {
-        break;
-      }
-    }
-  }
-
-  // Checks buvffer space before starting another async receive.
-  if (receiving_.iov_len - received_size_ == 0) {
-    // If there are space can be collected, compact it first.
-    // Otherwise, increase the receiving buffer size.
-    if (next_decoding_offset_ > 0) {
-      LOG("Compacting a receive buffer to save " \
-          << next_decoding_offset_ << "bytes.");
-      uint8_t *base = reinterpret_cast<uint8_t *>(receiving_.iov_base);
-      memmove(base, base + next_decoding_offset_,
-              received_size_ - next_decoding_offset_);
-      received_size_ -= next_decoding_offset_;
-      next_decoding_offset_ = 0;
-    } else {
-      size_t new_size = receiving_.iov_len + kUnitBufferSize;
-      LOG("Resizing a buffer to " << new_size << "bytes.");
-      uint8_t *new_buffer = new uint8_t[new_size + kUnitBufferPaddingSize];
-      memmove(new_buffer, receiving_.iov_base, received_size_);
-      receiving_.iov_base = new_buffer;
-      receiving_.iov_len = new_size;
-    }
-  }
-
   // Starts another async receive.
+  pthread_mutex_lock(&mutex_);
   struct iovec residual;
   residual.iov_len = receiving_.iov_len - received_size_;
   residual.iov_base =
@@ -817,61 +1120,22 @@ void FunapiTransportImpl::ReceiveBytesCb(ssize_t nRead) {
                  AsyncReceiveCallback(&FunapiTransportImpl::ReceiveBytesCbWrapper,
                  (void *) this));
   } else if (type_ == kUdp) {
-    AsyncReceiveFrom(sock_, recv_endpoint_, receiving_,
+    AsyncReceiveFrom(sock_, recv_endpoint_, residual,
                      AsyncReceiveCallback(&FunapiTransportImpl::ReceiveBytesCbWrapper,
                      (void *)this));
   }
   LOG("Ready to receive more. We can receive upto " \
       << (receiving_.iov_len - received_size_) << " more bytes.");
-
   pthread_mutex_unlock(&mutex_);
 }
 
 
 void FunapiTransportImpl::SendMessage() {
   assert(state_ == kConnected);
-  assert(not sending_.empty());
 
-  for (IoVecList::iterator itr = sending_.begin(), itr_end = sending_.end();
-      itr != itr_end;
-      ++itr) {
-    struct iovec &body_as_bytes = *itr;
-
-    char header[8192];
-    size_t offset = 0;
-    offset += snprintf(header + offset, sizeof(header) - offset, "%s%s%d%s",
-                       kVersionHeaderField, kHeaderFieldDelimeter,
-                       kCurrentFunapiProtocolVersion, kHeaderDelimeter);
-    offset += snprintf(header + offset, sizeof(header)- offset, "%s%s%lu%s",
-                       kLengthHeaderField, kHeaderFieldDelimeter,
-                       body_as_bytes.iov_len, kHeaderDelimeter);
-    offset += snprintf(header + offset, sizeof(header)- offset, "%s",
-                        kHeaderDelimeter);
-
-    char *b = reinterpret_cast<char *>(body_as_bytes.iov_base);
-    b[body_as_bytes.iov_len] = '\0';
-    header[offset] = '\0';
-    LOG("Header to send: " << header);
-    LOG("JSON to send: " << b);
-
-    if (type_ == kTcp) {
-      struct iovec header_as_bytes;
-      header_as_bytes.iov_len = offset;
-      // LOG 출력을 위하여 null 문자를 위한 + 1
-      header_as_bytes.iov_base = new uint8_t[header_as_bytes.iov_len + 1];
-      memcpy(header_as_bytes.iov_base,
-             header,
-             header_as_bytes.iov_len);
-
-      sending_.insert(itr, header_as_bytes);
-    } else if (type_ == kUdp) {
-      uint8_t* bytes = new uint8_t[offset + body_as_bytes.iov_len];
-      memcpy(bytes, header, offset);
-      memcpy(&bytes[offset], body_as_bytes.iov_base, body_as_bytes.iov_len);
-      delete [] reinterpret_cast<uint8_t *>(body_as_bytes.iov_base);
-      body_as_bytes.iov_base = bytes;
-      body_as_bytes.iov_len = offset + body_as_bytes.iov_len;
-    }
+  if (!EncryptMessage()) {
+    Stop();
+    return;
   }
 
   assert(not sending_.empty());
@@ -887,108 +1151,232 @@ void FunapiTransportImpl::SendMessage() {
 }
 
 
-// The caller must lock mutex_ before call this function.
-bool FunapiTransportImpl::TryToDecodeHeader() {
-  LOG("Trying to decode header fields.");
-  for (; next_decoding_offset_ < received_size_; ) {
-    char *base = reinterpret_cast<char *>(receiving_.iov_base);
-    char *ptr =
-        std::search(base + next_decoding_offset_,
-                    base + received_size_,
-                    kHeaderDelimeter,
-                    kHeaderDelimeter + sizeof(kHeaderDelimeter) - 1);
 
-    ssize_t eol_offset = ptr - base;
-    if (eol_offset >= received_size_) {
-      // Not enough bytes. Wait for more bytes to come.
-      LOG("We need more bytes for a header field. Waiting.");
-      return false;
-    }
+////////////////////////////////////////////////////////////////////////////////
+// FunapiHttpTransportImpl implementation.
 
-    // Generates a null-termianted string by replacing the delimeter with \0.
-    *ptr = '\0';
-    char *line = base + next_decoding_offset_;
-    LOG("Header line: " << line);
+class FunapiHttpTransportImpl : public FunapiTransportBase {
+ public:
+  FunapiHttpTransportImpl(const string &hostname_or_ip, uint16_t port, bool https);
+  virtual ~FunapiHttpTransportImpl();
 
-    ssize_t line_length = eol_offset - next_decoding_offset_;
-    next_decoding_offset_ = eol_offset + 1;
+  void Start();
+  void Stop();
+  bool Started() const;
 
-    if (line_length == 0) {
-      // End of header.
-      header_decoded_ = true;
-      LOG("End of header reached. Will decode body from now.");
-      return true;
-    }
+  void SendMessage(rapidjson::Document &message);
 
-    ptr = std::search(
-        line, line + line_length, kHeaderFieldDelimeter,
-        kHeaderFieldDelimeter + sizeof(kHeaderFieldDelimeter) - 1);
-    assert((ptr - base) < eol_offset);
+ private:
+  static void WebRequestCbWrapper(int state, void *arg);
+  static void WebResponseHeaderCbWrapper(void *data, int len, void *arg);
+  static void WebResponseBodyCbWrapper(void *data, int len, void *arg);
 
-    // Generates null-terminated string by replacing the delimeter with \0.
-    *ptr = '\0';
-    char *e1 = line, *e2 = ptr + 1;
-    while (*e2 == ' ' || *e2 == '\t') ++e2;
-    LOG("Decoded header field '" << e1 << "' => '" << e2 << "'");
-    header_fields_[e1] = e2;
-  }
-  return false;
+  virtual void SendMessage();
+
+  void WebRequestCb(int state);
+  void WebResponseHeaderCb(void *data, int len);
+  void WebResponseBodyCb(void *data, int len);
+
+  string host_url_;
+  int recv_length_;
+};
+
+
+FunapiHttpTransportImpl::FunapiHttpTransportImpl(const string &hostname_or_ip,
+                                                 uint16_t port, bool https)
+    : FunapiTransportBase(kHttp), recv_length_(0) {
+  pthread_mutex_init(&mutex_, NULL);
+  char url[1024];
+  sprintf(url, "%s://%s:%d/v%d/",
+      https ? "https" : "http", hostname_or_ip.c_str(), port,
+      kCurrentFunapiProtocolVersion);
+  host_url_ = url;
+  LOG("Host url : " << host_url_);
+
+  if (!curl_initialized)
+    curl_global_init(CURL_GLOBAL_ALL);
 }
 
 
-// The caller must lock mutex_ before call this function.
-bool FunapiTransportImpl::TryToDecodeBody() {
-  // version header 읽기
-  HeaderFields::const_iterator it = header_fields_.find(kVersionHeaderField);
-  assert(it != header_fields_.end());
-  int version = atoi(it->second.c_str());
-  assert(version == kCurrentFunapiProtocolVersion);
+FunapiHttpTransportImpl::~FunapiHttpTransportImpl() {
+  if (curl_initialized) {
+    curl_global_cleanup();
+    curl_initialized = false;
+  }
+}
 
-  // length header 읽기
-  it = header_fields_.find(kLengthHeaderField);
-  int body_length = atoi(it->second.c_str());
-  LOG("We need " << body_length << "bytes for a message body. " \
-      << "Buffer has " << (received_size_ - next_decoding_offset_) << "bytes.");
 
-  if (received_size_ - next_decoding_offset_ < body_length) {
-    // Need more bytes.
-    LOG("We need more bytes for a message body. Waiting.");
-    return false;
+void FunapiHttpTransportImpl::Start() {
+  pthread_mutex_lock(&mutex_);
+  Init();
+  state_ = kConnected;
+  recv_length_ = 0;
+  LOG("Started.");
+  pthread_mutex_unlock(&mutex_);
+}
+
+
+void FunapiHttpTransportImpl::Stop() {
+  if (state_ == kDisconnected)
+    return;
+
+  pthread_mutex_lock(&mutex_);
+  state_ = kDisconnected;
+  LOG("Stopped.");
+
+  // TODO : clear list
+
+  on_stopped_();
+  pthread_mutex_unlock(&mutex_);
+}
+
+
+bool FunapiHttpTransportImpl::Started() const {
+  pthread_mutex_lock(&mutex_);
+  bool r = (state_ == kConnected);
+  pthread_mutex_unlock(&mutex_);
+  return r;
+}
+
+
+void FunapiHttpTransportImpl::SendMessage(rapidjson::Document &message) {
+  rapidjson::StringBuffer string_buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
+  message.Accept(writer);
+  const char *body = string_buffer.GetString();
+
+  IoVecEx body_as_bytes;
+  body_as_bytes.iov_len = strlen(body);
+
+  // SendMessage() 에서 LOG 출력을
+  // 하기 위하여 null 문자를 위한 + 1
+  body_as_bytes.iov_base = new uint8_t[body_as_bytes.iov_len + 1];
+  memcpy(body_as_bytes.iov_base, body, body_as_bytes.iov_len);
+
+  bool sendable = false;
+
+  pthread_mutex_lock(&mutex_);
+  pending_.push_back(body_as_bytes);
+  if (state_ == kConnected && sending_.size() == 0) {
+    sending_.swap(pending_);
+    sendable = true;
+  }
+  pthread_mutex_unlock(&mutex_);
+
+  if (sendable)
+    SendMessage();
+}
+
+
+void FunapiHttpTransportImpl::WebRequestCbWrapper(int state, void *arg) {
+  FunapiHttpTransportImpl *obj = reinterpret_cast<FunapiHttpTransportImpl *>(arg);
+  obj->WebRequestCb(state);
+}
+
+
+void FunapiHttpTransportImpl::WebResponseHeaderCbWrapper(void *data, int len, void *arg) {
+  FunapiHttpTransportImpl *obj = reinterpret_cast<FunapiHttpTransportImpl *>(arg);
+  obj->WebResponseHeaderCb(data, len);
+}
+
+
+void FunapiHttpTransportImpl::WebResponseBodyCbWrapper(void *data, int len, void *arg) {
+  FunapiHttpTransportImpl *obj = reinterpret_cast<FunapiHttpTransportImpl *>(arg);
+  obj->WebResponseBodyCb(data, len);
+}
+
+
+void FunapiHttpTransportImpl::SendMessage() {
+  assert(state_ == kConnected);
+  if (!EncryptMessage()) {
+    Stop();
+    return;
   }
 
-  if (body_length > 0) {
-    assert(state_ == kConnected);
+  assert(not sending_.empty());
 
-    if (state_ != kConnected) {
-      LOG("unexpected message");
-      return false;
+  AsyncWebRequest(host_url_.c_str(), sending_,
+      AsyncWebRequestCallback(&FunapiHttpTransportImpl::WebRequestCbWrapper, (void *) this),
+      AsyncWebResponseCallback(&FunapiHttpTransportImpl::WebResponseHeaderCbWrapper, (void *) this),
+      AsyncWebResponseCallback(&FunapiHttpTransportImpl::WebResponseBodyCbWrapper, (void *) this));
+}
+
+
+void FunapiHttpTransportImpl::WebRequestCb(int state) {
+  LOG("WebRequestCb called. state: " << state);
+  if (state == kWebRequestStart) {
+    recv_length_ = 0;
+    return;
+  } else if (state == kWebRequestEnd) {
+    pthread_mutex_lock(&mutex_);
+    assert(sending_.size() >= 2);
+
+    IoVecList::iterator itr = sending_.begin();
+    int index = 0;
+    while (itr != sending_.end() && index < 2) {
+      delete [] reinterpret_cast<uint8_t *>(itr->iov_base);
+      itr = sending_.erase(itr);
+      ++index;
     }
 
-    char *base = reinterpret_cast<char *>(receiving_.iov_base);
-    char tmp = base[next_decoding_offset_ + body_length];
-    base[next_decoding_offset_ + body_length] = '\0';
+    std::stringstream version;
+    version << kCurrentFunapiProtocolVersion;
+    header_fields_[kVersionHeaderField] = version.str();
+    std::stringstream length;
+    length << recv_length_;
+    header_fields_[kLengthHeaderField] = length.str();
+    header_decoded_ = true;
+    pthread_mutex_unlock(&mutex_);
 
-    // Parses the given json string.
-    rapidjson::Document json;
-    json.Parse<0>(base + next_decoding_offset_);
-    assert(json.IsObject());
-    base[next_decoding_offset_ + body_length] = tmp;
+    if (!DecodeMessage(recv_length_)) {
+      Stop();
+      on_stopped_();
+      return;
+    }
 
-    // Moves the read offset.
-    next_decoding_offset_ += body_length;
+    LOG("Ready to receive more. We can receive upto " \
+        << (receiving_.iov_len - received_size_) << " more bytes.");
+  }
+}
 
-    // Parsed JSON message should have reserved fields.
-    // The network module eats the fields and invokes registered handler
-    // with a remaining JSON body.
-    LOG("Invoking a receive handler.");
-    on_received_(header_fields_, json);
+
+void FunapiHttpTransportImpl::WebResponseHeaderCb(void *data, int len) {
+  char buf[1024];
+  memcpy(buf, data, len);
+  buf[len-2] = '\0';
+
+  char *ptr = std::search(buf, buf + len, kHeaderFieldDelimeter,
+      kHeaderFieldDelimeter + sizeof(kHeaderFieldDelimeter) - 1);
+  ssize_t eol_offset = ptr - buf;
+  if (eol_offset >= len)
+    return;
+
+  // Generates null-terminated string by replacing the delimeter with \0.
+  *ptr = '\0';
+  const char *e1 = buf, *e2 = ptr + 1;
+  while (*e2 == ' ' || *e2 == '\t') ++e2;
+  LOG("Decoded header field '" << e1 << "' => '" << e2 << "'");
+  header_fields_[e1] = e2;
+}
+
+
+void FunapiHttpTransportImpl::WebResponseBodyCb(void *data, int len) {
+  int offset = received_size_ + recv_length_;
+  if (offset + len >= receiving_.iov_len) {
+    size_t new_size = receiving_.iov_len + kUnitBufferSize;
+    LOG("Resizing a buffer to " << new_size << "bytes.");
+    uint8_t *new_buffer = new uint8_t[new_size + kUnitBufferPaddingSize];
+    memmove(new_buffer, receiving_.iov_base, offset);
+    delete [] reinterpret_cast<uint8_t *>(receiving_.iov_base);
+    receiving_.iov_base = new_buffer;
+    receiving_.iov_len = new_size;
   }
 
-  // Prepares for a next message.
-  header_decoded_ = false;
-  header_fields_.clear();
-  return true;
+  uint8_t *buf = reinterpret_cast<uint8_t*>(receiving_.iov_base);
+  memcpy(buf + offset, data, len);
+  recv_length_ += len;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1045,9 +1433,9 @@ FunapiNetworkImpl::FunapiNetworkImpl(FunapiTransport *transport,
       on_session_closed_(on_session_closed),
       session_id_(""), last_received_(0) {
   transport_->RegisterEventHandlers(
-      FunapiTcpTransport::OnReceived(
+      FunapiTransport::OnReceived(
           &FunapiNetworkImpl::OnTransportReceivedWrapper, (void *) this),
-      FunapiTcpTransport::OnStopped(
+      FunapiTransport::OnStopped(
           &FunapiNetworkImpl::OnTransportStoppedWrapper, (void *) this));
 }
 
@@ -1248,22 +1636,22 @@ FunapiTcpTransport::~FunapiTcpTransport() {
 
 void FunapiTcpTransport::RegisterEventHandlers(
     const OnReceived &on_received, const OnStopped &on_stopped) {
-  return impl_->RegisterEventHandlers(on_received, on_stopped);
+  impl_->RegisterEventHandlers(on_received, on_stopped);
 }
 
 
 void FunapiTcpTransport::Start() {
-  return impl_->Start();
+  impl_->Start();
 }
 
 
 void FunapiTcpTransport::Stop() {
-  return impl_->Stop();
+  impl_->Stop();
 }
 
 
 void FunapiTcpTransport::SendMessage(rapidjson::Document &message) {
-  return impl_->SendMessage(message);
+  impl_->SendMessage(message);
 }
 
 
@@ -1296,26 +1684,74 @@ FunapiUdpTransport::~FunapiUdpTransport() {
 
 void FunapiUdpTransport::RegisterEventHandlers(
     const OnReceived &on_received, const OnStopped &on_stopped) {
-  return impl_->RegisterEventHandlers(on_received, on_stopped);
+  impl_->RegisterEventHandlers(on_received, on_stopped);
 }
 
 
 void FunapiUdpTransport::Start() {
-  return impl_->Start();
+  impl_->Start();
 }
 
 
 void FunapiUdpTransport::Stop() {
-  return impl_->Stop();
+  impl_->Stop();
 }
 
 
 void FunapiUdpTransport::SendMessage(rapidjson::Document &message) {
-  return impl_->SendMessage(message);
+  impl_->SendMessage(message);
 }
 
 
 bool FunapiUdpTransport::Started() const {
+  return impl_->Started();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// FunapiHttpTransport implementation.
+
+FunapiHttpTransport::FunapiHttpTransport(
+    const string &hostname_or_ip, uint16_t port, bool https /*= false*/)
+    : impl_(new FunapiHttpTransportImpl(hostname_or_ip, port, https)) {
+  if (not initialized) {
+    LOG("You should call FunapiNetwork::Initialize() first.");
+    assert(initialized);
+  }
+}
+
+
+FunapiHttpTransport::~FunapiHttpTransport() {
+  if (impl_) {
+    delete impl_;
+    impl_ = NULL;
+  }
+}
+
+
+void FunapiHttpTransport::RegisterEventHandlers(
+    const OnReceived &on_received, const OnStopped &on_stopped) {
+  impl_->RegisterEventHandlers(on_received, on_stopped);
+}
+
+
+void FunapiHttpTransport::Start() {
+  impl_->Start();
+}
+
+
+void FunapiHttpTransport::Stop() {
+  impl_->Stop();
+}
+
+
+void FunapiHttpTransport::SendMessage(rapidjson::Document &message) {
+  impl_->SendMessage(message);
+}
+
+
+bool FunapiHttpTransport::Started() const {
   return impl_->Started();
 }
 
