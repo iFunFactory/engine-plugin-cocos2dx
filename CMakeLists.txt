@@ -35,7 +35,16 @@ endfunction ()
 # Checks if everything is ready.
 CheckRequirements()
 
+find_program(PROTOBUF_PROTOC_EXECUTABLE NAMES protoc)
+if (NOT PROTOBUF_PROTOC_EXECUTABLE)
+  message(FATAL_ERROR "Protoc is required.")
+endif ()
+
+find_path(PROTOBUF_INCLUDE_DIR google/protobuf/message.h)
+include_directories(${PROTOBUF_INCLUDE_DIR})
+
 find_library(libcurl4-openssl-dev libcurl.so)
+find_library(libprotobuf libprotobuf.so)
 
 
 

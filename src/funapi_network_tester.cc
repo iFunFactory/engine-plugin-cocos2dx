@@ -13,6 +13,7 @@
 #include "rapidjson/stringbuffer.h"
 
 #include "./funapi_network.h"
+#include "./pbuf_echo.pb.h"
 
 const char kServerIp[] = "127.0.0.1";
 
@@ -27,20 +28,16 @@ void on_session_closed(void *ctxt) {
 }
 
 
-void on_echo(
-    const std::string &msg_type, const rapidjson::Document &body, void *ctxt) {
+void on_echo_json(const std::string &msg_type, const std::string &body, void *ctxt) {
   std::cout << "msg '" << msg_type << "' arrived." << std::endl;
-
-  rapidjson::StringBuffer string_buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
-  body.Accept(writer);
-  std::cout << "json: " << string_buffer.GetString() << std::endl;
+  std::cout << "json: " << body << std::endl;
 }
 
 
 int main(int argc, char **argv) {
   fun::FunapiNetwork::Initialize(3600);
   fun::FunapiNetwork *network = NULL;
+  int msg_type = fun::kJsonEncoding;
 
   while (true) {
     std::cout << "** Select number" << std::endl;
@@ -63,6 +60,28 @@ int main(int argc, char **argv) {
         continue;
       }
 
+      while (true) {
+        std::cout << "** Select encoding" << std::endl;
+        std::cout << "1. Json" << std::endl;
+        std::cout << "2. Protobuf" << std::endl;
+        std::string input2;
+        std::getline(std::cin, input2);
+        if (input2.empty()) {
+          std::cout << "EOF reached. Quitting." << std::endl;
+          break;
+        }
+
+        if (input2 == "1")
+          msg_type = fun::kJsonEncoding;
+        else if (input2 == "2")
+          msg_type = fun::kProtobufEncoding;
+        else {
+          std::cout << "Select one of Json or Protobuf" << std::endl;
+          continue;
+        }
+        break;
+      }
+
       fun::FunapiTransport *transport = NULL;
       if (input == "1") {
         transport = new fun::FunapiTcpTransport(kServerIp, 8012);
@@ -72,10 +91,10 @@ int main(int argc, char **argv) {
         transport = new fun::FunapiHttpTransport(kServerIp, 8018);
       }
 
-      network = new fun::FunapiNetwork(transport,
+      network = new fun::FunapiNetwork(transport, msg_type,
           fun::FunapiNetwork::OnSessionInitiated(on_session_initiated, NULL),
           fun::FunapiNetwork::OnSessionClosed(on_session_closed, NULL));
-      network->RegisterHandler("echo", fun::FunapiNetwork::MessageHandler(on_echo, NULL));
+      network->RegisterHandler("echo", fun::FunapiNetwork::MessageHandler(on_echo_json, NULL));
 
       network->Start();
       // network->Start() works asynchronously.
@@ -105,12 +124,20 @@ int main(int argc, char **argv) {
       if (network->Started() == false) {
         std::cout << "You should connect first." << std::endl;
       } else {
-        rapidjson::Document msg;
-        msg.SetObject();
-        rapidjson::Value message_node("hello world", msg.GetAllocator());
-        msg.AddMember("message", message_node, msg.GetAllocator());
-        network->SendMessage("echo", msg);
-      }
+        if (msg_type == fun::kJsonEncoding) {
+          rapidjson::Document msg;
+          msg.SetObject();
+          rapidjson::Value message_node("hello world", msg.GetAllocator());
+          msg.AddMember("message", message_node, msg.GetAllocator());
+          network->SendMessage("echo", msg, encryption);
+        } else if (msg_type == fun::kProtobufEncoding) {
+          FunMessage example;
+          example.set_msgtype("pbuf_echo");
+          PbufEchoMessage *echo = example.MutableExtension(pbuf_echo);
+          echo->set_message("hello proto");
+          network->SendMessage(example, encryption);
+        }
+     }
     } else {
       std::cout << "Select one of connect, disconnect, or echo" << std::endl;
     }

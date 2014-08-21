@@ -28,7 +28,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include ".//funapi_network.h"
+#include "./funapi_network.h"
 
 
 namespace fun {
@@ -63,7 +63,7 @@ enum FunapiTransportState {
 
 enum WebRequestState {
   kWebRequestStart = 0,
-  kWebRequestEnd
+  kWebRequestEnd,
 };
 
 
@@ -563,6 +563,12 @@ class FunapiTransportBase {
 
   void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
 
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+
+ protected:
+  void SendMessage(const char *body);
+
  private:
   virtual void SendMessage() = 0;
 
@@ -656,7 +662,7 @@ void FunapiTransportBase::Init() {
 }
 
 
-bool FunapiTransportBase::EncryptMessage() {
+bool FunapiTransportBase::EncodeMessage() {
   assert(not sending_.empty());
 
   for (IoVecList::iterator itr = sending_.begin(), itr_end = sending_.end();
@@ -766,6 +772,44 @@ bool FunapiTransportBase::DecodeMessage(int nRead) {
 }
 
 
+void FunapiTransportBase::SendMessage(rapidjson::Document &message) {
+  rapidjson::StringBuffer string_buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
+  message.Accept(writer);
+
+  SendMessage(string_buffer.GetString());
+}
+
+
+void FunapiTransportBase::SendMessage(FunMessage &message) {
+  string body = message.SerializeAsString();
+  SendMessage(body.c_str());
+}
+
+
+void FunapiTransportBase::SendMessage(const char *body) {
+  IoVecEx body_as_bytes;
+  body_as_bytes.iov_len = strlen(body);
+
+  // SendMessage() 에서 LOG 출력을 하기 위하여 null 문자를 위한 + 1
+  body_as_bytes.iov_base = new uint8_t[body_as_bytes.iov_len + 1];
+  memcpy(body_as_bytes.iov_base, body, body_as_bytes.iov_len);
+
+  bool sendable = false;
+
+  pthread_mutex_lock(&mutex_);
+  pending_.push_back(body_as_bytes);
+  if (state_ == kConnected && sending_.size() == 0) {
+    sending_.swap(pending_);
+    sendable = true;
+  }
+  pthread_mutex_unlock(&mutex_);
+
+  if (sendable)
+    SendMessage();
+}
+
+
 // The caller must lock mutex_ before call this function.
 bool FunapiTransportBase::TryToDecodeHeader() {
   LOG("Trying to decode header fields.");
@@ -849,20 +893,16 @@ bool FunapiTransportBase::TryToDecodeBody() {
     char tmp = base[next_decoding_offset_ + body_length];
     base[next_decoding_offset_ + body_length] = '\0';
 
-    // Parses the given json string.
-    rapidjson::Document json;
-    json.Parse<0>(base + next_decoding_offset_);
-    assert(json.IsObject());
+    string buffer;
+    buffer.assign(base + next_decoding_offset_);
     base[next_decoding_offset_ + body_length] = tmp;
 
     // Moves the read offset.
     next_decoding_offset_ += body_length;
 
-    // Parsed JSON message should have reserved fields.
     // The network module eats the fields and invokes registered handler
-    // with a remaining JSON body.
     LOG("Invoking a receive handler.");
-    on_received_(header_fields_, json);
+    on_received_(header_fields_, buffer);
   }
 
   // Prepares for a next message.
@@ -884,7 +924,6 @@ class FunapiTransportImpl : public FunapiTransportBase {
 
   void Start();
   void Stop();
-  void SendMessage(rapidjson::Document &message);
   bool Started() const;
 
  private:
@@ -974,34 +1013,6 @@ void FunapiTransportImpl::Stop() {
     sock_ = -1;
   }
   pthread_mutex_unlock(&mutex_);
-}
-
-
-void FunapiTransportImpl::SendMessage(rapidjson::Document &message) {
-  rapidjson::StringBuffer string_buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
-  message.Accept(writer);
-  const char *body = string_buffer.GetString();
-
-  IoVecEx body_as_bytes;
-  body_as_bytes.iov_len = strlen(body);
-
-  // SendMessage() 에서 LOG 출력을 하기 위하여 null 문자를 위한 + 1
-  body_as_bytes.iov_base = new uint8_t[body_as_bytes.iov_len + 1];
-  memcpy(body_as_bytes.iov_base, body, body_as_bytes.iov_len);
-
-  bool sendable = false;
-
-  pthread_mutex_lock(&mutex_);
-  pending_.push_back(body_as_bytes);
-  if (state_ == kConnected && sending_.size() == 0) {
-    sending_.swap(pending_);
-    sendable = true;
-  }
-  pthread_mutex_unlock(&mutex_);
-
-  if (sendable)
-    SendMessage();
 }
 
 
@@ -1133,7 +1144,7 @@ void FunapiTransportImpl::ReceiveBytesCb(ssize_t nRead) {
 void FunapiTransportImpl::SendMessage() {
   assert(state_ == kConnected);
 
-  if (!EncryptMessage()) {
+  if (!EncodeMessage()) {
     Stop();
     return;
   }
@@ -1163,8 +1174,6 @@ class FunapiHttpTransportImpl : public FunapiTransportBase {
   void Start();
   void Stop();
   bool Started() const;
-
-  void SendMessage(rapidjson::Document &message);
 
  private:
   static void WebRequestCbWrapper(int state, void *arg);
@@ -1239,35 +1248,6 @@ bool FunapiHttpTransportImpl::Started() const {
 }
 
 
-void FunapiHttpTransportImpl::SendMessage(rapidjson::Document &message) {
-  rapidjson::StringBuffer string_buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
-  message.Accept(writer);
-  const char *body = string_buffer.GetString();
-
-  IoVecEx body_as_bytes;
-  body_as_bytes.iov_len = strlen(body);
-
-  // SendMessage() 에서 LOG 출력을
-  // 하기 위하여 null 문자를 위한 + 1
-  body_as_bytes.iov_base = new uint8_t[body_as_bytes.iov_len + 1];
-  memcpy(body_as_bytes.iov_base, body, body_as_bytes.iov_len);
-
-  bool sendable = false;
-
-  pthread_mutex_lock(&mutex_);
-  pending_.push_back(body_as_bytes);
-  if (state_ == kConnected && sending_.size() == 0) {
-    sending_.swap(pending_);
-    sendable = true;
-  }
-  pthread_mutex_unlock(&mutex_);
-
-  if (sendable)
-    SendMessage();
-}
-
-
 void FunapiHttpTransportImpl::WebRequestCbWrapper(int state, void *arg) {
   FunapiHttpTransportImpl *obj = reinterpret_cast<FunapiHttpTransportImpl *>(arg);
   obj->WebRequestCb(state);
@@ -1288,7 +1268,7 @@ void FunapiHttpTransportImpl::WebResponseBodyCbWrapper(void *data, int len, void
 
 void FunapiHttpTransportImpl::SendMessage() {
   assert(state_ == kConnected);
-  if (!EncryptMessage()) {
+  if (!EncodeMessage()) {
     Stop();
     return;
   }
@@ -1389,7 +1369,7 @@ class FunapiNetworkImpl {
   typedef FunapiNetwork::OnSessionInitiated OnSessionInitiated;
   typedef FunapiNetwork::OnSessionClosed OnSessionClosed;
 
-  FunapiNetworkImpl(FunapiTransport *transport,
+  FunapiNetworkImpl(FunapiTransport *transport, int type,
                     OnSessionInitiated on_session_initiated,
                     OnSessionClosed on_session_closed);
 
@@ -1399,21 +1379,23 @@ class FunapiNetworkImpl {
   void Start();
   void Stop();
   void SendMessage(const string &msg_type, rapidjson::Document &body);
+  void SendMessage(FunMessage& message);
   bool Started() const;
   bool Connected() const;
 
  private:
-  static void OnTransportReceivedWrapper(const HeaderType &header, rapidjson::Document &body, void *arg);
+  static void OnTransportReceivedWrapper(const HeaderType &header, const string &body, void *arg);
   static void OnTransportStoppedWrapper(void *arg);
-  static void OnNewSessionWrapper(const string &msg_type, const rapidjson::Document &body, void *arg);
-  static void OnSessionTimedoutWrapper(const string &msg_type, const rapidjson::Document &body, void *arg);
+  static void OnNewSessionWrapper(const string &msg_type, const string &body, void *arg);
+  static void OnSessionTimedoutWrapper(const string &msg_type, const string &body, void *arg);
 
-  void OnTransportReceived(const HeaderType &header, rapidjson::Document &body);
+  void OnTransportReceived(const HeaderType &header, const string &body);
   void OnTransportStopped();
-  void OnNewSession(const string &msg_type, const rapidjson::Document &body);
-  void OnSessionTimedout(const string &msg_type, const rapidjson::Document &body);
+  void OnNewSession(const string &msg_type, const string &body);
+  void OnSessionTimedout(const string &msg_type, const string &body);
 
   bool started_;
+  int encoding_type_;
   FunapiTransport *transport_;
   OnSessionInitiated on_session_initiated_;
   OnSessionClosed on_session_closed_;
@@ -1425,10 +1407,10 @@ class FunapiNetworkImpl {
 
 
 
-FunapiNetworkImpl::FunapiNetworkImpl(FunapiTransport *transport,
+FunapiNetworkImpl::FunapiNetworkImpl(FunapiTransport *transport, int type,
                                      OnSessionInitiated on_session_initiated,
                                      OnSessionClosed on_session_closed)
-    : started_(false), transport_(transport),
+    : started_(false), encoding_type_(type), transport_(transport),
       on_session_initiated_(on_session_initiated),
       on_session_closed_(on_session_closed),
       session_id_(""), last_received_(0) {
@@ -1486,8 +1468,7 @@ void FunapiNetworkImpl::Stop() {
 }
 
 
-void FunapiNetworkImpl::SendMessage(const string &msg_type,
-                                    rapidjson::Document &body) {
+void FunapiNetworkImpl::SendMessage(const string &msg_type, rapidjson::Document &body) {
   // Invalidates session id if it is too stale.
   time_t now = time(NULL);
   time_t delta = funapi_session_timeout;
@@ -1505,13 +1486,34 @@ void FunapiNetworkImpl::SendMessage(const string &msg_type,
 
   // Encodes a session id, if any.
   if (not session_id_.empty()) {
-      rapidjson::Value session_id_node;
-      session_id_node = session_id_.c_str();
-      body.AddMember(kSessionIdBodyField, session_id_node, body.GetAllocator());
+    rapidjson::Value session_id_node;
+    session_id_node = session_id_.c_str();
+    body.AddMember(kSessionIdBodyField, session_id_node, body.GetAllocator());
   }
 
   // Sends the manipulated JSON object through the transport.
   transport_->SendMessage(body);
+}
+
+
+void FunapiNetworkImpl::SendMessage(FunMessage& message) {
+  // Invalidates session id if it is too stale.
+  time_t now = time(NULL);
+  time_t delta = funapi_session_timeout;
+
+  if (last_received_ != epoch && last_received_ + delta < now) {
+    LOG("Session is too stale. "
+        "The server might have invalidated my session. Resetting.");
+    session_id_ = "";
+  }
+
+  // Encodes a session id, if any.
+  if (not session_id_.empty()) {
+    message.set_sid(session_id_.c_str());
+  }
+
+  // Sends the manipulated Protobuf object through the transport.
+  transport_->SendMessage(message);
 }
 
 
@@ -1526,7 +1528,7 @@ bool FunapiNetworkImpl::Connected() const {
 
 
 void FunapiNetworkImpl::OnTransportReceivedWrapper(
-    const HeaderType &header, rapidjson::Document &body, void *arg) {
+    const HeaderType &header, const string &body, void *arg) {
   FunapiNetworkImpl *obj = reinterpret_cast<FunapiNetworkImpl *>(arg);
   return obj->OnTransportReceived(header, body);
 }
@@ -1539,34 +1541,50 @@ void FunapiNetworkImpl::OnTransportStoppedWrapper(void *arg) {
 
 
 void FunapiNetworkImpl::OnNewSessionWrapper(
-    const string &msg_type, const rapidjson::Document &body, void *arg) {
+    const string &msg_type, const string &body, void *arg) {
   FunapiNetworkImpl *obj = reinterpret_cast<FunapiNetworkImpl *>(arg);
   return obj->OnNewSession(msg_type, body);
 }
 
 
 void FunapiNetworkImpl::OnSessionTimedoutWrapper(
-    const string &msg_type, const rapidjson::Document &body, void *arg) {
+    const string &msg_type, const string &body, void *arg) {
   FunapiNetworkImpl *obj = reinterpret_cast<FunapiNetworkImpl *>(arg);
   return obj->OnSessionTimedout(msg_type, body);
 }
 
 
 void FunapiNetworkImpl::OnTransportReceived(
-    const HeaderType &header, rapidjson::Document &body) {
+    const HeaderType &header, const string &body) {
   LOG("OnReceived invoked");
 
   last_received_ = time(NULL);
 
-  const rapidjson::Value &msg_type_node = body[kMsgTypeBodyField];
-  assert(msg_type_node.IsString());
-  const string &msg_type = msg_type_node.GetString();
-  body.RemoveMember(kMsgTypeBodyField);
+  string msg_type;
+  string session_id;
 
-  const rapidjson::Value &session_id_node = body[kSessionIdBodyField];
-  assert(session_id_node.IsString());
-  const string &session_id = session_id_node.GetString();
-  body.RemoveMember(kSessionIdBodyField);
+  if (encoding_type_ == kJsonEncoding) {
+    // Parses the given json string.
+    rapidjson::Document json;
+    json.Parse<0>(body.c_str());
+    assert(json.IsObject());
+
+    const rapidjson::Value &msg_type_node = json[kMsgTypeBodyField];
+    assert(msg_type_node.IsString());
+    msg_type = msg_type_node.GetString();
+    json.RemoveMember(kMsgTypeBodyField);
+
+    const rapidjson::Value &session_id_node = json[kSessionIdBodyField];
+    assert(session_id_node.IsString());
+    session_id = session_id_node.GetString();
+    json.RemoveMember(kSessionIdBodyField);
+  } else if (encoding_type_ == kProtobufEncoding) {
+    FunMessage proto;
+    proto.ParseFromString(body);
+
+    msg_type = proto.msgtype();
+    session_id = proto.sid();
+  }
 
   if (session_id_.empty()) {
     session_id_ = session_id;
@@ -1597,13 +1615,13 @@ void FunapiNetworkImpl::OnTransportStopped() {
 
 
 void FunapiNetworkImpl::OnNewSession(
-    const string &msg_type, const rapidjson::Document &body) {
+    const string &msg_type, const string &body) {
   // ignore
 }
 
 
 void FunapiNetworkImpl::OnSessionTimedout(
-    const string &msg_type, const rapidjson::Document &body) {
+    const string &msg_type, const string &body) {
   LOG("Session timed out. Resetting my session id. " \
       << "The server will send me another one next time.");
 
@@ -1651,6 +1669,10 @@ void FunapiTcpTransport::Stop() {
 
 
 void FunapiTcpTransport::SendMessage(rapidjson::Document &message) {
+  impl_->SendMessage(message);
+}
+
+void FunapiTcpTransport::SendMessage(FunMessage &message) {
   impl_->SendMessage(message);
 }
 
@@ -1703,6 +1725,11 @@ void FunapiUdpTransport::SendMessage(rapidjson::Document &message) {
 }
 
 
+void FunapiUdpTransport::SendMessage(FunMessage &message) {
+  impl_->SendMessage(message);
+}
+
+
 bool FunapiUdpTransport::Started() const {
   return impl_->Started();
 }
@@ -1747,6 +1774,11 @@ void FunapiHttpTransport::Stop() {
 
 
 void FunapiHttpTransport::SendMessage(rapidjson::Document &message) {
+  impl_->SendMessage(message);
+}
+
+
+void FunapiHttpTransport::SendMessage(FunMessage &message) {
   impl_->SendMessage(message);
 }
 
@@ -1797,11 +1829,12 @@ void FunapiNetwork::Finalize() {
 }
 
 
-FunapiNetwork::FunapiNetwork(FunapiTransport *transport,
-                             const OnSessionInitiated &on_session_initiated,
-                             const OnSessionClosed &on_session_closed)
-    : impl_(new FunapiNetworkImpl(transport,
-                                  on_session_initiated, on_session_closed)) {
+FunapiNetwork::FunapiNetwork(
+    FunapiTransport *transport, int type,
+    const OnSessionInitiated &on_session_initiated,
+    const OnSessionClosed &on_session_closed)
+    : impl_(new FunapiNetworkImpl(transport, type,
+        on_session_initiated, on_session_closed)) {
   // Makes sure we initialized the module.
   if (not initialized) {
     LOG("You should call FunapiNetwork::Initialize() first.");
@@ -1818,8 +1851,8 @@ FunapiNetwork::~FunapiNetwork() {
 }
 
 
-void FunapiNetwork::RegisterHandler(const string &msg_type,
-                                    const MessageHandler &handler) {
+void FunapiNetwork::RegisterHandler(
+    const string &msg_type, const MessageHandler &handler) {
   return impl_->RegisterHandler(msg_type, handler);
 }
 
@@ -1836,6 +1869,11 @@ void FunapiNetwork::Stop() {
 
 void FunapiNetwork::SendMessage(const string &msg_type, rapidjson::Document &body) {
   return impl_->SendMessage(msg_type, body);
+}
+
+
+void FunapiNetwork::SendMessage(FunMessage& message) {
+  return impl_->SendMessage(message);
 }
 
 

@@ -11,6 +11,7 @@
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/rapidjson/include)
 
 
@@ -29,7 +30,11 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g -O0" )
 add_library(
     ${PROJECT_NAME} SHARED
     funapi_network.cc
-    funapi_network.h)
+    funapi_network.h
+    funapi/network/fun_message.pb.cc
+    funapi/network/fun_message.pb.h
+    pbuf_echo.pb.cc
+    pbuf_echo.pb.h)
 
 
 add_executable(
@@ -43,6 +48,7 @@ add_dependencies(${PROJECT_NAME}-tester ${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}-tester ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}-tester ${libcurl4-openssl-dev})
+target_link_libraries(${PROJECT_NAME}-tester ${libprotobuf})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   target_link_libraries(${PROJECT_NAME}-tester pthread rt)

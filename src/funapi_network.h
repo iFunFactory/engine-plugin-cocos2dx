@@ -16,6 +16,7 @@
 #include <string>
 
 #include "rapidjson/document.h"
+#include "./funapi/network/fun_message.pb.h"
 
 
 namespace fun {
@@ -66,19 +67,26 @@ class Binder2 {
 }   // namespace helper
 
 
+enum EncodingScheme {
+  kUnknownEncoding = 0,
+  kJsonEncoding,
+  kProtobufEncoding,
+};
+
+
 class FunapiTransport {
  public:
   typedef std::map<string, string> HeaderType;
 
   // NOTE: Type definitions below imply that
   //  1) OnReceived should be of
-  //      'void f(const HeaderType &, const rapidjson::Document &, void *)'
+  //      'void f(const HeaderType &, const string &, void *)'
   //  2) OnStopped should be of 'void f(void *)'
   //
   // You can create a function object instance simply like this:
   //   e.g., OnReceived(my_on_received_handler, my_context);
   typedef helper::Binder2<
-      void, const HeaderType &, rapidjson::Document &, void *> OnReceived;
+      void, const HeaderType &, const string &, void *> OnReceived;
   typedef helper::Binder0<void, void *> OnStopped;
 
   virtual ~FunapiTransport() {}
@@ -86,6 +94,7 @@ class FunapiTransport {
   virtual void Start() = 0;
   virtual void Stop() = 0;
   virtual void SendMessage(rapidjson::Document &message) = 0;
+  virtual void SendMessage(FunMessage &message) = 0;
   virtual bool Started() const = 0;
 
  protected:
@@ -103,6 +112,7 @@ class FunapiTcpTransport : public FunapiTransport {
   virtual void Start();
   virtual void Stop();
   virtual void SendMessage(rapidjson::Document &message);
+  virtual void SendMessage(FunMessage &message);
   virtual bool Started() const;
 
  private:
@@ -118,6 +128,7 @@ class FunapiUdpTransport : public FunapiTransport {
   virtual void Start();
   virtual void Stop();
   virtual void SendMessage(rapidjson::Document &message);
+  virtual void SendMessage(FunMessage &message);
   virtual bool Started() const;
 
  private:
@@ -135,6 +146,7 @@ class FunapiHttpTransport : public FunapiTransport {
   virtual void Start();
   virtual void Stop();
   virtual void SendMessage(rapidjson::Document &message);
+  virtual void SendMessage(FunMessage &message);
   virtual bool Started() const;
 
  private:
@@ -147,20 +159,20 @@ class FunapiNetwork {
  public:
   // NOTE: Type definitions below imply that
   //  1) MessageHandler should be of
-  //      'void f(const string &, const rapidjson::Document &, void *)'
+  //      'void f(const string &, const string &, void *)'
   //  2) OnSessionInitiated should be of 'void f(const string &, void *)'
   //  3) OnSessionClosed should be of 'void f(void *)'
   //
   // You can create a function object instance simply like this:
   //   e.g., MessageHandler(my_message_handler, my_context);
-  typedef helper::Binder2<void, const string &, const rapidjson::Document &, void *> MessageHandler;
+  typedef helper::Binder2<void, const string &, const string &, void *> MessageHandler;
   typedef helper::Binder1<void, const string &, void *> OnSessionInitiated;
   typedef helper::Binder0<void, void *> OnSessionClosed;
 
   static void Initialize(time_t session_timeout = 3600, std::ostream &logstream = std::cout);
   static void Finalize();
 
-  FunapiNetwork(FunapiTransport *funapi_transport,
+  FunapiNetwork(FunapiTransport *funapi_transport, int type,
                 const OnSessionInitiated &on_session_initiated,
                 const OnSessionClosed &on_session_closed);
   ~FunapiNetwork();
@@ -169,6 +181,7 @@ class FunapiNetwork {
   void Start();
   void Stop();
   void SendMessage(const string &msg_type, rapidjson::Document &body);
+  void SendMessage(FunMessage &message);
   bool Started() const;
   bool Connected() const;
 
