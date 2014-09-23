@@ -36,15 +36,17 @@ namespace fun {
 using std::map;
 
 
+namespace {
+
 ////////////////////////////////////////////////////////////////////////////////
 // Types.
 
 typedef sockaddr_in Endpoint;
-typedef helper::Binder1<void, int, void *> AsyncConnectCallback;
-typedef helper::Binder1<void, ssize_t, void *> AsyncSendCallback;
-typedef helper::Binder1<void, ssize_t, void *> AsyncReceiveCallback;
-typedef helper::Binder1<void, int, void *> AsyncWebRequestCallback;
-typedef helper::Binder2<void, void *, int, void *> AsyncWebResponseCallback;
+typedef helper::Binder1<int, void *> AsyncConnectCallback;
+typedef helper::Binder1<ssize_t, void *> AsyncSendCallback;
+typedef helper::Binder1<ssize_t, void *> AsyncReceiveCallback;
+typedef helper::Binder1<int, void *> AsyncWebRequestCallback;
+typedef helper::Binder2<void *, int, void *> AsyncWebResponseCallback;
 
 
 enum FunapiTransportType {
@@ -160,7 +162,6 @@ pthread_t async_queue_thread;
 bool async_thread_run = false;
 pthread_mutex_t async_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t async_queue_cond = PTHREAD_COND_INITIALIZER;
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -354,7 +355,6 @@ void *AsyncQueueThreadProc(void * /*arg*/) {
 
           i->web_request_.request_callback_(kWebRequestStart);
 
-          // TODO : 비동기로 변경 (use curl_multi~)
           struct curl_slist *chunk = NULL;
           chunk = curl_slist_append(chunk, i->web_request_.header_);
           curl_easy_setopt(ctx, CURLOPT_HTTPHEADER, chunk);
@@ -547,6 +547,8 @@ void AsyncWebRequest(const char* host_url, const IoVecList &sending,
   pthread_cond_signal(&async_queue_cond);
   pthread_mutex_unlock(&async_queue_mutex);
 }
+
+}  // unnamed namespace
 
 
 

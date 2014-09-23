@@ -26,39 +26,52 @@ typedef std::string string;
 
 namespace helper {
 
-template <typename R, typename Ctxt>
+template <typename Ctxt>
 class Binder0 {
  public:
-  typedef R (*F)(Ctxt);
+  typedef void (*F)(Ctxt);
   Binder0() : f_(NULL), ctxt_(NULL) { }
   Binder0(const F &f, Ctxt ctxt) : f_(f), ctxt_(ctxt) { }
-  R operator()() { if (f_) f_(ctxt_); }
+  void operator()() { if (f_) f_(ctxt_); }
  private:
   F f_;
   Ctxt ctxt_;
 };
 
 
-template <typename R, typename A1, typename Ctxt>
+template <typename A1, typename Ctxt>
 class Binder1 {
  public:
-  typedef R (*F)(A1, Ctxt);
+  typedef void (*F)(A1, Ctxt);
   Binder1() : f_(NULL), ctxt_(NULL) { }
   Binder1(const F &f, void *ctxt) : f_(f), ctxt_(ctxt) { }
-  R operator()(A1 a1) { if (f_) f_(a1, ctxt_); }
+  void operator()(A1 a1) { if (f_) f_(a1, ctxt_); }
  private:
   F f_;
   Ctxt ctxt_;
 };
 
 
-template <typename R, typename A1, typename A2, typename Ctxt>
+template <typename A1, typename A2, typename Ctxt>
 class Binder2 {
  public:
-  typedef R (*F)(A1, A2, Ctxt);
+  typedef void (*F)(A1, A2, Ctxt);
   Binder2() : f_(NULL), ctxt_(NULL) { }
   Binder2(const F &f, void *ctxt) : f_(f), ctxt_(ctxt) { }
-  R operator()(A1 a1, A2 a2) { if (f_) f_(a1, a2, ctxt_); }
+  void operator()(A1 a1, A2 a2) { if (f_) f_(a1, a2, ctxt_); }
+ private:
+  F f_;
+  Ctxt ctxt_;
+};
+
+
+template <typename A1, typename A2, typename A3, typename A4, typename Ctxt>
+class Binder4 {
+ public:
+  typedef void (*F)(A1, A2, A3, A4, Ctxt);
+  Binder4() : f_(NULL), ctxt_(NULL) { }
+  Binder4(const F &f, void *ctxt) : f_(f), ctxt_(ctxt) { }
+  void operator()(A1 a1, A2 a2, A3 a3, A4 a4) { if (f_) f_(a1, a2, a3, a4, ctxt_); }
  private:
   F f_;
   Ctxt ctxt_;
@@ -86,8 +99,8 @@ class FunapiTransport {
   // You can create a function object instance simply like this:
   //   e.g., OnReceived(my_on_received_handler, my_context);
   typedef helper::Binder2<
-      void, const HeaderType &, const string &, void *> OnReceived;
-  typedef helper::Binder0<void, void *> OnStopped;
+      const HeaderType &, const string &, void *> OnReceived;
+  typedef helper::Binder0<void *> OnStopped;
 
   virtual ~FunapiTransport() {}
   virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2) = 0;
@@ -165,9 +178,9 @@ class FunapiNetwork {
   //
   // You can create a function object instance simply like this:
   //   e.g., MessageHandler(my_message_handler, my_context);
-  typedef helper::Binder2<void, const string &, const string &, void *> MessageHandler;
-  typedef helper::Binder1<void, const string &, void *> OnSessionInitiated;
-  typedef helper::Binder0<void, void *> OnSessionClosed;
+  typedef helper::Binder2<const string &, const string &, void *> MessageHandler;
+  typedef helper::Binder1<const string &, void *> OnSessionInitiated;
+  typedef helper::Binder0<void *> OnSessionClosed;
 
   static void Initialize(time_t session_timeout = 3600, std::ostream &logstream = std::cout);
   static void Finalize();

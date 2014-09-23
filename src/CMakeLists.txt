@@ -31,6 +31,8 @@ add_library(
     ${PROJECT_NAME} SHARED
     funapi_network.cc
     funapi_network.h
+    funapi_downloader.cc
+    funapi_downloader.h
     funapi/network/fun_message.pb.cc
     funapi/network/fun_message.pb.h
     pbuf_echo.pb.cc

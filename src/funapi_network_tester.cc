@@ -13,9 +13,12 @@
 #include "rapidjson/stringbuffer.h"
 
 #include "./funapi_network.h"
+#include "./funapi_downloader.h"
 #include "./pbuf_echo.pb.h"
 
+
 const char kServerIp[] = "127.0.0.1";
+bool is_downloading = false;
 
 
 void on_session_initiated(const std::string &session_id, void *ctxt) {
@@ -34,9 +37,19 @@ void on_echo_json(const std::string &msg_type, const std::string &body, void *ct
 }
 
 
+void on_download_update(const std::string &path, long receive, long total, int percent, void *ctxt) {
+}
+
+
+void on_download_finished(int result, void *ctxt) {
+  is_downloading = false;
+}
+
+
 int main(int argc, char **argv) {
   fun::FunapiNetwork::Initialize(3600);
   fun::FunapiNetwork *network = NULL;
+  fun::FunapiTransport *transport = NULL;
   int msg_type = fun::kJsonEncoding;
 
   while (true) {
@@ -44,6 +57,7 @@ int main(int argc, char **argv) {
     std::cout << "1. connect tcp" << std::endl;
     std::cout << "2. connect udp" << std::endl;
     std::cout << "3. connect http" << std::endl;
+    std::cout << "4. download test" << std::endl;
     std::cout << "e. echo message" << std::endl;
     std::cout << "q. disconnect" << std::endl;
 
@@ -82,7 +96,6 @@ int main(int argc, char **argv) {
         break;
       }
 
-      fun::FunapiTransport *transport = NULL;
       if (input == "1") {
         transport = new fun::FunapiTcpTransport(kServerIp, 8012);
       } else if (input == "2") {
@@ -114,14 +127,22 @@ int main(int argc, char **argv) {
         std::cout << "Connection failed. Stopping." << std::endl;
         network->Stop();
       }
-    } else if (input == "q") {
-      if (network->Started() == false) {
-        std::cout << "You should connect first." << std::endl;
-        continue;
+    } else if (input == "4") {
+      // The folder that contains the resource to download.
+      // Please change the path of the resource to download.
+      fun::FunapiHttpDownloader downloader("/home/anonymous/resource",
+          fun::FunapiHttpDownloader::OnUpdate(on_download_update, NULL),
+          fun::FunapiHttpDownloader::OnFinished(on_download_finished, NULL));
+
+      is_downloading = true;
+      downloader.StartDownload(kServerIp, 8020, "list");
+
+      while (is_downloading) {
+        sleep(1);
       }
-      network->Stop();
-    } else if (input.compare(0, 1, "e") == 0) {
-      if (network->Started() == false) {
+      break;
+    } else if (input == "e") {
+      if (network == NULL || network->Started() == false) {
         std::cout << "You should connect first." << std::endl;
       } else {
         if (msg_type == fun::kJsonEncoding) {
@@ -138,12 +159,20 @@ int main(int argc, char **argv) {
           network->SendMessage(example, encryption);
         }
      }
+    } else if (input == "q") {
+      if (network == NULL || network->Started() == false) {
+        std::cout << "You should connect first." << std::endl;
+        continue;
+      }
+
+      network->Stop();
+      break;
+
     } else {
       std::cout << "Select one of connect, disconnect, or echo" << std::endl;
     }
   }
 
-  delete network;
   fun::FunapiNetwork::Finalize();
 
   return 0;
