@@ -14,6 +14,8 @@
 
 #include "./funapi_network.h"
 
+const char kServerIp[] = "127.0.0.1";
+
 
 void on_session_initiated(const std::string &session_id, void *ctxt) {
   std::cout << "session initiated: " << session_id << std::endl;
@@ -38,28 +40,39 @@ void on_echo(
 
 int main(int argc, char **argv) {
   fun::FunapiNetwork::Initialize(3600);
-  fun::FunapiNetwork *network =
-      new fun::FunapiNetwork(
-          new fun::FunapiTcpTransport("127.0.0.1", 8012),
-          fun::FunapiNetwork::OnSessionInitiated(on_session_initiated, NULL),
-          fun::FunapiNetwork::OnSessionClosed(on_session_closed, NULL));
-  network->RegisterHandler("echo",
-                           fun::FunapiNetwork::MessageHandler(on_echo, NULL));
+  fun::FunapiNetwork *network = NULL;
 
   while (true) {
-    std::cout << "** Select one of connect, disconnect, echo" << std::endl;
+    std::cout << "** Select number" << std::endl;
+    std::cout << "1. connect tcp" << std::endl;
+    std::cout << "2. connect udp" << std::endl;
+    std::cout << "3. echo message" << std::endl;
+    std::cout << "4. disconnect" << std::endl;
+
     std::string input;
-    std::cin >> input;
+    std::getline(std::cin, input);
     if (input.empty()) {
       std::cout << "EOF reached. Quitting." << std::endl;
       break;
     }
 
-    if (input == "connect") {
-      if (network->Started()) {
+    if (input == "1" || input == "2") {
+      if (network != NULL && network->Started()) {
         std::cout << "Already connected. Disconnect first." << std::endl;
         continue;
       }
+
+      fun::FunapiTransport *transport = NULL;
+      if (input == "1") {
+        transport = new fun::FunapiTcpTransport(kServerIp, 8012);
+      } else if (input == "2") {
+        transport = new fun::FunapiUdpTransport(kServerIp, 8013);
+      }
+
+      network = new fun::FunapiNetwork(transport,
+        fun::FunapiNetwork::OnSessionInitiated(on_session_initiated, NULL),
+        fun::FunapiNetwork::OnSessionClosed(on_session_closed, NULL));
+        network->RegisterHandler("echo", fun::FunapiNetwork::MessageHandler(on_echo, NULL));
 
       network->Start();
       // network->Start() works asynchronously.
@@ -79,13 +92,13 @@ int main(int argc, char **argv) {
         std::cout << "Connection failed. Stopping." << std::endl;
         network->Stop();
       }
-    } else if (input == "disconnect") {
+    } else if (input == "4") {
       if (network->Started() == false) {
         std::cout << "You should connect first." << std::endl;
         continue;
       }
       network->Stop();
-    } else if (input == "echo") {
+    } else if (input.compare(0, 1, "3") == 0) {
       if (network->Started() == false) {
         std::cout << "You should connect first." << std::endl;
       } else {

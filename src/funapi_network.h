@@ -93,7 +93,7 @@ class FunapiTransport {
 };
 
 
-class FunapiTcpTransportImpl;
+class FunapiTransportImpl;
 class FunapiTcpTransport : public FunapiTransport {
  public:
   FunapiTcpTransport(const string &hostname_or_ip, uint16_t port);
@@ -106,7 +106,22 @@ class FunapiTcpTransport : public FunapiTransport {
   virtual bool Started() const;
 
  private:
-  FunapiTcpTransportImpl *impl_;
+  FunapiTransportImpl *impl_;
+};
+
+class FunapiUdpTransport : public FunapiTransport {
+ public:
+  FunapiUdpTransport(const string &hostname_or_ip, uint16_t port);
+  virtual ~FunapiUdpTransport();
+
+  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
+  virtual void Start();
+  virtual void Stop();
+  virtual void SendMessage(rapidjson::Document &message);
+  virtual bool Started() const;
+
+ private:
+  FunapiTransportImpl *impl_;
 };
 
 
