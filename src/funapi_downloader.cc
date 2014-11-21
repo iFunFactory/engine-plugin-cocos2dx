@@ -44,6 +44,8 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////
 // Types.
 
+typedef rapidjson::Document Json;
+
 typedef helper::Binder1<int, void *> AsyncRequestCallback;
 typedef helper::Binder1<string, void *> AsyncRequestMd5Callback;
 typedef helper::Binder2<void *, int, void *> AsyncResponseCallback;
@@ -577,7 +579,7 @@ void FunapiHttpDownloaderImpl::LoadCachedFileList() {
     return;
   }
 
-  rapidjson::Document json;
+  Json json;
   json.Parse<0>(buffer);
   assert(json.IsObject());
 
@@ -803,7 +805,7 @@ void FunapiHttpDownloaderImpl::DownloadListCb(int state) {
 
     LOG("Json data >> " << data);
 
-    rapidjson::Document json;
+    Json json;
     json.Parse<0>(data);
     assert(json.IsObject());
 

@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
         std::cout << "You should connect first." << std::endl;
       } else {
         if (msg_type == fun::kJsonEncoding) {
-          rapidjson::Document msg;
+          fun::Json msg;
           msg.SetObject();
           rapidjson::Value message_node("hello world", msg.GetAllocator());
           msg.AddMember("message", message_node, msg.GetAllocator());

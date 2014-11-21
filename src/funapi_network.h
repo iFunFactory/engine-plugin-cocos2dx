@@ -22,6 +22,7 @@
 namespace fun {
 
 typedef std::string string;
+typedef rapidjson::Document Json;
 
 
 namespace helper {
@@ -106,7 +107,7 @@ class FunapiTransport {
   virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2) = 0;
   virtual void Start() = 0;
   virtual void Stop() = 0;
-  virtual void SendMessage(rapidjson::Document &message) = 0;
+  virtual void SendMessage(Json &message) = 0;
   virtual void SendMessage(FunMessage &message) = 0;
   virtual bool Started() const = 0;
 
@@ -124,7 +125,7 @@ class FunapiTcpTransport : public FunapiTransport {
   virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
   virtual void Start();
   virtual void Stop();
-  virtual void SendMessage(rapidjson::Document &message);
+  virtual void SendMessage(Json &message);
   virtual void SendMessage(FunMessage &message);
   virtual bool Started() const;
 
@@ -140,7 +141,7 @@ class FunapiUdpTransport : public FunapiTransport {
   virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
   virtual void Start();
   virtual void Stop();
-  virtual void SendMessage(rapidjson::Document &message);
+  virtual void SendMessage(Json &message);
   virtual void SendMessage(FunMessage &message);
   virtual bool Started() const;
 
@@ -158,7 +159,7 @@ class FunapiHttpTransport : public FunapiTransport {
   virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
   virtual void Start();
   virtual void Stop();
-  virtual void SendMessage(rapidjson::Document &message);
+  virtual void SendMessage(Json &message);
   virtual void SendMessage(FunMessage &message);
   virtual bool Started() const;
 
@@ -193,7 +194,7 @@ class FunapiNetwork {
   void RegisterHandler(const string &msg_type, const MessageHandler &handler);
   void Start();
   void Stop();
-  void SendMessage(const string &msg_type, rapidjson::Document &body);
+  void SendMessage(const string &msg_type, Json &body);
   void SendMessage(FunMessage &message);
   bool Started() const;
   bool Connected() const;

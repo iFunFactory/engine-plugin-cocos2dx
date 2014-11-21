@@ -565,7 +565,7 @@ class FunapiTransportBase {
 
   void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
 
-  void SendMessage(rapidjson::Document &message);
+  void SendMessage(Json &message);
   void SendMessage(FunMessage &message);
 
  protected:
@@ -774,7 +774,7 @@ bool FunapiTransportBase::DecodeMessage(int nRead) {
 }
 
 
-void FunapiTransportBase::SendMessage(rapidjson::Document &message) {
+void FunapiTransportBase::SendMessage(Json &message) {
   rapidjson::StringBuffer string_buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
   message.Accept(writer);
@@ -1380,7 +1380,7 @@ class FunapiNetworkImpl {
   void RegisterHandler(const string &msg_type, const MessageHandler &handler);
   void Start();
   void Stop();
-  void SendMessage(const string &msg_type, rapidjson::Document &body);
+  void SendMessage(const string &msg_type, Json &body);
   void SendMessage(FunMessage& message);
   bool Started() const;
   bool Connected() const;
@@ -1470,7 +1470,7 @@ void FunapiNetworkImpl::Stop() {
 }
 
 
-void FunapiNetworkImpl::SendMessage(const string &msg_type, rapidjson::Document &body) {
+void FunapiNetworkImpl::SendMessage(const string &msg_type, Json &body) {
   // Invalidates session id if it is too stale.
   time_t now = time(NULL);
   time_t delta = funapi_session_timeout;
@@ -1567,7 +1567,7 @@ void FunapiNetworkImpl::OnTransportReceived(
 
   if (encoding_type_ == kJsonEncoding) {
     // Parses the given json string.
-    rapidjson::Document json;
+    Json json;
     json.Parse<0>(body.c_str());
     assert(json.IsObject());
 
@@ -1670,7 +1670,7 @@ void FunapiTcpTransport::Stop() {
 }
 
 
-void FunapiTcpTransport::SendMessage(rapidjson::Document &message) {
+void FunapiTcpTransport::SendMessage(Json &message) {
   impl_->SendMessage(message);
 }
 
@@ -1722,7 +1722,7 @@ void FunapiUdpTransport::Stop() {
 }
 
 
-void FunapiUdpTransport::SendMessage(rapidjson::Document &message) {
+void FunapiUdpTransport::SendMessage(Json &message) {
   impl_->SendMessage(message);
 }
 
@@ -1775,7 +1775,7 @@ void FunapiHttpTransport::Stop() {
 }
 
 
-void FunapiHttpTransport::SendMessage(rapidjson::Document &message) {
+void FunapiHttpTransport::SendMessage(Json &message) {
   impl_->SendMessage(message);
 }
 
@@ -1869,7 +1869,7 @@ void FunapiNetwork::Stop() {
 }
 
 
-void FunapiNetwork::SendMessage(const string &msg_type, rapidjson::Document &body) {
+void FunapiNetwork::SendMessage(const string &msg_type, Json &body) {
   return impl_->SendMessage(msg_type, body);
 }
 
