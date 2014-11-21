@@ -150,13 +150,13 @@ int main(int argc, char **argv) {
           msg.SetObject();
           rapidjson::Value message_node("hello world", msg.GetAllocator());
           msg.AddMember("message", message_node, msg.GetAllocator());
-          network->SendMessage("echo", msg, encryption);
+          network->SendMessage("echo", msg);
         } else if (msg_type == fun::kProtobufEncoding) {
           FunMessage example;
           example.set_msgtype("pbuf_echo");
           PbufEchoMessage *echo = example.MutableExtension(pbuf_echo);
           echo->set_message("hello proto");
-          network->SendMessage(example, encryption);
+          network->SendMessage(example);
         }
      }
     } else if (input == "q") {

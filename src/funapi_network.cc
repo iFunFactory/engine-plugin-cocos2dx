@@ -530,8 +530,8 @@ void AsyncWebRequest(const char* host_url, const IoVecList &sending,
   for (IoVecList::const_iterator itr = sending.begin(), itr_end = sending.end();
       itr != itr_end;
       ++itr) {
-    const struct IoVecEx &header = *itr;
-    const struct IoVecEx &body = *(++itr);
+    const struct iovec &header = *itr;
+    const struct iovec &body = *(++itr);
 
     AsyncRequest r;
     r.type_ = AsyncRequest::kWebRequest;
@@ -572,7 +572,7 @@ class FunapiTransportBase {
   void SendMessage(const char *body);
 
  private:
-  virtual void SendMessage() = 0;
+  virtual void EncodeThenSendMessage() = 0;
 
   bool TryToDecodeHeader();
   bool TryToDecodeBody();
@@ -670,7 +670,7 @@ bool FunapiTransportBase::EncodeMessage() {
   for (IoVecList::iterator itr = sending_.begin(), itr_end = sending_.end();
       itr != itr_end;
       ++itr) {
-    struct IoVecEx &body_as_bytes = *itr;
+    struct iovec &body_as_bytes = *itr;
 
     char header[1024];
     size_t offset = 0;
@@ -692,7 +692,7 @@ bool FunapiTransportBase::EncodeMessage() {
     LOG("JSON to send: " << b);
 
     if (type_ == kTcp || type_ == kHttp) {
-      struct IoVecEx header_as_bytes;
+      struct iovec header_as_bytes;
       header_as_bytes.iov_len = offset;
       // LOG 출력을 위하여 null 문자를 위한 + 1
       header_as_bytes.iov_base = new uint8_t[header_as_bytes.iov_len + 1];
@@ -790,10 +790,10 @@ void FunapiTransportBase::SendMessage(FunMessage &message) {
 
 
 void FunapiTransportBase::SendMessage(const char *body) {
-  IoVecEx body_as_bytes;
+  iovec body_as_bytes;
   body_as_bytes.iov_len = strlen(body);
 
-  // SendMessage() 에서 LOG 출력을 하기 위하여 null 문자를 위한 + 1
+  // EncodeThenSendMessage() 에서 LOG 출력을 하기 위하여 null 문자를 위한 + 1
   body_as_bytes.iov_base = new uint8_t[body_as_bytes.iov_len + 1];
   memcpy(body_as_bytes.iov_base, body, body_as_bytes.iov_len);
 
@@ -808,7 +808,7 @@ void FunapiTransportBase::SendMessage(const char *body) {
   pthread_mutex_unlock(&mutex_);
 
   if (sendable)
-    SendMessage();
+	  EncodeThenSendMessage();
 }
 
 
@@ -937,7 +937,7 @@ class FunapiTransportImpl : public FunapiTransportBase {
   void SendBytesCb(ssize_t rc);
   void ReceiveBytesCb(ssize_t nRead);
 
-  virtual void SendMessage();
+  virtual void EncodeThenSendMessage();
 
   // State-related.
   Endpoint endpoint_;
@@ -1070,7 +1070,7 @@ void FunapiTransportImpl::StartCb(int rc) {
   if (pending_.size() > 0) {
     LOG("Flushing pending messages.");
     sending_.swap(pending_);
-    SendMessage();
+    EncodeThenSendMessage();
   }
 }
 
@@ -1108,7 +1108,7 @@ void FunapiTransportImpl::SendBytesCb(ssize_t nSent) {
   pthread_mutex_unlock(&mutex_);
 
   if (sendable)
-    SendMessage();
+	  EncodeThenSendMessage();
 }
 
 
@@ -1143,7 +1143,7 @@ void FunapiTransportImpl::ReceiveBytesCb(ssize_t nRead) {
 }
 
 
-void FunapiTransportImpl::SendMessage() {
+void FunapiTransportImpl::EncodeThenSendMessage() {
   assert(state_ == kConnected);
 
   if (!EncodeMessage()) {
@@ -1182,7 +1182,7 @@ class FunapiHttpTransportImpl : public FunapiTransportBase {
   static void WebResponseHeaderCbWrapper(void *data, int len, void *arg);
   static void WebResponseBodyCbWrapper(void *data, int len, void *arg);
 
-  virtual void SendMessage();
+  virtual void EncodeThenSendMessage();
 
   void WebRequestCb(int state);
   void WebResponseHeaderCb(void *data, int len);
@@ -1268,7 +1268,7 @@ void FunapiHttpTransportImpl::WebResponseBodyCbWrapper(void *data, int len, void
 }
 
 
-void FunapiHttpTransportImpl::SendMessage() {
+void FunapiHttpTransportImpl::EncodeThenSendMessage() {
   assert(state_ == kConnected);
   if (!EncodeMessage()) {
     Stop();
