@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -71,7 +71,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(EngineRoot)external\curl\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;COCOS2D_DEBUG=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -84,7 +84,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(_COCOS_LIB_WIN32_BEGIN);$(_COCOS_LIB_WIN32_END)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_imp.lib;%(AdditionalDependencies);$(_COCOS_LIB_WIN32_BEGIN);$(_COCOS_LIB_WIN32_END)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories);$(_COCOS_LIB_PATH_WIN32_BEGIN);$(_COCOS_LIB_PATH_WIN32_END)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -96,7 +96,8 @@
       </Command>
     </PostBuildEvent>
     <PreLinkEvent>
-      <Command></Command>
+      <Command>
+      </Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
@@ -108,12 +109,11 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
       <Inputs>$(TargetFileName)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(EngineRoot)external\curl\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -139,17 +139,122 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
       </Command>
     </PostBuildEvent>
     <PreLinkEvent>
-      <Command></Command>
+      <Command>
+      </Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
     <ClCompile Include="..\Classes\FunapiTestScene.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_network.cc" />
+    <ClCompile Include="..\Classes\funapi\funapi_transport.cc" />
+    <ClCompile Include="..\Classes\funapi\pb\management\maintenance_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\pb\network\fun_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\pb\network\ping_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\pb\service\multicast_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\pb\test_messages.pb.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\descriptor.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\descriptor.pb.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\descriptor_database.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\dynamic_message.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\extension_set.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\extension_set_heavy.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\generated_message_reflection.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\generated_message_util.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\coded_stream.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\gzip_stream.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\printer.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\strtod.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\tokenizer.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\zero_copy_stream.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\zero_copy_stream_impl.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\io\zero_copy_stream_impl_lite.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\message.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\message_lite.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\reflection_ops.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\repeated_field.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\service.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\atomicops_internals_x86_gcc.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\atomicops_internals_x86_msvc.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\common.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\once.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\stringprintf.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\structurally_valid.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\strutil.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\stubs\substitute.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\text_format.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\unknown_field_set.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\wire_format.cc" />
+    <ClCompile Include="..\Classes\google\protobuf\wire_format_lite.cc" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="..\Classes\FunapiTestScene.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_network.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_transport.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_utils.h" />
+    <ClInclude Include="..\Classes\funapi\pb\management\maintenance_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\pb\network\fun_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\pb\network\ping_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\pb\service\multicast_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\pb\test_messages.pb.h" />
+    <ClInclude Include="..\Classes\google\config.h" />
+    <ClInclude Include="..\Classes\google\protobuf\descriptor.h" />
+    <ClInclude Include="..\Classes\google\protobuf\descriptor.pb.h" />
+    <ClInclude Include="..\Classes\google\protobuf\descriptor_database.h" />
+    <ClInclude Include="..\Classes\google\protobuf\dynamic_message.h" />
+    <ClInclude Include="..\Classes\google\protobuf\extension_set.h" />
+    <ClInclude Include="..\Classes\google\protobuf\generated_enum_reflection.h" />
+    <ClInclude Include="..\Classes\google\protobuf\generated_message_reflection.h" />
+    <ClInclude Include="..\Classes\google\protobuf\generated_message_util.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\coded_stream.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\coded_stream_inl.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\gzip_stream.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\package_info.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\printer.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\strtod.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\tokenizer.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\zero_copy_stream.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\zero_copy_stream_impl.h" />
+    <ClInclude Include="..\Classes\google\protobuf\io\zero_copy_stream_impl_lite.h" />
+    <ClInclude Include="..\Classes\google\protobuf\message.h" />
+    <ClInclude Include="..\Classes\google\protobuf\message_lite.h" />
+    <ClInclude Include="..\Classes\google\protobuf\package_info.h" />
+    <ClInclude Include="..\Classes\google\protobuf\reflection_ops.h" />
+    <ClInclude Include="..\Classes\google\protobuf\repeated_field.h" />
+    <ClInclude Include="..\Classes\google\protobuf\service.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_arm64_gcc.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_arm_gcc.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_arm_qnx.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_atomicword_compat.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_generic_gcc.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_macosx.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_mips_gcc.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_pnacl.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_solaris.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_tsan.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_x86_gcc.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\atomicops_internals_x86_msvc.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\common.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\hash.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\map_util.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\once.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\platform_macros.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\shared_ptr.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\stl_util.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\stringprintf.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\strutil.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\substitute.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\template_util.h" />
+    <ClInclude Include="..\Classes\google\protobuf\stubs\type_traits.h" />
+    <ClInclude Include="..\Classes\google\protobuf\text_format.h" />
+    <ClInclude Include="..\Classes\google\protobuf\unknown_field_set.h" />
+    <ClInclude Include="..\Classes\google\protobuf\wire_format.h" />
+    <ClInclude Include="..\Classes\google\protobuf\wire_format_lite.h" />
+    <ClInclude Include="..\Classes\google\protobuf\wire_format_lite_inl.h" />
     <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +271,9 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Classes\google\protobuf\descriptor.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
