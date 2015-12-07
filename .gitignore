@@ -1,0 +1,16 @@
+bin/
+
+cocos2d/cocos/platform/android/java/gen/
+
+proj.android/assets/
+proj.android/gen/
+proj.android/libs/
+proj.android/local.properties
+proj.android/obj/
+
+proj.ios_mac/funapi-plugin-cocos2dx.xcodeproj/xcuserdata/
+proj.ios_mac/funapi-plugin-cocos2dx.xcodeproj/project.xcworkspace/xcuserdata/
+cocos2d/build/cocos2d_libs.xcodeproj/xcuserdata/
+
+cocos2d/cocos/platform/android/java/local.properties
+
