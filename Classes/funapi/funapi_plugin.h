@@ -4,7 +4,8 @@
 // must not be used, disclosed, copied, or distributed without the prior
 // consent of iFunFactory Inc.
 
-#pragma once
+#ifndef SRC_FUNAPI_PLUGIN_H_
+#define SRC_FUNAPI_PLUGIN_H_
 
 #if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_MAC
   #ifndef FUNAPI_TARGET_COCOS2D
@@ -33,8 +34,10 @@
 #include <direct.h>
 #else
 #include <netdb.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <fcntl.h>
 #include <assert.h>
 #endif
@@ -49,6 +52,7 @@
 #include <memory>
 #include <condition_variable>
 #include <thread>
+#include <chrono>
 
 #include "curl/curl.h"
 
@@ -69,11 +73,6 @@
 
 namespace fun {
 
-namespace {
-  typedef rapidjson::Document Json;
-}
-
-  
 #ifdef FUNAPI_TARGET_COCOS2D
 #define FUNAPI_LOG(fmt, ...)          CCLOG(fmt, ##__VA_ARGS__)
 #define FUNAPI_LOG_WARNING(fmt, ...)  CCLOG(fmt, ##__VA_ARGS__)
@@ -86,6 +85,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogFunapi, Log, All);
 #else
 #error "target is not defined"
 #endif
-  
 
 } // namespace fun
+
+#endif  // SRC_FUNAPI_PLUGIN_H_

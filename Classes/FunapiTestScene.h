@@ -18,7 +18,7 @@ public:
   void ConnectUdp();
   void ConnectHttp();
   void Disconnect();
-  bool SendEchoMessage();
+  void SendEchoMessage();
   
   //
   bool IsConnected();
@@ -28,18 +28,33 @@ public:
   void OnSessionClosed();
   void OnEchoJson(const std::string &type, const std::vector<uint8_t> &v_body);
   void OnEchoProto(const std::string &type, const std::vector<uint8_t> &v_body);
+
+  void OnMaintenanceMessage(const std::string &type, const std::vector<uint8_t> &v_body);
+  void OnStoppedAllTransport();
+
+  void OnTransportConnectFailed (const fun::TransportProtocol protocol);
+  void OnTransportDisconnected (const fun::TransportProtocol protocol);
+
+  void OnTransportStarted (const fun::TransportProtocol protocol);
+  void OnTransportClosed (const fun::TransportProtocol protocol);
+  void OnTransportFailure (const fun::TransportProtocol protocol);
+  void OnConnectTimeout (const fun::TransportProtocol protocol);
   
   // implement the "static create()" method manually
   CREATE_FUNC(FunapiTest);
   
 private:
   void Connect(const fun::TransportProtocol protocol);
-  std::shared_ptr<fun::FunapiTransport> GetNewTransport(fun::TransportProtocol protocol);
+  std::shared_ptr<fun::FunapiTransport> GetNewTransport(const fun::TransportProtocol protocol);
   
+  // Please change this address for test.
   const std::string kServerIp = "127.0.0.1";
-  std::shared_ptr<fun::FunapiNetwork> network_;
-  int8_t msg_type_ = fun::kJsonEncoding;
-  fun::TransportProtocol protocol_ = fun::TransportProtocol::kDefault;
+
+  // member variables.
+  bool with_protobuf_ = false;
+  bool with_session_reliability_ = false;
+
+  std::shared_ptr<fun::FunapiNetwork> network_ = nullptr;
 };
 
 #endif // __FUNAPI_TEST_SCENE_H__

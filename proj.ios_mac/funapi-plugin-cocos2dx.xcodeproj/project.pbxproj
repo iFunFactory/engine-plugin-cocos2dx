@@ -665,10 +665,10 @@
 			children = (
 				D647CC691C085860008DC67E /* funapi_network.cc */,
 				D647CC6A1C085860008DC67E /* funapi_network.h */,
-				D647CC6B1C085860008DC67E /* funapi_plugin.h */,
 				D647CC6C1C085860008DC67E /* funapi_transport.cc */,
 				D647CC6D1C085860008DC67E /* funapi_transport.h */,
 				D647CC6E1C085860008DC67E /* funapi_utils.h */,
+				D647CC6B1C085860008DC67E /* funapi_plugin.h */,
 				D647CC6F1C085860008DC67E /* pb */,
 			);
 			path = funapi;

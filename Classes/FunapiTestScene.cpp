@@ -181,67 +181,115 @@ void FunapiTest::Disconnect()
   network_->Stop();
 }
 
-bool FunapiTest::SendEchoMessage()
+void FunapiTest::SendEchoMessage()
 {
-  if (network_ == NULL || network_->Started() == false)
+  if (network_ == nullptr || (network_->Started() == false && network_->IsSessionReliability()))
   {
     FUNAPI_LOG("You should connect first.");
-    return false;
   }
-  
-  if (msg_type_ == fun::kJsonEncoding)
-  {
-    fun::Json msg;
-    msg.SetObject();
-    rapidjson::Value message_node("hello world", msg.GetAllocator());
-    msg.AddMember("message", message_node, msg.GetAllocator());
-    network_->SendMessage("echo", msg, protocol_);
-    return true;
+  else {
+    fun::FunEncoding encoding = network_->GetEncoding(network_->GetDefaultProtocol());
+    if (encoding == fun::FunEncoding::kNone)
+    {
+      FUNAPI_LOG("You should attach transport first.");
+      return;
+    }
+
+    if (encoding == fun::FunEncoding::kProtobuf)
+    {
+      for (int i = 1; i < 100; ++i) {
+        std::string temp_string = "hello proto - ";
+        temp_string.append(std::to_string(i));
+
+        FunMessage msg;
+        msg.set_msgtype("pbuf_echo");
+        PbufEchoMessage *echo = msg.MutableExtension(pbuf_echo);
+        echo->set_msg(temp_string.c_str());
+        network_->SendMessage(msg);
+      }
+    }
+
+    if (encoding == fun::FunEncoding::kJson)
+    {
+      for (int i = 1; i < 100; ++i) {
+        std::string temp_string = "hello world - ";
+        temp_string.append(std::to_string(i));
+
+        rapidjson::Document msg;
+        msg.SetObject();
+        rapidjson::Value message_node(temp_string.c_str(), msg.GetAllocator());
+        msg.AddMember("message", message_node, msg.GetAllocator());
+
+        // Convert JSON document to string
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        msg.Accept(writer);
+        std::string json_string = buffer.GetString();
+
+        network_->SendMessage("echo", json_string);
+      }
+    }
   }
-  else if (msg_type_ == fun::kProtobufEncoding)
-  {
-    FunMessage msg;
-    msg.set_msgtype("pbuf_echo");
-    PbufEchoMessage *echo = msg.MutableExtension(pbuf_echo);
-    echo->set_msg("hello proto");
-    network_->SendMessage(msg, protocol_);
-    return true;
-  }
-  
-  return false;
 }
 
 void FunapiTest::Connect(const fun::TransportProtocol protocol)
 {
-  if (!network_) {
-    network_ = std::make_shared<fun::FunapiNetwork>(msg_type_,
-                                                    [this](const std::string &session_id){ OnSessionInitiated(session_id); },
-                                                    [this]{ OnSessionClosed(); });
+  if (!network_ || !network_->IsSessionReliability()) {
+    network_ = std::make_shared<fun::FunapiNetwork>(with_session_reliability_);
+
+    network_->AddSessionInitiatedCallback([this](const std::string &session_id){ OnSessionInitiated(session_id); });
+    network_->AddSessionClosedCallback([this](){ OnSessionClosed(); });
     
-    network_->RegisterHandler("echo", [this](const std::string &type, const std::vector<uint8_t> &v_body){ OnEchoJson(type, v_body); });
-    network_->RegisterHandler("pbuf_echo", [this](const std::string &type, const std::vector<uint8_t> &v_body){ OnEchoProto(type, v_body); });
+    network_->AddMaintenanceCallback([this](const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body){ OnMaintenanceMessage(type, v_body); });
+    network_->AddStoppedAllTransportCallback([this]() { OnStoppedAllTransport(); });
+    network_->AddTransportConnectFailedCallback([this](const fun::TransportProtocol protocol){ OnTransportConnectFailed(protocol); });
+    network_->AddTransportDisconnectedCallback([this](const fun::TransportProtocol protocol){ OnTransportDisconnected(protocol); });
     
+    network_->RegisterHandler("echo", [this](const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body){ OnEchoJson(type, v_body); });
+    network_->RegisterHandler("pbuf_echo", [this](const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body){ OnEchoProto(type, v_body); });
+
     network_->AttachTransport(GetNewTransport(protocol));
-    network_->Start();
   }
   else {
-    network_->AttachTransport(GetNewTransport(protocol));
-    network_->Start();
+    if (!network_->HasTransport(protocol))
+    {
+      network_->AttachTransport(GetNewTransport(protocol));
+    }
+
+    network_->SetDefaultProtocol(protocol);
   }
-  
-  protocol_ = protocol;
+
+  network_->Start();
 }
 
 std::shared_ptr<fun::FunapiTransport> FunapiTest::GetNewTransport(fun::TransportProtocol protocol)
 {
-  std::shared_ptr<fun::FunapiTransport> transport;
+  std::shared_ptr<fun::FunapiTransport> transport = nullptr;
+  fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
+
+  if (protocol == fun::TransportProtocol::kTcp) {
+    transport = std::make_shared<fun::FunapiTcpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8022 : 8012), encoding);
+
+    // std::static_pointer_cast<fun::FunapiTcpTransport>(transport)->SetAutoReconnect(true);
+    // std::static_pointer_cast<fun::FunapiTcpTransport>(transport)->SetEnablePing(true);
+    // std::static_pointer_cast<fun::FunapiTcpTransport>(transport)->SetDisableNagle(true);
+  }
+  else if (protocol == fun::TransportProtocol::kUdp) {
+    transport = std::make_shared<fun::FunapiUdpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8023 : 8013), encoding);
+  }
+  else if (protocol == fun::TransportProtocol::kHttp) {
+    transport = std::make_shared<fun::FunapiHttpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8028 : 8018), false, encoding);
+  }
   
-  if (protocol == fun::TransportProtocol::kTcp)
-    transport = std::make_shared<fun::FunapiTcpTransport>(kServerIp, static_cast<uint16_t>(msg_type_ == fun::kProtobufEncoding ? 8022 : 8012));
-  else if (protocol == fun::TransportProtocol::kUdp)
-    transport = std::make_shared<fun::FunapiUdpTransport>(kServerIp, static_cast<uint16_t>(msg_type_ == fun::kProtobufEncoding ? 8023 : 8013));
-  else if (protocol == fun::TransportProtocol::kHttp)
-    transport = std::make_shared<fun::FunapiHttpTransport>(kServerIp, static_cast<uint16_t>(msg_type_ == fun::kProtobufEncoding ? 8028 : 8018), false);
+  if (transport != nullptr) {
+    transport->AddStartedCallback([this](const fun::TransportProtocol protocol){ OnTransportStarted(protocol); });
+    transport->AddStoppedCallback([this](const fun::TransportProtocol protocol){ OnTransportClosed(protocol); });
+    transport->AddFailureCallback([this](const fun::TransportProtocol protocol){ OnTransportFailure(protocol); });
+
+    // Connect timeout.
+    transport->AddConnectTimeoutCallback([this](const fun::TransportProtocol protocol){ OnConnectTimeout(protocol); });
+    transport->SetConnectTimeout(10);
+  }
   
   return transport;
 }
@@ -274,4 +322,44 @@ void FunapiTest::OnEchoProto(const std::string &type, const std::vector<uint8_t>
   msg.ParseFromString(body);
   PbufEchoMessage echo = msg.GetExtension(pbuf_echo);
   FUNAPI_LOG("proto: %s", echo.msg().c_str());
+}
+
+void FunapiTest::OnMaintenanceMessage(const std::string &type, const std::vector<uint8_t> &v_body)
+{
+  FUNAPI_LOG("OnMaintenanceMessage");
+}
+
+void FunapiTest::OnStoppedAllTransport()
+{
+  FUNAPI_LOG("OnStoppedAllTransport called.");
+}
+
+void FunapiTest::OnTransportConnectFailed (const fun::TransportProtocol protocol)
+{
+  FUNAPI_LOG("OnTransportFailure(%d)", (int)protocol);
+}
+
+void FunapiTest::OnTransportDisconnected (const fun::TransportProtocol protocol)
+{
+  FUNAPI_LOG("OnTransportDisconnected called.");
+}
+
+void FunapiTest::OnTransportStarted (const fun::TransportProtocol protocol)
+{
+  FUNAPI_LOG("OnTransportStarted called.");
+}
+
+void FunapiTest::OnTransportClosed (const fun::TransportProtocol protocol)
+{
+  FUNAPI_LOG("OnTransportClosed called.");
+}
+
+void FunapiTest::OnTransportFailure (const fun::TransportProtocol protocol)
+{
+  FUNAPI_LOG("OnTransportFailure called.");
+}
+
+void FunapiTest::OnConnectTimeout (const fun::TransportProtocol protocol)
+{
+  FUNAPI_LOG("OnConnectTimeout called.");
 }
