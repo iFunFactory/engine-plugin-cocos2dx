@@ -14,13 +14,13 @@ Scene* FunapiTest::createScene()
 {
   // 'scene' is an autorelease object
   auto scene = Scene::create();
-  
+
   // 'layer' is an autorelease object
   auto layer = FunapiTest::create();
-  
+
   // add layer as a child to scene
   scene->addChild(layer);
-  
+
   // return the scene
   return scene;
 }
@@ -29,34 +29,34 @@ Scene* FunapiTest::createScene()
 bool FunapiTest::init()
 {
   scheduleUpdate();
-  
+
   Director::getInstance()->setDisplayStats(false);
-  
+
   //////////////////////////////
   // 1. super init first
   if ( !Layer::init() )
   {
     return false;
   }
-  
+
   Size visibleSize = Director::getInstance()->getVisibleSize();
   Vec2 origin = Director::getInstance()->getVisibleOrigin();
-  
+
   /////////////////////////////
   // 2. add a menu items
-  
+
   const float gap_height = 1.0;
   const float button_width = visibleSize.width * 0.5;
   const float button_height = 30.0;
   const float center_x = origin.x + (visibleSize.width * 0.5);
-  
+
   // label : server hostname or ip
   std::string label_string_server_hostname_or_ip = "[FunapiNetwork] - " + kServerIp;
   auto label = Label::createWithTTF(label_string_server_hostname_or_ip.c_str(), "arial.ttf", 10);
   label->setPosition(Vec2(center_x,
                           origin.y + visibleSize.height - label->getContentSize().height));
   this->addChild(label, 1);
-  
+
   // Create the buttons
   Button* button_connect_tcp = Button::create("button.png", "buttonHighlighted.png");
   button_connect_tcp->setScale9Enabled(true);
@@ -122,7 +122,7 @@ bool FunapiTest::init()
   button_send_a_message->setTitleText("Send a message");
   button_send_a_message->setPosition(Vec2(center_x, button_disconnect->getPositionY() - button_disconnect->getContentSize().height - gap_height));
   this->addChild(button_send_a_message);
-  
+
   return true;
 }
 
@@ -143,7 +143,7 @@ void FunapiTest::cleanup()
 void FunapiTest::update(float delta)
 {
   // FUNAPI_LOG("delta = %f", delta);
-  
+
   if (network_)
   {
     network_->Update();
@@ -177,7 +177,7 @@ void FunapiTest::Disconnect()
     FUNAPI_LOG("You should connect first.");
     return;
   }
-  
+
   network_->Stop();
 }
 
@@ -239,12 +239,12 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
 
     network_->AddSessionInitiatedCallback([this](const std::string &session_id){ OnSessionInitiated(session_id); });
     network_->AddSessionClosedCallback([this](){ OnSessionClosed(); });
-    
+
     network_->AddMaintenanceCallback([this](const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body){ OnMaintenanceMessage(type, v_body); });
     network_->AddStoppedAllTransportCallback([this]() { OnStoppedAllTransport(); });
     network_->AddTransportConnectFailedCallback([this](const fun::TransportProtocol protocol){ OnTransportConnectFailed(protocol); });
     network_->AddTransportDisconnectedCallback([this](const fun::TransportProtocol protocol){ OnTransportDisconnected(protocol); });
-    
+
     network_->RegisterHandler("echo", [this](const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body){ OnEchoJson(type, v_body); });
     network_->RegisterHandler("pbuf_echo", [this](const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body){ OnEchoProto(type, v_body); });
 
@@ -270,9 +270,9 @@ std::shared_ptr<fun::FunapiTransport> FunapiTest::GetNewTransport(fun::Transport
   if (protocol == fun::TransportProtocol::kTcp) {
     transport = std::make_shared<fun::FunapiTcpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8022 : 8012), encoding);
 
-    // std::static_pointer_cast<fun::FunapiTcpTransport>(transport)->SetAutoReconnect(true);
-    // std::static_pointer_cast<fun::FunapiTcpTransport>(transport)->SetEnablePing(true);
-    // std::static_pointer_cast<fun::FunapiTcpTransport>(transport)->SetDisableNagle(true);
+    // transport->SetAutoReconnect(true);
+    // transport->SetEnablePing(true);
+    // transport->SetDisableNagle(true);
   }
   else if (protocol == fun::TransportProtocol::kUdp) {
     transport = std::make_shared<fun::FunapiUdpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8023 : 8013), encoding);
@@ -280,7 +280,7 @@ std::shared_ptr<fun::FunapiTransport> FunapiTest::GetNewTransport(fun::Transport
   else if (protocol == fun::TransportProtocol::kHttp) {
     transport = std::make_shared<fun::FunapiHttpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8028 : 8018), false, encoding);
   }
-  
+
   if (transport != nullptr) {
     transport->AddStartedCallback([this](const fun::TransportProtocol protocol){ OnTransportStarted(protocol); });
     transport->AddStoppedCallback([this](const fun::TransportProtocol protocol){ OnTransportClosed(protocol); });
@@ -290,7 +290,7 @@ std::shared_ptr<fun::FunapiTransport> FunapiTest::GetNewTransport(fun::Transport
     transport->AddConnectTimeoutCallback([this](const fun::TransportProtocol protocol){ OnConnectTimeout(protocol); });
     transport->SetConnectTimeout(10);
   }
-  
+
   return transport;
 }
 

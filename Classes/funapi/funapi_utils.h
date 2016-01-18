@@ -11,24 +11,20 @@
 #include <string>
 #include <vector>
 
-#if PLATFORM_WINDOWS || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#if FUNAPI_PLATFORM_WINDOWS
 #include <stdint.h>
-
 #pragma warning(disable:4996)
 #endif
 
 namespace fun {
 
-#if PLATFORM_WINDOWS || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#if FUNAPI_PLATFORM_WINDOWS
 #define ssize_t   size_t
-
 #define access    _access
 #define snprintf  _snprintf
-
 #define F_OK      0
-
 #define mkdir(path, mode)   _mkdir(path)
-#endif // PLATFORM_WINDOWS
+#endif
 
 
 // Format string

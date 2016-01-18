@@ -4,11 +4,12 @@
 // must not be used, disclosed, copied, or distributed without the prior
 // consent of iFunFactory Inc.
 
+#include "pb/network/ping_message.pb.h"
 #include "funapi_plugin.h"
 #include "funapi_utils.h"
 #include "funapi_network.h"
 #include "funapi_utils.h"
-#include "pb/network/ping_message.pb.h"
+#include "funapi_manager.h"
 
 namespace fun {
 
@@ -116,6 +117,11 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   FEvent<TransportEventHandler> on_transport_disconnected_;
 
   bool session_reliability_ = false;
+
+  static std::shared_ptr<FunapiManager> GetManager();
+
+  void InsertTransport(const TransportProtocol protocol);
+  void EraseTransport(const TransportProtocol protocol);
 };
 
 
@@ -130,6 +136,12 @@ FunapiNetworkImpl::~FunapiNetworkImpl() {
   Finalize();
   Stop();
   Update();
+}
+
+
+std::shared_ptr<FunapiManager> FunapiNetworkImpl::GetManager() {
+  static std::shared_ptr<FunapiManager> manager = std::make_shared<FunapiManager>();
+  return manager;
 }
 
 
@@ -234,15 +246,12 @@ void FunapiNetworkImpl::SendMessage(const std::string &msg_type, std::string &js
     protocol = default_protocol_;
 
   // Sends the manipulated JSON object through the transport.
-  {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
-    if (transport) {
-      transport->SendMessage(body);
-    }
-    else {
-      FUNAPI_LOG("Invaild Protocol - Transport is not founded");
-    }
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport) {
+    transport->SendMessage(body);
+  }
+  else {
+    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
   }
 }
 
@@ -266,15 +275,12 @@ void FunapiNetworkImpl::SendMessage(FunMessage& message, TransportProtocol proto
     protocol = default_protocol_;
 
   // Sends the manipulated Protobuf object through the transport.
-  {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
-    if (transport) {
-      transport->SendMessage(message);
-    }
-    else {
-      FUNAPI_LOG("Invaild Protocol - Transport is not founded");
-    }
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport) {
+    transport->SendMessage(message);
+  }
+  else {
+    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
   }
 }
 
@@ -293,15 +299,12 @@ void FunapiNetworkImpl::SendMessage(const char *body, TransportProtocol protocol
     protocol = default_protocol_;
 
   // Sends the manipulated Protobuf object through the transport.
-  {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
-    if (transport) {
-      transport->SendMessage(body);
-    }
-    else {
-      FUNAPI_LOG("Invaild Protocol - Transport is not founded");
-    }
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport) {
+    transport->SendMessage(body);
+  }
+  else {
+    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
   }
 }
 
@@ -312,7 +315,6 @@ bool FunapiNetworkImpl::Started() const {
 
 
 bool FunapiNetworkImpl::Connected(const TransportProtocol protocol = TransportProtocol::kDefault) {
-  std::unique_lock<std::mutex> lock(transports_mutex_);
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
 
   if (transport)
@@ -453,20 +455,21 @@ void FunapiNetworkImpl::OnClientPingMessage(
 
   FUNAPI_LOG("Receive %s ping - timestamp:%lld time=%lld ms", "TCP", (int64_t)timestamp_ms, ping_time_ms);
 
-  {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
-    if (transport) {
-      transport->ResetPingClientTimeout();
-    }
-    else {
-      FUNAPI_LOG("Invaild Protocol - Transport is not founded");
-    }
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport) {
+    transport->ResetPingClientTimeout();
+  }
+  else {
+    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
   }
 }
 
 
 void FunapiNetworkImpl::Update() {
+#ifndef FUNAPI_HAVE_THREAD
+  GetManager()->Update();
+#endif // FUNAPI_HAVE_THREAD
+
   std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
   while (!tasks_queue_.empty())
   {
@@ -482,26 +485,34 @@ void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
     [this](){ OnTransportStopped(); });
   transport->SetNetwork(network);
 
-  {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    if (GetTransport(transport->Protocol()))
-    {
-      FUNAPI_LOG("AttachTransport - transport of '%d' type already exists.", static_cast<int>(transport->Protocol()));
-      FUNAPI_LOG(" You should call DetachTransport first.");
-    } else {
-      transports_[transport->Protocol()] = transport;
+  if (transport->GetProtocol() == TransportProtocol::kHttp) {
+    transport->AddStartedCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
+    transport->AddStoppedCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
+  }
+  else {
+    transport->AddInitSocketCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
+    transport->AddCloseSocketCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
+  }
 
-      if (default_protocol_ == TransportProtocol::kDefault)
-      {
-        SetDefaultProtocol(transport->Protocol());
-      }
+  if (HasTransport(transport->GetProtocol()))
+  {
+    FUNAPI_LOG("AttachTransport - transport of '%d' type already exists.", static_cast<int>(transport->GetProtocol()));
+    FUNAPI_LOG(" You should call DetachTransport first.");
+  }
+  else {
+    std::unique_lock<std::mutex> lock(transports_mutex_);
+    transports_[transport->GetProtocol()] = transport;
+
+    if (default_protocol_ == TransportProtocol::kDefault)
+    {
+      SetDefaultProtocol(transport->GetProtocol());
     }
   }
 }
 
 
-// The caller must lock transports_mutex_ before call this function.
 std::shared_ptr<FunapiTransport> FunapiNetworkImpl::GetTransport(const TransportProtocol protocol) const {
+  std::unique_lock<std::mutex> lock(transports_mutex_);
   if (protocol == TransportProtocol::kDefault) {
     return transports_.cbegin()->second;
   }
@@ -582,7 +593,6 @@ void FunapiNetworkImpl::OnTransportDisconnected(const TransportProtocol protocol
 
 
 bool FunapiNetworkImpl::HasTransport(const TransportProtocol protocol) const {
-  std::unique_lock<std::mutex> lock(transports_mutex_);
   if (GetTransport(protocol)) {
     return true;
   }
@@ -597,10 +607,9 @@ void FunapiNetworkImpl::SetDefaultProtocol(const TransportProtocol protocol) {
 
 
 FunEncoding FunapiNetworkImpl::GetEncoding(const TransportProtocol protocol) const {
-  std::unique_lock<std::mutex> lock(transports_mutex_);
   auto transport = GetTransport(protocol);
   if (transport) {
-    return transport->Encoding();
+    return transport->GetEncoding();
   }
 
   return FunEncoding::kNone;
@@ -665,6 +674,22 @@ bool FunapiNetworkImpl::SendClientPingMessage(const TransportProtocol protocol) 
   }
 
   return true;
+}
+
+
+void FunapiNetworkImpl::InsertTransport(const TransportProtocol protocol) {
+  auto transport = GetTransport(protocol);
+  if (transport) {
+    GetManager()->InsertTransport(transport);
+  }
+}
+
+
+void FunapiNetworkImpl::EraseTransport(const TransportProtocol protocol) {
+  auto transport = GetTransport(protocol);
+  if (transport) {
+    GetManager()->EraseTransport(GetTransport(protocol));
+  }
 }
 
 

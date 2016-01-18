@@ -8,21 +8,21 @@ class FunapiTest : public cocos2d::Layer
 {
 public:
   static cocos2d::Scene* createScene();
-  
+
   virtual bool init();
   virtual void cleanup();
   virtual void update(float delta);
-  
+
   // UI
   void ConnectTcp();
   void ConnectUdp();
   void ConnectHttp();
   void Disconnect();
   void SendEchoMessage();
-  
+
   //
   bool IsConnected();
-  
+
   // callback
   void OnSessionInitiated(const std::string &session_id);
   void OnSessionClosed();
@@ -39,14 +39,14 @@ public:
   void OnTransportClosed (const fun::TransportProtocol protocol);
   void OnTransportFailure (const fun::TransportProtocol protocol);
   void OnConnectTimeout (const fun::TransportProtocol protocol);
-  
+
   // implement the "static create()" method manually
   CREATE_FUNC(FunapiTest);
-  
+
 private:
   void Connect(const fun::TransportProtocol protocol);
   std::shared_ptr<fun::FunapiTransport> GetNewTransport(const fun::TransportProtocol protocol);
-  
+
   // Please change this address for test.
   const std::string kServerIp = "127.0.0.1";
 

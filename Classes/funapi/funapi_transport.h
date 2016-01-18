@@ -56,7 +56,7 @@ enum class ErrorCode
 
 class FunapiNetwork;
 class FunapiTransportImpl;
-class FunapiTransport {
+class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
  public:
   enum class State : int
   {
@@ -86,38 +86,49 @@ class FunapiTransport {
   // Event handler delegate
   typedef std::function<void(const TransportProtocol protocol)> TransportEventHandler;
 
+  FunapiTransport() = default;
   virtual ~FunapiTransport() = default;
 
   // Start connecting
-  virtual void Start();
+  virtual void Start() = 0;
 
   // Disconnection
-  virtual void Stop();
+  virtual void Stop() = 0;
 
   // Check connection
-  virtual bool Started() const;
+  virtual bool Started() const = 0;
 
   // Send a message
-  virtual void SendMessage(rapidjson::Document &message);
-  virtual void SendMessage(FunMessage &message);
-  virtual void SendMessage(const char *body);
+  virtual void SendMessage(rapidjson::Document &message) = 0;
+  virtual void SendMessage(FunMessage &message) = 0;
+  virtual void SendMessage(const char *body) = 0;
 
-  virtual TransportProtocol Protocol() const = 0;
-  virtual FunEncoding Encoding() const;
+  virtual TransportProtocol GetProtocol() const = 0;
+  virtual FunEncoding GetEncoding() const = 0;
 
-  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
-  virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network);
-  virtual void SetConnectTimeout(time_t timeout);
+  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2) = 0;
+  virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network) = 0;
+  virtual void SetConnectTimeout(time_t timeout) = 0;
 
-  virtual void AddStartedCallback(const TransportEventHandler &handler);
-  virtual void AddStoppedCallback(const TransportEventHandler &handler);
-  virtual void AddFailureCallback(const TransportEventHandler &handler);
-  virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler);
+  virtual void AddStartedCallback(const TransportEventHandler &handler) = 0;
+  virtual void AddStoppedCallback(const TransportEventHandler &handler) = 0;
+  virtual void AddFailureCallback(const TransportEventHandler &handler) = 0;
+  virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler) = 0;
 
-  virtual void ResetPingClientTimeout();
+  virtual void ResetPingClientTimeout() = 0;
 
- private:
-  std::shared_ptr<FunapiTransportImpl> impl_;
+  virtual int GetSocket() { return -1; };
+
+  virtual void AddInitSocketCallback(const TransportEventHandler &handler) {};
+  virtual void AddCloseSocketCallback(const TransportEventHandler &handler) {};
+
+  virtual void OnSocketRead() {};
+  virtual void OnSocketWrite() {};
+  virtual void Update() {};
+
+  virtual void SetDisableNagle(bool disable_nagle) {};
+  virtual void SetAutoReconnect(bool auto_reconnect) {};
+  virtual void SetEnablePing(bool enable_ping) {};
 };
 
 
@@ -127,41 +138,46 @@ class FunapiTcpTransport : public FunapiTransport {
   FunapiTcpTransport(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiTcpTransport() = default;
 
-  // Start connecting
-  virtual void Start();
-
-  // Disconnection
-  virtual void Stop();
-
-  // Check connection
-  virtual bool Started() const;
+  void Start(); // Start connecting
+  void Stop(); // Disconnection
+  bool Started() const; // Check connection
 
   // Send a message
-  virtual void SendMessage(rapidjson::Document &message);
-  virtual void SendMessage(FunMessage &message);
-  virtual void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+  void SendMessage(const char *body);
 
-  virtual TransportProtocol Protocol() const;
-  virtual FunEncoding Encoding() const;
+  TransportProtocol GetProtocol() const;
+  FunEncoding GetEncoding() const;
 
-  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
-  virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network);
-  virtual void SetConnectTimeout(time_t timeout);
+  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
+  void SetNetwork(std::weak_ptr<FunapiNetwork> network);
+  void SetConnectTimeout(time_t timeout);
 
-  virtual void AddStartedCallback(const TransportEventHandler &handler);
-  virtual void AddStoppedCallback(const TransportEventHandler &handler);
-  virtual void AddFailureCallback(const TransportEventHandler &handler);
-  virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler);
+  void AddStartedCallback(const TransportEventHandler &handler);
+  void AddStoppedCallback(const TransportEventHandler &handler);
+  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  virtual void SetDisableNagle(bool disable_nagle);
-  virtual void SetAutoReconnect(bool auto_reconnect);
-  virtual void SetEnablePing(bool enable_ping);
+  void SetDisableNagle(bool disable_nagle);
+  void SetAutoReconnect(bool auto_reconnect);
+  void SetEnablePing(bool enable_ping);
 
-  virtual void ResetPingClientTimeout();
+  void ResetPingClientTimeout();
+
+  int GetSocket();
+
+  void AddInitSocketCallback(const TransportEventHandler &handler);
+  void AddCloseSocketCallback(const TransportEventHandler &handler);
+
+  void OnSocketRead();
+  void OnSocketWrite();
+  void Update();
 
  private:
   std::shared_ptr<FunapiTcpTransportImpl> impl_;
 };
+
 
 class FunapiUdpTransportImpl;
 class FunapiUdpTransport : public FunapiTransport {
@@ -169,37 +185,43 @@ class FunapiUdpTransport : public FunapiTransport {
   FunapiUdpTransport(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiUdpTransport() = default;
 
-  // Start connecting
-  virtual void Start();
 
-  // Disconnection
-  virtual void Stop();
-
-  // Check connection
-  virtual bool Started() const;
+  void Start(); // Start connecting
+  void Stop(); // Disconnection
+  bool Started() const; // Check connection
 
   // Send a message
-  virtual void SendMessage(rapidjson::Document &message);
-  virtual void SendMessage(FunMessage &message);
-  virtual void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+  void SendMessage(const char *body);
 
-  virtual TransportProtocol Protocol() const;
-  virtual FunEncoding Encoding() const;
+  TransportProtocol GetProtocol() const;
+  FunEncoding GetEncoding() const;
 
-  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
-  virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network);
-  virtual void SetConnectTimeout(time_t timeout);
+  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
+  void SetNetwork(std::weak_ptr<FunapiNetwork> network);
+  void SetConnectTimeout(time_t timeout);
 
-  virtual void AddStartedCallback(const TransportEventHandler &handler);
-  virtual void AddStoppedCallback(const TransportEventHandler &handler);
-  virtual void AddFailureCallback(const TransportEventHandler &handler);
-  virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler);
+  void AddStartedCallback(const TransportEventHandler &handler);
+  void AddStoppedCallback(const TransportEventHandler &handler);
+  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  virtual void ResetPingClientTimeout();
+  void ResetPingClientTimeout();
+
+  int GetSocket();
+
+  void AddInitSocketCallback(const TransportEventHandler &handler);
+  void AddCloseSocketCallback(const TransportEventHandler &handler);
+
+  void OnSocketRead();
+  void OnSocketWrite();
+  void Update();
 
  private:
   std::shared_ptr<FunapiUdpTransportImpl> impl_;
 };
+
 
 class FunapiHttpTransportImpl;
 class FunapiHttpTransport : public FunapiTransport {
@@ -207,33 +229,30 @@ class FunapiHttpTransport : public FunapiTransport {
   FunapiHttpTransport(const std::string &hostname_or_ip, uint16_t port, bool https, FunEncoding encoding);
   virtual ~FunapiHttpTransport() = default;
 
-  // Start connecting
-  virtual void Start();
-
-  // Disconnection
-  virtual void Stop();
-
-  // Check connection
-  virtual bool Started() const;
+  void Start(); // Start connecting
+  void Stop(); // Disconnection
+  bool Started() const; // Check connection
 
   // Send a message
-  virtual void SendMessage(rapidjson::Document &message);
-  virtual void SendMessage(FunMessage &message);
-  virtual void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+  void SendMessage(const char *body);
 
-  virtual TransportProtocol Protocol() const;
-  virtual FunEncoding Encoding() const;
+  TransportProtocol GetProtocol() const;
+  FunEncoding GetEncoding() const;
 
-  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
-  virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network);
-  virtual void SetConnectTimeout(time_t timeout);
+  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
+  void SetNetwork(std::weak_ptr<FunapiNetwork> network);
+  void SetConnectTimeout(time_t timeout);
 
-  virtual void AddStartedCallback(const TransportEventHandler &handler);
-  virtual void AddStoppedCallback(const TransportEventHandler &handler);
-  virtual void AddFailureCallback(const TransportEventHandler &handler);
-  virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler);
+  void AddStartedCallback(const TransportEventHandler &handler);
+  void AddStoppedCallback(const TransportEventHandler &handler);
+  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  virtual void ResetPingClientTimeout();
+  void ResetPingClientTimeout();
+
+  void Update();
 
  private:
   std::shared_ptr<FunapiHttpTransportImpl> impl_;

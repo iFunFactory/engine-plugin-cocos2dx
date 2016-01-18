@@ -139,6 +139,7 @@
 		D647CC891C085860008DC67E /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC7B1C085860008DC67E /* test_messages.pb.cc */; };
 		D647CC8A1C085860008DC67E /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC7B1C085860008DC67E /* test_messages.pb.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
+		D6E91E161C4341A300F73639 /* funapi_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6E91E141C4341A300F73639 /* funapi_manager.cc */; };
 		D6EC2BA31C069BB600F9FF88 /* arial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6EC2BA21C06990000F9FF88 /* arial.ttf */; };
 		D6EC2BA41C069F9F00F9FF88 /* arial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6EC2BA21C06990000F9FF88 /* arial.ttf */; };
 		D6EC2BA51C069F9F00F9FF88 /* button.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF18491C0599CF00DB4A80 /* button.png */; };
@@ -338,10 +339,13 @@
 		D647CC7A1C085860008DC67E /* multicast_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = multicast_message.pb.h; sourceTree = "<group>"; };
 		D647CC7B1C085860008DC67E /* test_messages.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_messages.pb.cc; sourceTree = "<group>"; };
 		D647CC7C1C085860008DC67E /* test_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_messages.pb.h; sourceTree = "<group>"; };
+		D68295D21C3FB8770054DF7F /* funapi_build_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_build_config.h; sourceTree = "<group>"; };
 		D6B05CF31C0BEB27008B3A80 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../cocos2d/external/curl/prebuilt/ios/libcrypto.a; sourceTree = "<group>"; };
 		D6B05CF41C0BEB27008B3A80 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		D6B05CF51C0BEB27008B3A80 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/ios/libssl.a; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		D6E91E141C4341A300F73639 /* funapi_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_manager.cc; sourceTree = "<group>"; };
+		D6E91E151C4341A300F73639 /* funapi_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_manager.h; sourceTree = "<group>"; };
 		D6EC2BA21C06990000F9FF88 /* arial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = arial.ttf; sourceTree = "<group>"; };
 		D6EF18491C0599CF00DB4A80 /* button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button.png; sourceTree = "<group>"; };
 		D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = buttonHighlighted.png; sourceTree = "<group>"; };
@@ -663,12 +667,15 @@
 		D647CC681C085860008DC67E /* funapi */ = {
 			isa = PBXGroup;
 			children = (
+				D6E91E141C4341A300F73639 /* funapi_manager.cc */,
+				D6E91E151C4341A300F73639 /* funapi_manager.h */,
 				D647CC691C085860008DC67E /* funapi_network.cc */,
 				D647CC6A1C085860008DC67E /* funapi_network.h */,
 				D647CC6C1C085860008DC67E /* funapi_transport.cc */,
 				D647CC6D1C085860008DC67E /* funapi_transport.h */,
 				D647CC6E1C085860008DC67E /* funapi_utils.h */,
 				D647CC6B1C085860008DC67E /* funapi_plugin.h */,
+				D68295D21C3FB8770054DF7F /* funapi_build_config.h */,
 				D647CC6F1C085860008DC67E /* pb */,
 			);
 			path = funapi;
@@ -890,6 +897,7 @@
 				D647CC5C1C0844B2008DC67E /* unknown_field_set.cc in Sources */,
 				D647CC851C085860008DC67E /* ping_message.pb.cc in Sources */,
 				D647CC121C0844B2008DC67E /* strutil.cc in Sources */,
+				D6E91E161C4341A300F73639 /* funapi_manager.cc in Sources */,
 				D647CBB61C0844B2008DC67E /* descriptor.pb.cc in Sources */,
 				D647CBC01C0844B2008DC67E /* dynamic_message.cc in Sources */,
 				D647CC3C1C0844B2008DC67E /* text_format.cc in Sources */,

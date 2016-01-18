@@ -8,11 +8,9 @@
 #include "funapi_utils.h"
 #include "funapi_transport.h"
 #include "funapi_network.h"
+#include "funapi_manager.h"
 
 namespace fun {
-
-// Buffer-related constants.
-static const int kUnitBufferSize = 65536;
 
 // Funapi header-related constants.
 static const char* kHeaderDelimeter = "\n";
@@ -31,6 +29,9 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
   typedef FunapiTransport::OnReceived OnReceived;
   typedef FunapiTransport::OnStopped OnStopped;
 
+  // Buffer-related constants.
+  static const int kUnitBufferSize = 65536;
+
   FunapiTransportBase(TransportProtocol type, FunEncoding encoding);
   virtual ~FunapiTransportBase();
 
@@ -46,6 +47,7 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
 
   void SetNetwork(std::weak_ptr<FunapiNetwork> network);
 
+  virtual TransportProtocol GetProtocol() { return TransportProtocol::kDefault; };
   FunEncoding GetEncoding() { return encoding_; };
 
   void SetConnectTimeout(time_t timeout);
@@ -60,11 +62,10 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
  protected:
   typedef std::map<std::string, std::string> HeaderFields;
 
-  virtual void EncodeThenSendMessage(std::vector<uint8_t> body) = 0;
+  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body) = 0;
   void SendEmptyMessage(const TransportProtocol &protocol, const FunEncoding &encoding);
 
-  void PushSendQueue(std::function<void()> task);
-  virtual void JoinThread();
+  void PushSendQueue(std::function<bool()> task);
   void Send();
   void PushTaskQueue(std::function<void()> task);
   void PushStopTask();
@@ -86,17 +87,14 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
 
   std::weak_ptr<FunapiNetwork> network_;
 
-  std::queue<std::function<void()>> send_queue_;
-  std::mutex send_queue_mutex_;
-  std::condition_variable_any send_queue_condition_;
-
-  bool send_thread_run_ = false;
-  std::thread send_thread_;
+  std::vector<std::function<bool()>> v_send_;
+  std::mutex v_send_mutex_;
 
   // Encoding-serializer-releated member variables.
   FunEncoding encoding_ = FunEncoding::kNone;
 
-  time_t connect_timeout_ = 1;
+  time_t connect_timeout_seconds_ = 1;
+  time_t connect_timeout_time_;
 
   FEvent<TransportEventHandler> on_transport_stared_;
   FEvent<TransportEventHandler> on_transport_closed_;
@@ -219,7 +217,7 @@ void FunapiTransportBase::SendMessage(rapidjson::Document &message) {
   SendMessage(string_buffer.GetString());
 }
 
-  
+
 void FunapiTransportBase::SendMessage(FunMessage &message) {
   std::string body = message.SerializeAsString();
   SendMessage(body.c_str());
@@ -230,7 +228,7 @@ void FunapiTransportBase::SendMessage(const char *body) {
   std::vector<uint8_t> v_body(strlen(body));
   memcpy(v_body.data(), body, strlen(body));
 
-  PushSendQueue([this,v_body]{ EncodeThenSendMessage(v_body); });
+  PushSendQueue([this,v_body]()->bool{ return EncodeThenSendMessage(v_body); });
 }
 
 
@@ -376,37 +374,34 @@ bool FunapiTransportBase::Started() {
 }
 
 
-void FunapiTransportBase::PushSendQueue(std::function<void()> task) {
-  std::unique_lock<std::mutex> lock(send_queue_mutex_);
-  send_queue_.push(task);
-  send_queue_condition_.notify_one();
-}
-
-
-void FunapiTransportBase::JoinThread() {
-  send_thread_run_ = false;
-  send_queue_condition_.notify_all();
-  if (send_thread_.joinable())
-    send_thread_.join();
+void FunapiTransportBase::PushSendQueue(std::function<bool()> task) {
+  std::unique_lock<std::mutex> lock(v_send_mutex_);
+  v_send_.push_back(task);
 }
 
 
 void FunapiTransportBase::Send() {
-  while (send_thread_run_) {
-    std::function<void()> task = nullptr;
+  std::function<bool()> task;
+  while (true) {
+    task = nullptr;
     {
-      std::unique_lock<std::mutex> lock(send_queue_mutex_);
-      if (send_queue_.empty()) {
-        send_queue_condition_.wait(send_queue_mutex_);
-        continue;
+      std::unique_lock<std::mutex> lock(v_send_mutex_);
+      if (v_send_.empty()) {
+        break;
       }
       else {
-        task = std::move(send_queue_.front());
-        send_queue_.pop();
+        task = std::move(v_send_.front());
+        v_send_.erase(v_send_.cbegin());
       }
     }
 
-    task();
+    if (task) {
+      if (false == task()) {
+        std::unique_lock<std::mutex> lock(v_send_mutex_);
+        v_send_.insert(v_send_.cbegin(), task);
+        break;
+      }
+    }
   }
 }
 
@@ -429,7 +424,7 @@ void FunapiTransportBase::PushStopTask() {
 
 
 void FunapiTransportBase::SetConnectTimeout(time_t timeout) {
-  connect_timeout_ = timeout;
+  connect_timeout_seconds_ = timeout;
 }
 
 
@@ -454,22 +449,22 @@ void FunapiTransportBase::AddConnectTimeoutCallback(const TransportEventHandler 
 
 
 void FunapiTransportBase::OnTransportStarted(const TransportProtocol protocol) {
-  on_transport_stared_(protocol);
+  PushTaskQueue([this, protocol] { on_transport_stared_(protocol); });
 }
 
 
 void FunapiTransportBase::OnTransportClosed(const TransportProtocol protocol) {
-  on_transport_closed_(protocol);
+  PushTaskQueue([this, protocol] { on_transport_closed_(protocol); });
 }
 
 
 void FunapiTransportBase::OnTransportFailure(const TransportProtocol protocol) {
-  on_transport_failure_(protocol);
+  PushTaskQueue([this, protocol] { on_transport_failure_(protocol); });
 }
 
 
 void FunapiTransportBase::OnConnectTimeout(const TransportProtocol protocol) {
-  on_connect_timeout_(protocol);
+  PushTaskQueue([this, protocol] { on_connect_timeout_(protocol); });
 }
 
 
@@ -483,9 +478,16 @@ class FunapiTransportImpl : public FunapiTransportBase {
   virtual ~FunapiTransportImpl();
   void Stop();
   virtual void ResetPingClientTimeout() {};
+  virtual int GetSocket();
+
+  virtual void AddInitSocketCallback(const TransportEventHandler &handler);
+  virtual void AddCloseSocketCallback(const TransportEventHandler &handler);
+
+  virtual void OnSocketRead();
+  virtual void OnSocketWrite();
+  virtual void Update();
 
  protected:
-  virtual void JoinThread();
   void CloseSocket();
   virtual void Recv() = 0;
 
@@ -493,11 +495,15 @@ class FunapiTransportImpl : public FunapiTransportBase {
   Endpoint endpoint_;
   int sock_;
 
-  bool recv_thread_run_ = false;
-  std::thread recv_thread_;
-
   std::vector<struct in_addr> in_addrs_;
   uint16_t port_;
+
+  void OnInitSocket(const TransportProtocol protocol);
+  void OnCloseSocket(const TransportProtocol protocol);
+
+ private:
+  FEvent<TransportEventHandler> on_init_socket_;
+  FEvent<TransportEventHandler> on_close_socket_;
 };
 
 
@@ -546,34 +552,59 @@ void FunapiTransportImpl::Stop() {
   state_ = kDisconnected;
 
   CloseSocket();
-  JoinThread();
+
+  OnTransportClosed(GetProtocol());
 }
 
 
 void FunapiTransportImpl::CloseSocket() {
   if (sock_ >= 0) {
-#if PLATFORM_WINDOWS || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#if FUNAPI_PLATFORM_WINDOWS
     closesocket(sock_);
 #else
     close(sock_);
 #endif
     sock_ = -1;
+
+    OnCloseSocket(GetProtocol());
   }
 }
 
 
-void FunapiTransportImpl::JoinThread() {
-  FunapiTransportBase::JoinThread();
+int FunapiTransportImpl::GetSocket() {
+  return sock_;
+}
 
-  recv_thread_run_ = false;
-  if (recv_thread_.joinable()) {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)      
-    recv_thread_.detach();
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-#else
-    recv_thread_.join();
-#endif
-  }
+
+void FunapiTransportImpl::AddInitSocketCallback(const TransportEventHandler &handler) {
+  on_init_socket_ += handler;
+}
+
+
+void FunapiTransportImpl::AddCloseSocketCallback(const TransportEventHandler &handler) {
+  on_close_socket_ += handler;
+}
+
+
+void FunapiTransportImpl::OnInitSocket(const TransportProtocol protocol) {
+  PushTaskQueue([this, protocol] { on_init_socket_(protocol); });
+}
+
+
+void FunapiTransportImpl::OnCloseSocket(const TransportProtocol protocol) {
+  PushTaskQueue([this, protocol] { on_close_socket_(protocol); });
+}
+
+
+void FunapiTransportImpl::OnSocketRead() {
+}
+
+
+void FunapiTransportImpl::OnSocketWrite() {
+}
+
+
+void FunapiTransportImpl::Update() {
 }
 
 
@@ -586,20 +617,22 @@ class FunapiTcpTransportImpl : public FunapiTransportImpl {
     const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiTcpTransportImpl();
 
+  virtual TransportProtocol GetProtocol();
+
   void Start();
   void SetDisableNagle(bool disable_nagle);
   void SetAutoReconnect(bool auto_reconnect);
   void SetEnablePing(bool enable_ping);
   void ResetPingClientTimeout();
 
+  void OnSocketRead();
+  void OnSocketWrite();
+  void Update();
+
  protected:
-  virtual void EncodeThenSendMessage(std::vector<uint8_t> body);
-  virtual void JoinThread();
+  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body);
   void Connect();
   void Recv();
-
-  bool connect_thread_run_ = false;
-  std::thread connect_thread_;
 
   bool disable_nagle_ = false;
   bool auto_reconnect_ = false;
@@ -611,8 +644,23 @@ class FunapiTcpTransportImpl : public FunapiTransportImpl {
   bool Connect(Endpoint endpoint);
 
   // Ping message-related constants.
-  const time_t kPingIntervalSecond = 3;
-  const time_t kPingTimeoutSeconds = 20;
+  static const time_t kPingIntervalSecond = 3;
+  static const time_t kPingTimeoutSeconds = 20;
+
+  static const int kMaxReconnectCount = 3;
+  static const time_t kMaxReconnectWaitSeconds = 10;
+  int reconnect_count_ = 0;
+  int connect_addr_index_ = 0;
+  time_t reconnect_wait_time_;
+  time_t reconnect_wait_seconds_;
+
+  std::function<void()> on_socket_read_;
+  std::function<void()> on_socket_write_;
+  std::function<void()> on_update_;
+
+  void Ping();
+  void CheckConnectTimeout();
+  void WaitForAutoReconnect();
 };
 
 
@@ -626,23 +674,123 @@ FunapiTcpTransportImpl::FunapiTcpTransportImpl(TransportProtocol protocol,
 
 FunapiTcpTransportImpl::~FunapiTcpTransportImpl() {
   CloseSocket();
-  JoinThread();
+}
+
+
+TransportProtocol FunapiTcpTransportImpl::GetProtocol() {
+  return TransportProtocol::kTcp;
 }
 
 
 void FunapiTcpTransportImpl::Start() {
-  CloseSocket();
-  JoinThread();
-
   state_ = kConnecting;
 
-  // connecting
-  connect_thread_run_ = true;
-  send_thread_run_ = true;
-  recv_thread_run_ = true;
-  connect_thread_ = std::thread([this] {
+  on_update_ = [](){};
+  on_socket_read_ = [](){};
+  on_socket_write_ = [this](){
+    int e;
+    socklen_t e_size = sizeof(e);
+    int r = getsockopt(sock_, SOL_SOCKET, SO_ERROR, (char *)&e, &e_size);
+    if (r == 0 && e == 0) {
+      // Makes a state transition.
+      state_ = kConnected;
+
+      on_socket_read_ = [this]{ Recv(); };
+      on_socket_write_ = [this]{ Send(); };
+
+      ping_client_timeout_ = time(NULL) + kPingIntervalSecond + kPingTimeoutSeconds;
+      on_update_ = [this]{
+        Ping();
+      };
+
+      // To get a session id
+      PushTaskQueue([this](){ SendEmptyMessage(protocol_, encoding_); });
+    }
+    else {
+      FUNAPI_LOG("failed - tcp connect");
+      PushTaskQueue([this](){ on_transport_failure_(TransportProtocol::kTcp); });
+
+      ++connect_addr_index_;
+      Connect();
+    }
+  };
+
+  reconnect_count_ = 0;
+  connect_addr_index_ = 0;
+  reconnect_wait_seconds_ = 1;
+  Connect();
+}
+
+
+void FunapiTcpTransportImpl::Ping() {
+  if (enable_ping_) {
+    time_t now = time(NULL);
+    static time_t ping_send_time = now;
+
+    if (now >= ping_send_time) {
+      auto network = network_.lock();
+      if (network) {
+        if (network->SendClientPingMessage(GetProtocol())) {
+          ping_send_time = now + kPingIntervalSecond;
+        }
+        else {
+          ping_client_timeout_ = now + kPingIntervalSecond + kPingTimeoutSeconds;
+        }
+      }
+    }
+    if (now >= ping_client_timeout_) {
+      FUNAPI_LOG("Network seems disabled. Stopping the transport.");
+      PushStopTask();
+      return;
+    }
+  }
+}
+
+
+void FunapiTcpTransportImpl::CheckConnectTimeout() {
+  time_t now = time(NULL);
+  if (now >= connect_timeout_time_) {
+    FUNAPI_LOG("failed - tcp connect - timeout");
+    PushTaskQueue([this](){ on_connect_timeout_(TransportProtocol::kTcp); });
+
+    if (auto_reconnect_) {
+      ++reconnect_count_;
+
+      if (kMaxReconnectCount < reconnect_count_) {
+        ++connect_addr_index_;
+        reconnect_count_ = 0;
+        reconnect_wait_seconds_ = 1;
+
+        Connect();
+      }
+      else {
+        reconnect_wait_time_ = time(NULL) + reconnect_wait_seconds_;
+
+        FUNAPI_LOG("Wait %d seconds for connect to TCP transport.", (int)reconnect_wait_seconds_);
+
+        on_update_ = [this](){
+          WaitForAutoReconnect();
+        };
+      }
+    }
+    else {
+      ++connect_addr_index_;
+      Connect();
+    }
+  }
+}
+
+
+void FunapiTcpTransportImpl::WaitForAutoReconnect() {
+  time_t now = time(NULL);
+  if (now >= reconnect_wait_time_) {
+    reconnect_wait_seconds_ *= 2;
+    if (kMaxReconnectWaitSeconds < reconnect_wait_seconds_) {
+      reconnect_wait_seconds_ = kMaxReconnectWaitSeconds;
+    }
+
     Connect();
-  });
+  }
 }
 
 
@@ -666,49 +814,35 @@ void FunapiTcpTransportImpl::ResetPingClientTimeout() {
 }
 
 
-void FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
+bool FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   if (!EncodeMessage(body)) {
     PushStopTask();
-    return;
+    return false;
   }
 
-  fd_set wset;
-  int offset = 0;
+  static int offset = 0;
 
-  do {
-    FD_ZERO(&wset);
+  if (sock_ < 0)
+    return false;
 
-    if (sock_ < 0)
-      return;
+  int nSent = (int)send(sock_, (char*)body.data() + offset, body.size() - offset, 0);
 
-    FD_SET(sock_, &wset);
-    struct timeval timeout = { 0, 1 };
+  if (nSent < 0) {
+    PushStopTask();
+    return false;
+  }
+  else {
+    offset += nSent;
+  }
 
-    if (select(sock_ + 1, NULL, &wset, NULL, &timeout) > 0) {
-      if (FD_ISSET(sock_, &wset)) {
-        int nSent = (int)send(sock_, (char*)body.data() + offset, body.size() - offset, 0);
+  FUNAPI_LOG("Sent %d bytes", nSent);
 
-        if (nSent < 0) {
-          PushStopTask();
-          break;
-        }
-        else {
-          offset += nSent;
-        }
+  if (offset == body.size()) {
+    offset = 0;
+    return true;
+  }
 
-        FUNAPI_LOG("Sent %d bytes", nSent);
-      }
-    }
-  } while (offset < body.size());
-}
-
-
-void FunapiTcpTransportImpl::JoinThread() {
-  FunapiTransportImpl::JoinThread();
-
-  connect_thread_run_ = false;
-  if (connect_thread_.joinable())
-    connect_thread_.join();
+  return false;
 }
 
 
@@ -718,7 +852,7 @@ void FunapiTcpTransportImpl::InitSocket() {
   assert(sock_ >= 0);
 
   // Makes the fd non-blocking.
-#if PLATFORM_WINDOWS || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+#if FUNAPI_PLATFORM_WINDOWS
   u_long argp = 0;
   int flag = ioctlsocket(sock_, FIONBIO, &argp);
   assert(flag >= 0);
@@ -740,11 +874,29 @@ void FunapiTcpTransportImpl::InitSocket() {
       FUNAPI_LOG("error - TCP_NODELAY");
     }
   }
+
+  OnInitSocket(TransportProtocol::kTcp);
 }
 
 
-bool FunapiTcpTransportImpl::Connect(Endpoint endpoint) {
-  time_t connect_timeout = time(NULL) + connect_timeout_;
+void FunapiTcpTransportImpl::Connect() {
+  CloseSocket();
+
+  if (connect_addr_index_ >= in_addrs_.size()) {
+    on_update_ = [](){};
+    on_socket_read_ = [](){};
+    on_socket_write_ = [](){};
+    return;
+  }
+
+  Endpoint endpoint;
+  endpoint.sin_family = AF_INET;
+  endpoint.sin_addr = in_addrs_[connect_addr_index_];
+  endpoint.sin_port = htons(port_);
+
+  InitSocket();
+
+  connect_timeout_time_ = time(NULL) + connect_timeout_seconds_;
 
   // Tries to connect.
   int rc = connect(sock_,
@@ -752,169 +904,58 @@ bool FunapiTcpTransportImpl::Connect(Endpoint endpoint) {
                    sizeof(endpoint_));
   assert(rc == 0 || (rc < 0 && errno == EINPROGRESS));
 
-  bool is_connected = false;
-  bool is_timeout = false;
-  while (connect_thread_run_ && !is_connected && !is_timeout) {
-    if (sock_ < 0)
-      break;
+  FUNAPI_LOG("Try to connect to server - %s", inet_ntoa(endpoint.sin_addr));
 
-    fd_set wset;
-    FD_ZERO(&wset);
-    FD_SET(sock_, &wset);
-    struct timeval timeout = { 0, 1 };
-
-    if (select(sock_ + 1, NULL, &wset, NULL, &timeout) > 0) {
-      if (FD_ISSET(sock_, &wset)) {
-        int e;
-        socklen_t e_size = sizeof(e);
-        int r = getsockopt(sock_, SOL_SOCKET, SO_ERROR, (char *)&e, &e_size);
-        if (r == 0) {
-          is_connected = true;
-
-          // Makes a state transition.
-          state_ = kConnected;
-
-          recv_thread_ = std::thread([this] {
-            Recv();
-          });
-
-          send_thread_ = std::thread([this] {
-            Send();
-          });
-
-          // To get a session id
-          PushTaskQueue([this]{ SendEmptyMessage(protocol_, encoding_); });
-        }
-        else {
-          assert(r < 0 && errno == EBADF);
-          FUNAPI_LOG("failed - tcp connect");
-
-          PushTaskQueue([this]{ on_transport_failure_(TransportProtocol::kTcp); });
-        }
-      }
-    }
-    else {
-      time_t now = time(NULL);
-      if (now > connect_timeout) {
-        FUNAPI_LOG("failed - tcp connect - timeout");
-        is_timeout = true;
-
-        PushTaskQueue([this]{ on_connect_timeout_(TransportProtocol::kTcp); });
-      }
-    }
-  }
-
-  return is_connected;
-}
-
-
-void FunapiTcpTransportImpl::Connect() {
-  const int kMaxReconnectCount = 3;
-
-  for (auto addr : in_addrs_) {
-    time_t wait_time = 1;
-    bool is_connected = false;
-    Endpoint endpoint;
-    endpoint.sin_family = AF_INET;
-    endpoint.sin_addr = addr;
-    endpoint.sin_port = htons(port_);
-
-    for (int i=0;i<=kMaxReconnectCount;++i) {
-      CloseSocket();
-      InitSocket();
-
-      is_connected = Connect(endpoint);
-      if (!connect_thread_run_ || is_connected || !auto_reconnect_) break;
-
-      // wait time
-      time_t delay_time = time(NULL) + wait_time;
-      FUNAPI_LOG("Wait %d seconds for connect to TCP transport.", (int)wait_time);
-      while (connect_thread_run_ && time(NULL) < delay_time) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-      }
-      if (!connect_thread_run_ || is_connected) break;
-
-      wait_time *= 2;
-    }
-
-    if (!connect_thread_run_ || is_connected) break;
-  }
-
-  connect_thread_run_ = false;
+  on_update_ = [this](){
+    CheckConnectTimeout();
+  };
 }
 
 
 void FunapiTcpTransportImpl::Recv() {
-  std::vector<uint8_t> receiving_vector;
-  fd_set rset;
+  static std::vector<uint8_t> receiving_vector;
+  static int next_decoding_offset = 0;
+  static bool header_decoded = false;
+  static HeaderFields header_fields;
 
-  int next_decoding_offset = 0;
-  bool header_decoded = false;
-  HeaderFields header_fields;
+  if (sock_ < 0)
+    return;
 
-  // ping
-  time_t now = time(NULL);
-  time_t ping_send_time = now;
-  ping_client_timeout_ = now + kPingIntervalSecond + kPingTimeoutSeconds;
+  std::vector<uint8_t> buffer(kUnitBufferSize);
 
-  while (recv_thread_run_)
-  {
-    if (sock_ < 0)
-      break;
+  int nRead = (int)recv(sock_, buffer.data(), kUnitBufferSize, 0);
 
-    FD_ZERO(&rset);
-    FD_SET(sock_, &rset);
-    struct timeval timeout = { 0, 1 };
-
-    if (select(sock_ + 1, &rset, NULL, NULL, &timeout) > 0) {
-      if (FD_ISSET(sock_, &rset)) {
-        std::vector<char> buffer(kUnitBufferSize);
-
-        int nRead =
-          (int)recv(sock_, buffer.data(), kUnitBufferSize, 0);
-
-        if (nRead <= 0) {
-          if (nRead < 0) {
-            FUNAPI_LOG("receive failed: %s", strerror(errno));
-          }
-          PushStopTask();
-          return;
-        }
-
-        receiving_vector.insert(receiving_vector.end(), buffer.cbegin(), buffer.cbegin() + nRead);
-
-        if (!DecodeMessage(nRead, receiving_vector, next_decoding_offset, header_decoded, header_fields)) {
-          if (nRead == 0)
-            FUNAPI_LOG("Socket [%d] closed.", sock_);
-
-          PushStopTask();
-          return;
-        }
-      }
+  if (nRead <= 0) {
+    if (nRead < 0) {
+      FUNAPI_LOG("receive failed: %s", strerror(errno));
     }
-
-    if (enable_ping_) {
-      time_t now = time(NULL);
-      if (now >= ping_send_time) {
-        auto network = network_.lock();
-        if (network) {
-          if (network->SendClientPingMessage(protocol_)) {
-            ping_send_time = now + kPingIntervalSecond;
-          }
-          else {
-            ping_client_timeout_ = now + kPingIntervalSecond + kPingTimeoutSeconds;
-          }
-        }
-      }
-      if (now >= ping_client_timeout_) {
-        FUNAPI_LOG("Network seems disabled. Stopping the transport.");
-        PushStopTask();
-        return;
-      }
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    PushStopTask();
+    return;
   }
+
+  receiving_vector.insert(receiving_vector.end(), buffer.cbegin(), buffer.cbegin() + nRead);
+
+  if (!DecodeMessage(nRead, receiving_vector, next_decoding_offset, header_decoded, header_fields)) {
+    if (nRead == 0)
+      FUNAPI_LOG("Socket [%d] closed.", sock_);
+
+    PushStopTask();
+  }
+}
+
+
+void FunapiTcpTransportImpl::OnSocketRead() {
+  on_socket_read_();
+}
+
+
+void FunapiTcpTransportImpl::OnSocketWrite() {
+  on_socket_write_();
+}
+
+
+void FunapiTcpTransportImpl::Update() {
+  on_update_();
 }
 
 
@@ -927,10 +968,15 @@ public:
     const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiUdpTransportImpl();
 
+  virtual TransportProtocol GetProtocol();
+
   void Start();
 
+  void OnSocketRead();
+  void OnSocketWrite();
+
 protected:
-  virtual void EncodeThenSendMessage(std::vector<uint8_t> body);
+  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body);
   void Recv();
 
 private:
@@ -951,106 +997,90 @@ FunapiUdpTransportImpl::FunapiUdpTransportImpl(TransportProtocol protocol,
 
 FunapiUdpTransportImpl::~FunapiUdpTransportImpl() {
   CloseSocket();
-  JoinThread();
+}
+
+
+TransportProtocol FunapiUdpTransportImpl::GetProtocol() {
+  return TransportProtocol::kUdp;
 }
 
 
 void FunapiUdpTransportImpl::Start() {
   CloseSocket();
-  JoinThread();
 
   sock_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   assert(sock_ >= 0);
   state_ = kConnected;
 
-  send_thread_run_ = true;
-  recv_thread_run_ = true;
-
-  recv_thread_ = std::thread([this] {
-    Recv();
-  });
-
-  send_thread_ = std::thread([this] {
-    Send();
-  });
+  OnInitSocket(TransportProtocol::kUdp);
+  OnTransportStarted(TransportProtocol::kUdp);
 
   // To get a session id
   PushTaskQueue([this]{ SendEmptyMessage(protocol_, encoding_); });
 }
 
 
-void FunapiUdpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
+bool FunapiUdpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   if (!EncodeMessage(body)) {
     PushStopTask();
-    return;
+    return false;
   }
 
   // log
   // std::string temp_string(body.cbegin(), body.cend());
   // FUNAPI_LOG("Send = %s", *FString(temp_string.c_str()));
 
-  fd_set wset;
-  struct timeval timeout = { 0, 1 };
   socklen_t len = sizeof(endpoint_);
 
   if (sock_ < 0)
-    return;
+    return false;
 
-  FD_ZERO(&wset);
-  FD_SET(sock_, &wset);
+  int nSent = (int)sendto(sock_, (char*)body.data(), body.size(), 0, (struct sockaddr*)&endpoint_, len);
 
-  if (select(sock_ + 1, NULL, &wset, NULL, &timeout) > 0) {
-    if (FD_ISSET(sock_, &wset)) {
-      int nSent = (int)sendto(sock_, (char*)body.data(), body.size(), 0, (struct sockaddr*)&endpoint_, len);
-
-      if (nSent < 0) {
-        PushStopTask();
-        return;
-      }
-
-      // FUNAPI_LOG("Sent %d bytes", nSent);
-    }
+  if (nSent < 0) {
+    PushStopTask();
+    return false;
   }
+
+  // FUNAPI_LOG("Sent %d bytes", nSent);
+
+  return true;
 }
 
 
 void FunapiUdpTransportImpl::Recv() {
   std::vector<uint8_t> receiving_vector(kUnitBufferSize);
-  fd_set rset;
   socklen_t len = sizeof(recv_endpoint_);
 
-  while (recv_thread_run_)
-  {
-    if (sock_<0)
-      break;
+  if (sock_<0)
+    return;
 
-    FD_ZERO(&rset);
-    FD_SET(sock_, &rset);
-    struct timeval timeout = { 0, 1 };
+  int nRead = (int)recvfrom(sock_, (char*)receiving_vector.data(), receiving_vector.size(), 0, (struct sockaddr*)&recv_endpoint_, &len);
 
-    if (select(sock_ + 1, &rset, NULL, NULL, &timeout) > 0) {
-      if (FD_ISSET(sock_, &rset)) {
-        int nRead =
-          (int)recvfrom(sock_, (char*)receiving_vector.data(), receiving_vector.size(), 0, (struct sockaddr*)&recv_endpoint_, &len);
+  // FUNAPI_LOG("nRead = %d", nRead);
 
-        // FUNAPI_LOG("nRead = %d", nRead);
-
-        if (nRead < 0) {
-          FUNAPI_LOG("receive failed: %s", strerror(errno));
-          PushStopTask();
-          return;
-        }
-
-        if (!DecodeMessage(nRead, receiving_vector)) {
-          if (nRead == 0)
-            FUNAPI_LOG("Socket [%d] closed.", sock_);
-
-          PushStopTask();
-          return;
-        }
-      }
-    }
+  if (nRead < 0) {
+    FUNAPI_LOG("receive failed: %s", strerror(errno));
+    PushStopTask();
+    return;
   }
+
+  if (!DecodeMessage(nRead, receiving_vector)) {
+    if (nRead == 0)
+      FUNAPI_LOG("Socket [%d] closed.", sock_);
+
+    PushStopTask();
+  }
+}
+
+
+void FunapiUdpTransportImpl::OnSocketRead() {
+  Recv();
+}
+
+
+void FunapiUdpTransportImpl::OnSocketWrite() {
+  Send();
 }
 
 
@@ -1062,11 +1092,15 @@ class FunapiHttpTransportImpl : public FunapiTransportBase {
   FunapiHttpTransportImpl(const std::string &hostname_or_ip, uint16_t port, bool https, FunEncoding encoding);
   virtual ~FunapiHttpTransportImpl();
 
+  virtual TransportProtocol GetProtocol();
+
   void Start();
   void Stop();
 
+  void Update();
+
  protected:
-  virtual void EncodeThenSendMessage(std::vector<uint8_t> body);
+  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body);
 
  private:
   static size_t HttpResponseCb(void *data, size_t size, size_t count, void *cb);
@@ -1093,7 +1127,11 @@ FunapiHttpTransportImpl::FunapiHttpTransportImpl(const std::string &hostname_or_
 
 
 FunapiHttpTransportImpl::~FunapiHttpTransportImpl() {
-  JoinThread();
+}
+
+
+TransportProtocol FunapiHttpTransportImpl::GetProtocol() {
+  return TransportProtocol::kHttp;
 }
 
 
@@ -1101,12 +1139,7 @@ void FunapiHttpTransportImpl::Start() {
   state_ = kConnected;
   FUNAPI_LOG("Started.");
 
-  JoinThread();
-
-  send_thread_run_ = true;
-  send_thread_ = std::thread([this] {
-    Send();
-  });
+  OnTransportStarted(TransportProtocol::kHttp);
 
   // To get a session id
   PushTaskQueue([this]{ SendEmptyMessage(protocol_, encoding_); });
@@ -1120,7 +1153,7 @@ void FunapiHttpTransportImpl::Stop() {
   state_ = kDisconnected;
   FUNAPI_LOG("Stopped.");
 
-  JoinThread();
+  OnTransportClosed(TransportProtocol::kHttp);
 }
 
 
@@ -1132,7 +1165,7 @@ size_t FunapiHttpTransportImpl::HttpResponseCb(void *data, size_t size, size_t c
 }
 
 
-void FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
+bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   std::string header = MakeHeaderString(body);
 
   // log
@@ -1142,7 +1175,7 @@ void FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   CURL *ctx = curl_easy_init();
   if (ctx == NULL) {
     FUNAPI_LOG("Unable to initialize cURL interface.");
-    return;
+    return false;
   }
 
   HeaderFields header_fields;
@@ -1165,7 +1198,7 @@ void FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   CURLcode res = curl_easy_perform(ctx);
   if (res != CURLE_OK) {
     FUNAPI_LOG("Error from cURL: %s", curl_easy_strerror(res));
-    assert(false);
+    return false;
   }
   else {
     // std::to_string is not supported on android, using std::stringstream instead.
@@ -1186,6 +1219,8 @@ void FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 
   curl_easy_cleanup(ctx);
   curl_slist_free_all(chunk);
+
+  return true;
 }
 
 
@@ -1214,6 +1249,12 @@ void FunapiHttpTransportImpl::WebResponseBodyCb(void *data, int len, std::vector
 }
 
 
+void FunapiHttpTransportImpl::Update() {
+  // FUNAPI_LOG("%s", __FUNCTION__);
+  Send();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiTcpTransport implementation.
 
@@ -1222,8 +1263,8 @@ FunapiTcpTransport::FunapiTcpTransport (const std::string &hostname_or_ip, uint1
 }
 
 
-TransportProtocol FunapiTcpTransport::Protocol() const {
-  return TransportProtocol::kTcp;
+TransportProtocol FunapiTcpTransport::GetProtocol() const {
+  return impl_->GetProtocol();
 }
 
 
@@ -1268,7 +1309,7 @@ void FunapiTcpTransport::SetNetwork(std::weak_ptr<FunapiNetwork> network) {
 }
 
 
-FunEncoding FunapiTcpTransport::Encoding() const {
+FunEncoding FunapiTcpTransport::GetEncoding() const {
   return impl_->GetEncoding();
 }
 
@@ -1317,6 +1358,37 @@ void FunapiTcpTransport::ResetPingClientTimeout() {
   return impl_->ResetPingClientTimeout();
 }
 
+
+int FunapiTcpTransport::GetSocket() {
+  return impl_->GetSocket();
+}
+
+
+void FunapiTcpTransport::AddInitSocketCallback(const TransportEventHandler &handler) {
+  return impl_->AddInitSocketCallback(handler);
+}
+
+
+void FunapiTcpTransport::AddCloseSocketCallback(const TransportEventHandler &handler) {
+  return impl_->AddCloseSocketCallback(handler);
+}
+
+
+void FunapiTcpTransport::OnSocketRead() {
+  return impl_->OnSocketRead();
+}
+
+
+void FunapiTcpTransport::OnSocketWrite() {
+  return impl_->OnSocketWrite();
+}
+
+
+void FunapiTcpTransport::Update() {
+  return impl_->Update();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiUdpTransport implementation.
 
@@ -1325,8 +1397,8 @@ FunapiUdpTransport::FunapiUdpTransport (const std::string &hostname_or_ip, uint1
 }
 
 
-TransportProtocol FunapiUdpTransport::Protocol() const {
-  return TransportProtocol::kUdp;
+TransportProtocol FunapiUdpTransport::GetProtocol() const {
+  return impl_->GetProtocol();
 }
 
 
@@ -1371,7 +1443,7 @@ void FunapiUdpTransport::SetNetwork(std::weak_ptr<FunapiNetwork> network) {
 }
 
 
-FunEncoding FunapiUdpTransport::Encoding() const {
+FunEncoding FunapiUdpTransport::GetEncoding() const {
   return impl_->GetEncoding();
 }
 
@@ -1405,6 +1477,37 @@ void FunapiUdpTransport::ResetPingClientTimeout() {
   return impl_->ResetPingClientTimeout();
 }
 
+
+int FunapiUdpTransport::GetSocket() {
+  return impl_->GetSocket();
+}
+
+
+void FunapiUdpTransport::AddInitSocketCallback(const TransportEventHandler &handler) {
+  return impl_->AddInitSocketCallback(handler);
+}
+
+
+void FunapiUdpTransport::AddCloseSocketCallback(const TransportEventHandler &handler) {
+  return impl_->AddCloseSocketCallback(handler);
+}
+
+
+void FunapiUdpTransport::OnSocketRead() {
+  return impl_->OnSocketRead();
+}
+
+
+void FunapiUdpTransport::OnSocketWrite() {
+  return impl_->OnSocketWrite();
+}
+
+
+void FunapiUdpTransport::Update() {
+  return impl_->Update();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiHttpTransport implementation.
 
@@ -1414,8 +1517,8 @@ FunapiHttpTransport::FunapiHttpTransport (const std::string &hostname_or_ip,
 }
 
 
-TransportProtocol FunapiHttpTransport::Protocol() const {
-  return TransportProtocol::kHttp;
+TransportProtocol FunapiHttpTransport::GetProtocol() const {
+  return impl_->GetProtocol();
 }
 
 
@@ -1460,7 +1563,7 @@ void FunapiHttpTransport::SetNetwork(std::weak_ptr<FunapiNetwork> network) {
 }
 
 
-FunEncoding FunapiHttpTransport::Encoding() const {
+FunEncoding FunapiHttpTransport::GetEncoding() const {
   return impl_->GetEncoding();
 }
 
@@ -1495,82 +1598,8 @@ void FunapiHttpTransport::ResetPingClientTimeout() {
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
-// FunapiTransport implementation.
-
-void FunapiTransport::RegisterEventHandlers(
-  const OnReceived &on_received, const OnStopped &on_stopped) {
-  impl_->RegisterEventHandlers(on_received, on_stopped);
-}
-
-
-void FunapiTransport::Start() {
-  impl_->Start();
-}
-
-
-void FunapiTransport::Stop() {
-  impl_->Stop();
-}
-
-
-void FunapiTransport::SendMessage(rapidjson::Document &message) {
-  impl_->SendMessage(message);
-}
-
-
-void FunapiTransport::SendMessage(FunMessage &message) {
-  impl_->SendMessage(message);
-}
-
-
-void FunapiTransport::SendMessage(const char *body) {
-  impl_->SendMessage(body);
-}
-
-
-bool FunapiTransport::Started() const {
-  return impl_->Started();
-}
-
-
-void FunapiTransport::SetNetwork(std::weak_ptr<FunapiNetwork> network) {
-  impl_->SetNetwork(network);
-}
-
-
-FunEncoding FunapiTransport::Encoding() const {
-  return impl_->GetEncoding();
-}
-
-
-void FunapiTransport::SetConnectTimeout(time_t timeout) {
-  return impl_->SetConnectTimeout(timeout);
-}
-
-
-void FunapiTransport::AddStartedCallback(const TransportEventHandler &handler) {
-  return impl_->AddStartedCallback(handler);
-}
-
-
-void FunapiTransport::AddStoppedCallback(const TransportEventHandler &handler) {
-  return impl_->AddStoppedCallback(handler);
-}
-
-
-void FunapiTransport::AddFailureCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailureCallback(handler);
-}
-
-
-void FunapiTransport::AddConnectTimeoutCallback(const TransportEventHandler &handler) {
-  return impl_->AddConnectTimeoutCallback(handler);
-}
-
-
-void FunapiTransport::ResetPingClientTimeout() {
-  return impl_->ResetPingClientTimeout();
+void FunapiHttpTransport::Update() {
+  return impl_->Update();
 }
 
 }  // namespace fun

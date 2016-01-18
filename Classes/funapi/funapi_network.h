@@ -20,7 +20,7 @@ enum class FunapiVersion : int
 
 class FunapiNetworkImpl;
 class FunapiNetwork : public std::enable_shared_from_this<FunapiNetwork> {
-public:
+ public:
   typedef std::function<void(const TransportProtocol, const std::string &, const std::vector<uint8_t> &)> MessageEventHandler;
   typedef std::function<void(const std::string &)> SessionInitHandler;
   typedef std::function<void()> SessionCloseHandler;
