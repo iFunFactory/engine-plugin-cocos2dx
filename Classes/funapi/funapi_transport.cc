@@ -96,10 +96,10 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
   time_t connect_timeout_seconds_ = 1;
   time_t connect_timeout_time_;
 
-  FEvent<TransportEventHandler> on_transport_stared_;
-  FEvent<TransportEventHandler> on_transport_closed_;
-  FEvent<TransportEventHandler> on_transport_failure_;
-  FEvent<TransportEventHandler> on_connect_timeout_;
+  FunapiEvent<TransportEventHandler> on_transport_stared_;
+  FunapiEvent<TransportEventHandler> on_transport_closed_;
+  FunapiEvent<TransportEventHandler> on_transport_failure_;
+  FunapiEvent<TransportEventHandler> on_connect_timeout_;
 
   void OnTransportStarted(const TransportProtocol protocol);
   void OnTransportClosed(const TransportProtocol protocol);
@@ -502,8 +502,8 @@ class FunapiTransportImpl : public FunapiTransportBase {
   void OnCloseSocket(const TransportProtocol protocol);
 
  private:
-  FEvent<TransportEventHandler> on_init_socket_;
-  FEvent<TransportEventHandler> on_close_socket_;
+  FunapiEvent<TransportEventHandler> on_init_socket_;
+  FunapiEvent<TransportEventHandler> on_close_socket_;
 };
 
 

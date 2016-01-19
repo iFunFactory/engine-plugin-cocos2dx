@@ -109,12 +109,12 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   std::mutex tasks_queue_mutex_;
 
   // Funapi message-related events.
-  FEvent<SessionInitHandler> on_session_initiated_;
-  FEvent<SessionCloseHandler> on_session_closed_;
-  FEvent<MessageEventHandler> on_maintenance_;
-  FEvent<NotifyHandler> on_stopped_all_transport_;
-  FEvent<TransportEventHandler> on_transport_connect_failed_;
-  FEvent<TransportEventHandler> on_transport_disconnected_;
+  FunapiEvent<SessionInitHandler> on_session_initiated_;
+  FunapiEvent<SessionCloseHandler> on_session_closed_;
+  FunapiEvent<MessageEventHandler> on_maintenance_;
+  FunapiEvent<NotifyHandler> on_stopped_all_transport_;
+  FunapiEvent<TransportEventHandler> on_transport_connect_failed_;
+  FunapiEvent<TransportEventHandler> on_transport_disconnected_;
 
   bool session_reliability_ = false;
 

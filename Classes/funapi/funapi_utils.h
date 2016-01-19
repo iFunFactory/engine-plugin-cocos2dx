@@ -42,7 +42,7 @@ string FormatString (const char* fmt, Args... args)
 
 // Function event
 template <typename T>
-class FEvent
+class FunapiEvent
 {
  public:
   void operator+= (const T &handler) { std::unique_lock<std::mutex> lock(mutex_); vector_.push_back(handler); }
