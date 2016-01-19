@@ -268,27 +268,18 @@ std::shared_ptr<fun::FunapiTransport> FunapiTest::GetNewTransport(fun::Transport
   fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
 
   if (protocol == fun::TransportProtocol::kTcp) {
-    transport = std::make_shared<fun::FunapiTcpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8022 : 8012), encoding);
+    transport = fun::FunapiTcpTransport::create(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8022 : 8012), encoding);
 
     // transport->SetAutoReconnect(true);
     // transport->SetEnablePing(true);
     // transport->SetDisableNagle(true);
+    // transport->SetConnectTimeout(10);
   }
   else if (protocol == fun::TransportProtocol::kUdp) {
-    transport = std::make_shared<fun::FunapiUdpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8023 : 8013), encoding);
+    transport = fun::FunapiUdpTransport::create(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8023 : 8013), encoding);
   }
   else if (protocol == fun::TransportProtocol::kHttp) {
-    transport = std::make_shared<fun::FunapiHttpTransport>(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8028 : 8018), false, encoding);
-  }
-
-  if (transport != nullptr) {
-    transport->AddStartedCallback([this](const fun::TransportProtocol protocol){ OnTransportStarted(protocol); });
-    transport->AddStoppedCallback([this](const fun::TransportProtocol protocol){ OnTransportClosed(protocol); });
-    transport->AddFailureCallback([this](const fun::TransportProtocol protocol){ OnTransportFailure(protocol); });
-
-    // Connect timeout.
-    transport->AddConnectTimeoutCallback([this](const fun::TransportProtocol protocol){ OnConnectTimeout(protocol); });
-    transport->SetConnectTimeout(10);
+    transport = fun::FunapiHttpTransport::create(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8028 : 8018), false, encoding);
   }
 
   return transport;
@@ -342,24 +333,4 @@ void FunapiTest::OnTransportConnectFailed (const fun::TransportProtocol protocol
 void FunapiTest::OnTransportDisconnected (const fun::TransportProtocol protocol)
 {
   FUNAPI_LOG("OnTransportDisconnected called.");
-}
-
-void FunapiTest::OnTransportStarted (const fun::TransportProtocol protocol)
-{
-  FUNAPI_LOG("OnTransportStarted called.");
-}
-
-void FunapiTest::OnTransportClosed (const fun::TransportProtocol protocol)
-{
-  FUNAPI_LOG("OnTransportClosed called.");
-}
-
-void FunapiTest::OnTransportFailure (const fun::TransportProtocol protocol)
-{
-  FUNAPI_LOG("OnTransportFailure called.");
-}
-
-void FunapiTest::OnConnectTimeout (const fun::TransportProtocol protocol)
-{
-  FUNAPI_LOG("OnConnectTimeout called.");
 }

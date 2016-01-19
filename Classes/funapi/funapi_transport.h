@@ -138,6 +138,8 @@ class FunapiTcpTransport : public FunapiTransport {
   FunapiTcpTransport(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiTcpTransport() = default;
 
+  static std::shared_ptr<FunapiTcpTransport> create(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
+
   void Start(); // Start connecting
   void Stop(); // Disconnection
   bool Started() const; // Check connection
@@ -185,6 +187,7 @@ class FunapiUdpTransport : public FunapiTransport {
   FunapiUdpTransport(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiUdpTransport() = default;
 
+  static std::shared_ptr<FunapiUdpTransport> create(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
 
   void Start(); // Start connecting
   void Stop(); // Disconnection
@@ -228,6 +231,8 @@ class FunapiHttpTransport : public FunapiTransport {
  public:
   FunapiHttpTransport(const std::string &hostname_or_ip, uint16_t port, bool https, FunEncoding encoding);
   virtual ~FunapiHttpTransport() = default;
+
+  static std::shared_ptr<FunapiHttpTransport> create(const std::string &hostname_or_ip, uint16_t port, bool https, FunEncoding encoding);
 
   void Start(); // Start connecting
   void Stop(); // Disconnection

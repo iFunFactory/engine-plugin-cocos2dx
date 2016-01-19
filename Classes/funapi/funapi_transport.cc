@@ -1261,6 +1261,11 @@ FunapiTcpTransport::FunapiTcpTransport (const std::string &hostname_or_ip, uint1
 }
 
 
+std::shared_ptr<FunapiTcpTransport> FunapiTcpTransport::create(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding) {
+  return std::make_shared<FunapiTcpTransport>(hostname_or_ip, port, encoding);
+}
+
+
 TransportProtocol FunapiTcpTransport::GetProtocol() const {
   return impl_->GetProtocol();
 }
@@ -1395,6 +1400,11 @@ FunapiUdpTransport::FunapiUdpTransport (const std::string &hostname_or_ip, uint1
 }
 
 
+std::shared_ptr<FunapiUdpTransport> FunapiUdpTransport::create(const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding) {
+  return std::make_shared<FunapiUdpTransport>(hostname_or_ip, port, encoding);
+}
+
+
 TransportProtocol FunapiUdpTransport::GetProtocol() const {
   return impl_->GetProtocol();
 }
@@ -1512,6 +1522,12 @@ void FunapiUdpTransport::Update() {
 FunapiHttpTransport::FunapiHttpTransport (const std::string &hostname_or_ip,
   uint16_t port, bool https, FunEncoding encoding)
   : impl_(std::make_shared<FunapiHttpTransportImpl>(hostname_or_ip, port, https, encoding)) {
+}
+
+
+std::shared_ptr<FunapiHttpTransport> FunapiHttpTransport::create(const std::string &hostname_or_ip,
+  uint16_t port, bool https, FunEncoding encoding) {
+  return std::make_shared<FunapiHttpTransport>(hostname_or_ip, port, https, encoding);
 }
 
 
