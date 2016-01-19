@@ -55,6 +55,25 @@ class FunapiEvent
   std::mutex mutex_;
 };
 
+
+class FunapiTimer
+{
+ public:
+  bool IsExpired() const {
+    if ((std::chrono::system_clock::now().time_since_epoch().count()/1000) > time_miliseconds_)
+      return true;
+
+    return false;
+  };
+
+  void SetTimer(time_t seconds) {
+    time_miliseconds_ = static_cast<int64_t>((std::chrono::system_clock::now().time_since_epoch().count()/1000) + (seconds*1000));
+  };
+
+ private:
+  int64_t time_miliseconds_ = 0;
+};
+
 }  // namespace fun
 
 #endif  // SRC_FUNAPI_UTILS_H_

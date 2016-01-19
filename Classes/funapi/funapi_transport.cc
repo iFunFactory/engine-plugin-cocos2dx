@@ -94,7 +94,7 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
   FunEncoding encoding_ = FunEncoding::kNone;
 
   time_t connect_timeout_seconds_ = 1;
-  time_t connect_timeout_time_;
+  FunapiTimer connect_timeout_timer_;
 
   FunapiEvent<TransportEventHandler> on_transport_stared_;
   FunapiEvent<TransportEventHandler> on_transport_closed_;
@@ -637,7 +637,7 @@ class FunapiTcpTransportImpl : public FunapiTransportImpl {
   bool disable_nagle_ = false;
   bool auto_reconnect_ = false;
   bool enable_ping_ = false;
-  time_t ping_client_timeout_;
+  FunapiTimer ping_client_timeout_timer_;
 
  private:
   void InitSocket();
@@ -651,7 +651,7 @@ class FunapiTcpTransportImpl : public FunapiTransportImpl {
   static const time_t kMaxReconnectWaitSeconds = 10;
   int reconnect_count_ = 0;
   int connect_addr_index_ = 0;
-  time_t reconnect_wait_time_;
+  FunapiTimer reconnect_wait_timer_;
   time_t reconnect_wait_seconds_;
 
   std::function<void()> on_socket_read_;
@@ -698,7 +698,7 @@ void FunapiTcpTransportImpl::Start() {
       on_socket_read_ = [this]{ Recv(); };
       on_socket_write_ = [this]{ Send(); };
 
-      ping_client_timeout_ = time(NULL) + kPingIntervalSecond + kPingTimeoutSeconds;
+      ping_client_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
       on_update_ = [this]{
         Ping();
       };
@@ -724,21 +724,21 @@ void FunapiTcpTransportImpl::Start() {
 
 void FunapiTcpTransportImpl::Ping() {
   if (enable_ping_) {
-    time_t now = time(NULL);
-    static time_t ping_send_time = now;
+    static FunapiTimer ping_send_timer;
 
-    if (now >= ping_send_time) {
+    if (ping_send_timer.IsExpired()){
       auto network = network_.lock();
       if (network) {
         if (network->SendClientPingMessage(GetProtocol())) {
-          ping_send_time = now + kPingIntervalSecond;
+          ping_send_timer.SetTimer(kPingIntervalSecond);
         }
         else {
-          ping_client_timeout_ = now + kPingIntervalSecond + kPingTimeoutSeconds;
+          ping_client_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
         }
       }
     }
-    if (now >= ping_client_timeout_) {
+
+    if (ping_client_timeout_timer_.IsExpired()) {
       FUNAPI_LOG("Network seems disabled. Stopping the transport.");
       PushStopTask();
       return;
@@ -748,8 +748,7 @@ void FunapiTcpTransportImpl::Ping() {
 
 
 void FunapiTcpTransportImpl::CheckConnectTimeout() {
-  time_t now = time(NULL);
-  if (now >= connect_timeout_time_) {
+  if (connect_timeout_timer_.IsExpired()) {
     FUNAPI_LOG("failed - tcp connect - timeout");
     PushTaskQueue([this](){ on_connect_timeout_(TransportProtocol::kTcp); });
 
@@ -764,7 +763,7 @@ void FunapiTcpTransportImpl::CheckConnectTimeout() {
         Connect();
       }
       else {
-        reconnect_wait_time_ = time(NULL) + reconnect_wait_seconds_;
+        reconnect_wait_timer_.SetTimer(reconnect_wait_seconds_);
 
         FUNAPI_LOG("Wait %d seconds for connect to TCP transport.", (int)reconnect_wait_seconds_);
 
@@ -782,8 +781,7 @@ void FunapiTcpTransportImpl::CheckConnectTimeout() {
 
 
 void FunapiTcpTransportImpl::WaitForAutoReconnect() {
-  time_t now = time(NULL);
-  if (now >= reconnect_wait_time_) {
+  if (reconnect_wait_timer_.IsExpired()) {
     reconnect_wait_seconds_ *= 2;
     if (kMaxReconnectWaitSeconds < reconnect_wait_seconds_) {
       reconnect_wait_seconds_ = kMaxReconnectWaitSeconds;
@@ -810,7 +808,7 @@ void FunapiTcpTransportImpl::SetEnablePing(bool enable_ping) {
 
 
 void FunapiTcpTransportImpl::ResetPingClientTimeout() {
-  ping_client_timeout_ = time(NULL) + kPingTimeoutSeconds;
+  ping_client_timeout_timer_.SetTimer(kPingTimeoutSeconds);
 }
 
 
@@ -896,7 +894,7 @@ void FunapiTcpTransportImpl::Connect() {
 
   InitSocket();
 
-  connect_timeout_time_ = time(NULL) + connect_timeout_seconds_;
+  connect_timeout_timer_.SetTimer(connect_timeout_seconds_);
 
   // Tries to connect.
   int rc = connect(sock_,
