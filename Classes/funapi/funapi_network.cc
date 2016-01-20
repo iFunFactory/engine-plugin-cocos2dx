@@ -66,7 +66,6 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   FunEncoding GetEncoding(const TransportProtocol protocol) const;
   TransportProtocol GetDefaultProtocol() const;
 
-  void SendEmptyMessage(const TransportProtocol protocol, const FunEncoding encoding);
   bool SendClientPingMessage(const TransportProtocol protocol);
 
  private:
@@ -122,6 +121,8 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
 
   void InsertTransport(const TransportProtocol protocol);
   void EraseTransport(const TransportProtocol protocol);
+
+  void SendEmptyMessage(const TransportProtocol protocol);
 };
 
 
@@ -494,6 +495,10 @@ void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
     transport->AddCloseSocketCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
   }
 
+  transport->AddStartedCallback([this](const TransportProtocol protocol){
+    SendEmptyMessage(protocol);
+  });
+
   if (HasTransport(transport->GetProtocol()))
   {
     FUNAPI_LOG("AttachTransport - transport of '%d' type already exists.", static_cast<int>(transport->GetProtocol()));
@@ -621,7 +626,10 @@ TransportProtocol FunapiNetworkImpl::GetDefaultProtocol() const {
 }
 
 
-void FunapiNetworkImpl::SendEmptyMessage(const TransportProtocol protocol, const FunEncoding encoding) {
+void FunapiNetworkImpl::SendEmptyMessage(const TransportProtocol protocol) {
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  FunEncoding encoding = transport->GetEncoding();
+
   if (session_id_.empty()) {
     assert(encoding!=FunEncoding::kNone);
 
@@ -810,11 +818,6 @@ FunEncoding FunapiNetwork::GetEncoding(const TransportProtocol protocol) const {
 
 TransportProtocol FunapiNetwork::GetDefaultProtocol() const {
   return impl_->GetDefaultProtocol();
-}
-
-
-void FunapiNetwork::SendEmptyMessage(const TransportProtocol protocol, const FunEncoding encoding) {
-  return impl_->SendEmptyMessage(protocol, encoding);
 }
 
 

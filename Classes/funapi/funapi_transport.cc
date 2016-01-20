@@ -63,7 +63,6 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
   typedef std::map<std::string, std::string> HeaderFields;
 
   virtual bool EncodeThenSendMessage(std::vector<uint8_t> body) = 0;
-  void SendEmptyMessage(const TransportProtocol &protocol, const FunEncoding &encoding);
 
   void PushSendQueue(std::function<bool()> task);
   void Send();
@@ -228,14 +227,6 @@ void FunapiTransportBase::SendMessage(const char *body) {
   memcpy(v_body.data(), body, strlen(body));
 
   PushSendQueue([this,v_body]()->bool{ return EncodeThenSendMessage(v_body); });
-}
-
-
-void FunapiTransportBase::SendEmptyMessage(const TransportProtocol &protocol, const FunEncoding &encoding) {
-  auto network = network_.lock();
-  if (network) {
-    network->SendEmptyMessage(protocol, encoding);
-  }
 }
 
 
@@ -702,12 +693,11 @@ void FunapiTcpTransportImpl::Start() {
         Ping();
       };
 
-      // To get a session id
-      PushTaskQueue([this](){ SendEmptyMessage(protocol_, encoding_); });
+      OnTransportStarted(TransportProtocol::kTcp);
     }
     else {
       FUNAPI_LOG("failed - tcp connect");
-      PushTaskQueue([this](){ on_transport_failure_(TransportProtocol::kTcp); });
+      OnTransportFailure(TransportProtocol::kTcp);
 
       ++connect_addr_index_;
       Connect();
@@ -1011,9 +1001,6 @@ void FunapiUdpTransportImpl::Start() {
 
   OnInitSocket(TransportProtocol::kUdp);
   OnTransportStarted(TransportProtocol::kUdp);
-
-  // To get a session id
-  PushTaskQueue([this](){ SendEmptyMessage(protocol_, encoding_); });
 }
 
 
@@ -1135,9 +1122,6 @@ void FunapiHttpTransportImpl::Start() {
   FUNAPI_LOG("Started.");
 
   OnTransportStarted(TransportProtocol::kHttp);
-
-  // To get a session id
-  PushTaskQueue([this](){ SendEmptyMessage(protocol_, encoding_); });
 }
 
 
