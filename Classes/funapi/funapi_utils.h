@@ -66,7 +66,7 @@ class FunapiTimer
     return false;
   };
 
-  void SetTimer(time_t seconds) {
+  void SetTimer(const time_t seconds) {
     time_miliseconds_ = static_cast<int64_t>((std::chrono::system_clock::now().time_since_epoch().count()/1000) + (seconds*1000));
   };
 

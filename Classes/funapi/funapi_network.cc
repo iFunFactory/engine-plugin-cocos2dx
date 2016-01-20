@@ -336,7 +336,7 @@ void FunapiNetworkImpl::OnTransportReceived(
   if (encoding == FunEncoding::kJson) {
     // Parses the given json string.
     rapidjson::Document json;
-    json.Parse<0>((char*)(body.data()));
+    json.Parse<0>(reinterpret_cast<char*>(const_cast<uint8_t*>(body.data())));
     assert(json.IsObject());
 
     const rapidjson::Value &msg_type_node = json[kMsgTypeBodyField];
@@ -351,7 +351,7 @@ void FunapiNetworkImpl::OnTransportReceived(
 
   } else if (encoding == FunEncoding::kProtobuf) {
     FunMessage proto;
-    proto.ParseFromArray(body.data(), (int)body.size());
+    proto.ParseFromArray(body.data(), static_cast<int>(body.size()));
 
     msg_type = proto.msgtype();
     session_id = proto.sid();
@@ -453,7 +453,7 @@ void FunapiNetworkImpl::OnClientPingMessage(
 
   int64_t ping_time_ms = (std::chrono::system_clock::now().time_since_epoch().count() - timestamp_ms) / 1000;
 
-  FUNAPI_LOG("Receive %s ping - timestamp:%lld time=%lld ms", "TCP", (int64_t)timestamp_ms, ping_time_ms);
+  FUNAPI_LOG("Receive %s ping - timestamp:%lld time=%lld ms", "TCP", timestamp_ms, ping_time_ms);
 
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
   if (transport) {

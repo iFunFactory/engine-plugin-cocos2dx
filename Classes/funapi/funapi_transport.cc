@@ -160,7 +160,7 @@ bool FunapiTransportBase::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
         break;
       }
       else {
-        int new_length = (int)(receiving.size() - next_decoding_offset);
+        int new_length = static_cast<int>(receiving.size() - next_decoding_offset);
         if (new_length > 0) {
           receiving.assign(receiving.begin() + next_decoding_offset, receiving.end());
         }
@@ -184,7 +184,6 @@ bool FunapiTransportBase::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
     return false;
   }
 
-  // int received_size = (int)receiving.size();
   int next_decoding_offset = 0;
   bool header_decoded = false;
   HeaderFields header_fields;
@@ -242,7 +241,7 @@ void FunapiTransportBase::SendEmptyMessage(const TransportProtocol &protocol, co
 
 bool FunapiTransportBase::TryToDecodeHeader(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
   FUNAPI_LOG("Trying to decode header fields.");
-  int received_size = (int)receiving.size();
+  int received_size = static_cast<int>(receiving.size());
   for (; next_decoding_offset < received_size;) {
     char *base = reinterpret_cast<char *>(receiving.data());
     char *ptr =
@@ -264,7 +263,7 @@ bool FunapiTransportBase::TryToDecodeHeader(std::vector<uint8_t> &receiving, int
     FUNAPI_LOG("Header line: %s", line);
 
     ssize_t line_length = eol_offset - next_decoding_offset;
-    next_decoding_offset = (int)(eol_offset + 1);
+    next_decoding_offset = static_cast<int>(eol_offset + 1);
 
     if (line_length == 0) {
       // End of header.
@@ -290,14 +289,14 @@ bool FunapiTransportBase::TryToDecodeHeader(std::vector<uint8_t> &receiving, int
 
 
 bool FunapiTransportBase::TryToDecodeBody(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
-  int received_size = (int)receiving.size();
-  // version header 읽기
+  int received_size = static_cast<int>(receiving.size());
+  // version header
   HeaderFields::const_iterator it = header_fields.find(kVersionHeaderField);
   assert(it != header_fields.end());
   int version = atoi(it->second.c_str());
-  assert(version == (int)FunapiVersion::kProtocolVersion);
+  assert(version == static_cast<int>(FunapiVersion::kProtocolVersion));
 
-  // length header 읽기
+  // length header
   it = header_fields.find(kLengthHeaderField);
   int body_length = atoi(it->second.c_str());
   FUNAPI_LOG("We need %d bytes for a message body.", body_length);
@@ -340,13 +339,13 @@ std::string FunapiTransportBase::MakeHeaderString(const std::vector<uint8_t> &bo
 
   snprintf(buffer, sizeof(buffer), "%s%s%d%s",
     kVersionHeaderField, kHeaderFieldDelimeter,
-    (int)FunapiVersion::kProtocolVersion, kHeaderDelimeter);
+    static_cast<int>(FunapiVersion::kProtocolVersion), kHeaderDelimeter);
   header += buffer;
 
   if (first_sending_) {
     snprintf(buffer, sizeof(buffer), "%s%s%d%s",
              kPluginVersionHeaderField, kHeaderFieldDelimeter,
-             (int)FunapiVersion::kPluginVersion, kHeaderDelimeter);
+             static_cast<int>(FunapiVersion::kPluginVersion), kHeaderDelimeter);
     header += buffer;
 
     first_sending_ = false;
@@ -354,7 +353,7 @@ std::string FunapiTransportBase::MakeHeaderString(const std::vector<uint8_t> &bo
 
   snprintf(buffer, sizeof(buffer), "%s%s%lu%s",
     kLengthHeaderField, kHeaderFieldDelimeter,
-    (unsigned long)body.size(), kHeaderDelimeter);
+    static_cast<unsigned long>(body.size()), kHeaderDelimeter);
   header += buffer;
 
   header += kHeaderDelimeter;
@@ -416,7 +415,7 @@ void FunapiTransportBase::PushTaskQueue(std::function<void()> task) {
 
 
 void FunapiTransportBase::PushStopTask() {
-  PushTaskQueue([this]{
+  PushTaskQueue([this](){
     Stop();
     on_stopped_();
   });
@@ -620,9 +619,9 @@ class FunapiTcpTransportImpl : public FunapiTransportImpl {
   virtual TransportProtocol GetProtocol();
 
   void Start();
-  void SetDisableNagle(bool disable_nagle);
-  void SetAutoReconnect(bool auto_reconnect);
-  void SetEnablePing(bool enable_ping);
+  void SetDisableNagle(const bool disable_nagle);
+  void SetAutoReconnect(const bool auto_reconnect);
+  void SetEnablePing(const bool enable_ping);
   void ResetPingClientTimeout();
 
   void OnSocketRead();
@@ -690,16 +689,16 @@ void FunapiTcpTransportImpl::Start() {
   on_socket_write_ = [this](){
     int e;
     socklen_t e_size = sizeof(e);
-    int r = getsockopt(sock_, SOL_SOCKET, SO_ERROR, (char *)&e, &e_size);
+    int r = getsockopt(sock_, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&e), &e_size);
     if (r == 0 && e == 0) {
       // Makes a state transition.
       state_ = kConnected;
 
-      on_socket_read_ = [this]{ Recv(); };
-      on_socket_write_ = [this]{ Send(); };
+      on_socket_read_ = [this](){ Recv(); };
+      on_socket_write_ = [this](){ Send(); };
 
       ping_client_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
-      on_update_ = [this]{
+      on_update_ = [this](){
         Ping();
       };
 
@@ -765,7 +764,7 @@ void FunapiTcpTransportImpl::CheckConnectTimeout() {
       else {
         reconnect_wait_timer_.SetTimer(reconnect_wait_seconds_);
 
-        FUNAPI_LOG("Wait %d seconds for connect to TCP transport.", (int)reconnect_wait_seconds_);
+        FUNAPI_LOG("Wait %d seconds for connect to TCP transport.", static_cast<int>(reconnect_wait_seconds_));
 
         on_update_ = [this](){
           WaitForAutoReconnect();
@@ -792,17 +791,17 @@ void FunapiTcpTransportImpl::WaitForAutoReconnect() {
 }
 
 
-void FunapiTcpTransportImpl::SetDisableNagle(bool disable_nagle) {
+void FunapiTcpTransportImpl::SetDisableNagle(const bool disable_nagle) {
   disable_nagle_ = disable_nagle;
 }
 
 
-void FunapiTcpTransportImpl::SetAutoReconnect(bool auto_reconnect) {
+void FunapiTcpTransportImpl::SetAutoReconnect(const bool auto_reconnect) {
   auto_reconnect_ = auto_reconnect;
 }
 
 
-void FunapiTcpTransportImpl::SetEnablePing(bool enable_ping) {
+void FunapiTcpTransportImpl::SetEnablePing(const bool enable_ping) {
   enable_ping_ = enable_ping;
 }
 
@@ -823,7 +822,7 @@ bool FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   if (sock_ < 0)
     return false;
 
-  int nSent = (int)send(sock_, (char*)body.data() + offset, body.size() - offset, 0);
+  int nSent = static_cast<int>(send(sock_, reinterpret_cast<char*>(body.data()) + offset, body.size() - offset, 0));
 
   if (nSent < 0) {
     PushStopTask();
@@ -866,7 +865,7 @@ void FunapiTcpTransportImpl::InitSocket() {
     int result = setsockopt(sock_,
                             IPPROTO_TCP,
                             TCP_NODELAY,
-                            (char *) &flag,
+                            reinterpret_cast<char*>(&flag),
                             sizeof(int));
     if (result < 0) {
       FUNAPI_LOG("error - TCP_NODELAY");
@@ -921,7 +920,7 @@ void FunapiTcpTransportImpl::Recv() {
 
   std::vector<uint8_t> buffer(kUnitBufferSize);
 
-  int nRead = (int)recv(sock_, buffer.data(), kUnitBufferSize, 0);
+  int nRead = static_cast<int>(recv(sock_, buffer.data(), kUnitBufferSize, 0));
 
   if (nRead <= 0) {
     if (nRead < 0) {
@@ -1014,7 +1013,7 @@ void FunapiUdpTransportImpl::Start() {
   OnTransportStarted(TransportProtocol::kUdp);
 
   // To get a session id
-  PushTaskQueue([this]{ SendEmptyMessage(protocol_, encoding_); });
+  PushTaskQueue([this](){ SendEmptyMessage(protocol_, encoding_); });
 }
 
 
@@ -1033,7 +1032,7 @@ bool FunapiUdpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   if (sock_ < 0)
     return false;
 
-  int nSent = (int)sendto(sock_, (char*)body.data(), body.size(), 0, (struct sockaddr*)&endpoint_, len);
+  int nSent = static_cast<int>(sendto(sock_, reinterpret_cast<char*>(body.data()), body.size(), 0, reinterpret_cast<struct sockaddr*>(&endpoint_), len));
 
   if (nSent < 0) {
     PushStopTask();
@@ -1053,7 +1052,7 @@ void FunapiUdpTransportImpl::Recv() {
   if (sock_<0)
     return;
 
-  int nRead = (int)recvfrom(sock_, (char*)receiving_vector.data(), receiving_vector.size(), 0, (struct sockaddr*)&recv_endpoint_, &len);
+  int nRead = static_cast<int>(recvfrom(sock_, reinterpret_cast<char*>(receiving_vector.data()), receiving_vector.size(), 0, reinterpret_cast<struct sockaddr*>(&recv_endpoint_), &len));
 
   // FUNAPI_LOG("nRead = %d", nRead);
 
@@ -1112,12 +1111,10 @@ class FunapiHttpTransportImpl : public FunapiTransportBase {
 FunapiHttpTransportImpl::FunapiHttpTransportImpl(const std::string &hostname_or_ip,
                                                  uint16_t port, bool https, FunEncoding encoding)
   : FunapiTransportBase(TransportProtocol::kHttp, encoding) {
-  encoding_ = encoding;
-
   char url[1024];
   sprintf(url, "%s://%s:%d/v%d/",
       https ? "https" : "http", hostname_or_ip.c_str(), port,
-      (int)FunapiVersion::kProtocolVersion);
+      static_cast<int>(FunapiVersion::kProtocolVersion));
   host_url_ = url;
 
   FUNAPI_LOG("Host url : %s", host_url_.c_str());
@@ -1140,7 +1137,7 @@ void FunapiHttpTransportImpl::Start() {
   OnTransportStarted(TransportProtocol::kHttp);
 
   // To get a session id
-  PushTaskQueue([this]{ SendEmptyMessage(protocol_, encoding_); });
+  PushTaskQueue([this](){ SendEmptyMessage(protocol_, encoding_); });
 }
 
 
@@ -1158,7 +1155,7 @@ void FunapiHttpTransportImpl::Stop() {
 size_t FunapiHttpTransportImpl::HttpResponseCb(void *data, size_t size, size_t count, void *cb) {
   AsyncWebResponseCallback *callback = (AsyncWebResponseCallback*)(cb);
   if (callback != NULL)
-    (*callback)(data, (int)(size * count));
+    (*callback)(data, static_cast<int>(size * count));
   return size * count;
 }
 
@@ -1342,17 +1339,17 @@ void FunapiTcpTransport::AddConnectTimeoutCallback(const TransportEventHandler &
 }
 
 
-void FunapiTcpTransport::SetDisableNagle(bool disable_nagle) {
+void FunapiTcpTransport::SetDisableNagle(const bool disable_nagle) {
   return impl_->SetDisableNagle(disable_nagle);
 }
 
 
-void FunapiTcpTransport::SetAutoReconnect(bool auto_reconnect) {
+void FunapiTcpTransport::SetAutoReconnect(const bool auto_reconnect) {
   return impl_->SetAutoReconnect(auto_reconnect);
 }
 
 
-void FunapiTcpTransport::SetEnablePing(bool enable_ping) {
+void FunapiTcpTransport::SetEnablePing(const bool enable_ping) {
   return impl_->SetEnablePing(enable_ping);
 }
 

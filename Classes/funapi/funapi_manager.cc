@@ -49,7 +49,7 @@ FunapiManagerImpl::~FunapiManagerImpl() {
 void FunapiManagerImpl::Initialize() {
 #ifdef FUNAPI_HAVE_THREAD
   run_ = true;
-  thread_ = std::thread([this]{ Thread(); });
+  thread_ = std::thread([this](){ Thread(); });
 #endif // FUNAPI_HAVE_THREAD
 }
 

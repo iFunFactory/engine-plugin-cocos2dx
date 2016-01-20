@@ -126,9 +126,9 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual void OnSocketWrite() {};
   virtual void Update() {};
 
-  virtual void SetDisableNagle(bool disable_nagle) {};
-  virtual void SetAutoReconnect(bool auto_reconnect) {};
-  virtual void SetEnablePing(bool enable_ping) {};
+  virtual void SetDisableNagle(const bool disable_nagle) {};
+  virtual void SetAutoReconnect(const bool auto_reconnect) {};
+  virtual void SetEnablePing(const bool enable_ping) {};
 };
 
 
@@ -161,9 +161,9 @@ class FunapiTcpTransport : public FunapiTransport {
   void AddFailureCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  void SetDisableNagle(bool disable_nagle);
-  void SetAutoReconnect(bool auto_reconnect);
-  void SetEnablePing(bool enable_ping);
+  void SetDisableNagle(const bool disable_nagle);
+  void SetAutoReconnect(const bool auto_reconnect);
+  void SetEnablePing(const bool enable_ping);
 
   void ResetPingClientTimeout();
 
