@@ -539,11 +539,11 @@ FunapiTransportImpl::~FunapiTransportImpl() {
 
 
 void FunapiTransportImpl::Stop() {
-  state_ = kDisconnected;
-
   CloseSocket();
 
   OnTransportClosed(GetProtocol());
+
+  state_ = kDisconnected;
 }
 
 
@@ -1129,10 +1129,10 @@ void FunapiHttpTransportImpl::Stop() {
   if (state_ == kDisconnected)
     return;
 
+  OnTransportClosed(TransportProtocol::kHttp);
+
   state_ = kDisconnected;
   FUNAPI_LOG("Stopped.");
-
-  OnTransportClosed(TransportProtocol::kHttp);
 }
 
 
