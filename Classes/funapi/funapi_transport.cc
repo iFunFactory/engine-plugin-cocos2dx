@@ -21,9 +21,9 @@ static const char* kLengthHeaderField = "LEN";
 // static const char* kEncryptionHeaderField = "ENC";
 
 ////////////////////////////////////////////////////////////////////////////////
-// FunapiTransportBase implementation.
+// FunapiTransportImpl implementation.
 
-class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportBase> {
+class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportImpl> {
  public:
   typedef FunapiTransport::TransportEventHandler TransportEventHandler;
   typedef FunapiTransport::OnReceived OnReceived;
@@ -32,8 +32,8 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
   // Buffer-related constants.
   static const int kUnitBufferSize = 65536;
 
-  FunapiTransportBase(TransportProtocol type, FunEncoding encoding);
-  virtual ~FunapiTransportBase();
+  FunapiTransportImpl(TransportProtocol type, FunEncoding encoding);
+  virtual ~FunapiTransportImpl();
 
   bool IsStarted();
   virtual void Start() = 0;
@@ -111,23 +111,23 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
 };
 
 
-FunapiTransportBase::FunapiTransportBase(TransportProtocol protocol, FunEncoding encoding)
+FunapiTransportImpl::FunapiTransportImpl(TransportProtocol protocol, FunEncoding encoding)
   : protocol_(protocol), state_(kDisconnected), encoding_(encoding) {
 }
 
 
-FunapiTransportBase::~FunapiTransportBase() {
+FunapiTransportImpl::~FunapiTransportImpl() {
 }
 
 
-void FunapiTransportBase::RegisterEventHandlers(
+void FunapiTransportImpl::RegisterEventHandlers(
     const OnReceived &on_received, const OnStopped &on_stopped) {
   on_received_ = on_received;
   on_stopped_ = on_stopped;
 }
 
 
-bool FunapiTransportBase::EncodeMessage(std::vector<uint8_t> &body) {
+bool FunapiTransportImpl::EncodeMessage(std::vector<uint8_t> &body) {
   std::string header = MakeHeaderString(body);
 
   std::string body_string(body.cbegin(), body.cend());
@@ -140,7 +140,7 @@ bool FunapiTransportBase::EncodeMessage(std::vector<uint8_t> &body) {
 }
 
 
-bool FunapiTransportBase::DecodeMessage(int nRead, std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
+bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
   if (nRead < 0) {
     FUNAPI_LOG("receive failed: %s", strerror(errno));
 
@@ -176,7 +176,7 @@ bool FunapiTransportBase::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
 }
 
 
-bool FunapiTransportBase::DecodeMessage(int nRead, std::vector<uint8_t> &receiving) {
+bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receiving) {
   if (nRead < 0) {
     FUNAPI_LOG("receive failed: %s", strerror(errno));
 
@@ -207,7 +207,7 @@ bool FunapiTransportBase::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
 }
 
 
-void FunapiTransportBase::SendMessage(rapidjson::Document &message) {
+void FunapiTransportImpl::SendMessage(rapidjson::Document &message) {
   rapidjson::StringBuffer string_buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
   message.Accept(writer);
@@ -216,13 +216,13 @@ void FunapiTransportBase::SendMessage(rapidjson::Document &message) {
 }
 
 
-void FunapiTransportBase::SendMessage(FunMessage &message) {
+void FunapiTransportImpl::SendMessage(FunMessage &message) {
   std::string body = message.SerializeAsString();
   SendMessage(body.c_str());
 }
 
 
-void FunapiTransportBase::SendMessage(const char *body) {
+void FunapiTransportImpl::SendMessage(const char *body) {
   std::vector<uint8_t> v_body(strlen(body));
   memcpy(v_body.data(), body, strlen(body));
 
@@ -230,7 +230,7 @@ void FunapiTransportBase::SendMessage(const char *body) {
 }
 
 
-bool FunapiTransportBase::TryToDecodeHeader(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
+bool FunapiTransportImpl::TryToDecodeHeader(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
   FUNAPI_LOG("Trying to decode header fields.");
   int received_size = static_cast<int>(receiving.size());
   for (; next_decoding_offset < received_size;) {
@@ -279,7 +279,7 @@ bool FunapiTransportBase::TryToDecodeHeader(std::vector<uint8_t> &receiving, int
 }
 
 
-bool FunapiTransportBase::TryToDecodeBody(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
+bool FunapiTransportImpl::TryToDecodeBody(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
   int received_size = static_cast<int>(receiving.size());
   // version header
   HeaderFields::const_iterator it = header_fields.find(kVersionHeaderField);
@@ -324,7 +324,7 @@ bool FunapiTransportBase::TryToDecodeBody(std::vector<uint8_t> &receiving, int &
 }
 
 
-std::string FunapiTransportBase::MakeHeaderString(const std::vector<uint8_t> &body) {
+std::string FunapiTransportImpl::MakeHeaderString(const std::vector<uint8_t> &body) {
   std::string header;
   char buffer[1024];
 
@@ -353,24 +353,24 @@ std::string FunapiTransportBase::MakeHeaderString(const std::vector<uint8_t> &bo
 }
 
 
-void FunapiTransportBase::SetNetwork(std::weak_ptr<FunapiNetwork> network)
+void FunapiTransportImpl::SetNetwork(std::weak_ptr<FunapiNetwork> network)
 {
   network_ = network;
 }
 
 
-bool FunapiTransportBase::IsStarted() {
+bool FunapiTransportImpl::IsStarted() {
   return (state_ == kConnected);
 }
 
 
-void FunapiTransportBase::PushSendQueue(std::function<bool()> task) {
+void FunapiTransportImpl::PushSendQueue(std::function<bool()> task) {
   std::unique_lock<std::mutex> lock(v_send_mutex_);
   v_send_.push_back(task);
 }
 
 
-void FunapiTransportBase::Send() {
+void FunapiTransportImpl::Send() {
   std::function<bool()> task;
   while (true) {
     task = nullptr;
@@ -396,7 +396,7 @@ void FunapiTransportBase::Send() {
 }
 
 
-void FunapiTransportBase::PushTaskQueue(std::function<void()> task) {
+void FunapiTransportImpl::PushTaskQueue(std::function<void()> task) {
   auto network = network_.lock();
   if (network) {
     auto self(shared_from_this());
@@ -405,7 +405,7 @@ void FunapiTransportBase::PushTaskQueue(std::function<void()> task) {
 }
 
 
-void FunapiTransportBase::PushStopTask() {
+void FunapiTransportImpl::PushStopTask() {
   PushTaskQueue([this](){
     Stop();
     on_stopped_();
@@ -413,59 +413,59 @@ void FunapiTransportBase::PushStopTask() {
 }
 
 
-void FunapiTransportBase::SetConnectTimeout(time_t timeout) {
+void FunapiTransportImpl::SetConnectTimeout(time_t timeout) {
   connect_timeout_seconds_ = timeout;
 }
 
 
-void FunapiTransportBase::AddStartedCallback(const TransportEventHandler &handler) {
+void FunapiTransportImpl::AddStartedCallback(const TransportEventHandler &handler) {
   on_transport_stared_ += handler;
 }
 
 
-void FunapiTransportBase::AddStoppedCallback(const TransportEventHandler &handler) {
+void FunapiTransportImpl::AddStoppedCallback(const TransportEventHandler &handler) {
   on_transport_closed_ += handler;
 }
 
 
-void FunapiTransportBase::AddFailedCallback(const TransportEventHandler &handler) {
+void FunapiTransportImpl::AddFailedCallback(const TransportEventHandler &handler) {
   on_transport_failed_ += handler;
 }
 
 
-void FunapiTransportBase::AddConnectTimeoutCallback(const TransportEventHandler &handler) {
+void FunapiTransportImpl::AddConnectTimeoutCallback(const TransportEventHandler &handler) {
   on_connect_timeout_ += handler;
 }
 
 
-void FunapiTransportBase::OnTransportStarted(const TransportProtocol protocol) {
+void FunapiTransportImpl::OnTransportStarted(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_transport_stared_(protocol); });
 }
 
 
-void FunapiTransportBase::OnTransportClosed(const TransportProtocol protocol) {
+void FunapiTransportImpl::OnTransportClosed(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_transport_closed_(protocol); });
 }
 
 
-void FunapiTransportBase::OnTransportFailed(const TransportProtocol protocol) {
+void FunapiTransportImpl::OnTransportFailed(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_transport_failed_(protocol); });
 }
 
 
-void FunapiTransportBase::OnConnectTimeout(const TransportProtocol protocol) {
+void FunapiTransportImpl::OnConnectTimeout(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_connect_timeout_(protocol); });
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// FunapiTransportImpl implementation.
+// FunapiSocketTransportImpl implementation.
 
-class FunapiTransportImpl : public FunapiTransportBase {
+class FunapiSocketTransportImpl : public FunapiTransportImpl {
  public:
-  FunapiTransportImpl(TransportProtocol protocol,
+  FunapiSocketTransportImpl(TransportProtocol protocol,
                       const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
-  virtual ~FunapiTransportImpl();
+  virtual ~FunapiSocketTransportImpl();
   void Stop();
   virtual void ResetPingClientTimeout() {};
   virtual int GetSocket();
@@ -497,10 +497,10 @@ class FunapiTransportImpl : public FunapiTransportBase {
 };
 
 
-FunapiTransportImpl::FunapiTransportImpl(TransportProtocol protocol,
+FunapiSocketTransportImpl::FunapiSocketTransportImpl(TransportProtocol protocol,
                                          const std::string &hostname_or_ip,
                                          uint16_t port, FunEncoding encoding)
-    : FunapiTransportBase(protocol, encoding), sock_(-1), port_(port) {
+    : FunapiTransportImpl(protocol, encoding), sock_(-1), port_(port) {
   struct hostent *entry = gethostbyname(hostname_or_ip.c_str());
   assert(entry);
 
@@ -534,11 +534,11 @@ FunapiTransportImpl::FunapiTransportImpl(TransportProtocol protocol,
 }
 
 
-FunapiTransportImpl::~FunapiTransportImpl() {
+FunapiSocketTransportImpl::~FunapiSocketTransportImpl() {
 }
 
 
-void FunapiTransportImpl::Stop() {
+void FunapiSocketTransportImpl::Stop() {
   CloseSocket();
 
   OnTransportClosed(GetProtocol());
@@ -547,7 +547,7 @@ void FunapiTransportImpl::Stop() {
 }
 
 
-void FunapiTransportImpl::CloseSocket() {
+void FunapiSocketTransportImpl::CloseSocket() {
   if (sock_ >= 0) {
 #if FUNAPI_PLATFORM_WINDOWS
     closesocket(sock_);
@@ -561,47 +561,47 @@ void FunapiTransportImpl::CloseSocket() {
 }
 
 
-int FunapiTransportImpl::GetSocket() {
+int FunapiSocketTransportImpl::GetSocket() {
   return sock_;
 }
 
 
-void FunapiTransportImpl::AddInitSocketCallback(const TransportEventHandler &handler) {
+void FunapiSocketTransportImpl::AddInitSocketCallback(const TransportEventHandler &handler) {
   on_init_socket_ += handler;
 }
 
 
-void FunapiTransportImpl::AddCloseSocketCallback(const TransportEventHandler &handler) {
+void FunapiSocketTransportImpl::AddCloseSocketCallback(const TransportEventHandler &handler) {
   on_close_socket_ += handler;
 }
 
 
-void FunapiTransportImpl::OnInitSocket(const TransportProtocol protocol) {
+void FunapiSocketTransportImpl::OnInitSocket(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_init_socket_(protocol); });
 }
 
 
-void FunapiTransportImpl::OnCloseSocket(const TransportProtocol protocol) {
+void FunapiSocketTransportImpl::OnCloseSocket(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_close_socket_(protocol); });
 }
 
 
-void FunapiTransportImpl::OnSocketRead() {
+void FunapiSocketTransportImpl::OnSocketRead() {
 }
 
 
-void FunapiTransportImpl::OnSocketWrite() {
+void FunapiSocketTransportImpl::OnSocketWrite() {
 }
 
 
-void FunapiTransportImpl::Update() {
+void FunapiSocketTransportImpl::Update() {
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiTcpTransportImpl implementation.
 
-class FunapiTcpTransportImpl : public FunapiTransportImpl {
+class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
  public:
   FunapiTcpTransportImpl(TransportProtocol protocol,
     const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
@@ -658,7 +658,7 @@ FunapiTcpTransportImpl::FunapiTcpTransportImpl(TransportProtocol protocol,
   const std::string &hostname_or_ip,
   uint16_t port,
   FunEncoding encoding)
-  : FunapiTransportImpl(protocol, hostname_or_ip, port, encoding) {
+  : FunapiSocketTransportImpl(protocol, hostname_or_ip, port, encoding) {
 }
 
 
@@ -949,7 +949,7 @@ void FunapiTcpTransportImpl::Update() {
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiUdpTransportImpl implementation.
 
-class FunapiUdpTransportImpl : public FunapiTransportImpl {
+class FunapiUdpTransportImpl : public FunapiSocketTransportImpl {
 public:
   FunapiUdpTransportImpl(TransportProtocol protocol,
     const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
@@ -975,7 +975,7 @@ FunapiUdpTransportImpl::FunapiUdpTransportImpl(TransportProtocol protocol,
   const std::string &hostname_or_ip,
   uint16_t port,
   FunEncoding encoding)
-  : FunapiTransportImpl(protocol, hostname_or_ip, port, encoding) {
+  : FunapiSocketTransportImpl(protocol, hostname_or_ip, port, encoding) {
   recv_endpoint_.sin_family = AF_INET;
   recv_endpoint_.sin_addr.s_addr = htonl(INADDR_ANY);
   recv_endpoint_.sin_port = htons(port);
@@ -1071,7 +1071,7 @@ void FunapiUdpTransportImpl::OnSocketWrite() {
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiHttpTransportImpl implementation.
 
-class FunapiHttpTransportImpl : public FunapiTransportBase {
+class FunapiHttpTransportImpl : public FunapiTransportImpl {
  public:
   FunapiHttpTransportImpl(const std::string &hostname_or_ip, uint16_t port, bool https, FunEncoding encoding);
   virtual ~FunapiHttpTransportImpl();
@@ -1097,7 +1097,7 @@ class FunapiHttpTransportImpl : public FunapiTransportBase {
 
 FunapiHttpTransportImpl::FunapiHttpTransportImpl(const std::string &hostname_or_ip,
                                                  uint16_t port, bool https, FunEncoding encoding)
-  : FunapiTransportBase(TransportProtocol::kHttp, encoding) {
+  : FunapiTransportImpl(TransportProtocol::kHttp, encoding) {
   char url[1024];
   sprintf(url, "%s://%s:%d/v%d/",
       https ? "https" : "http", hostname_or_ip.c_str(), port,
