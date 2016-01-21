@@ -18,6 +18,7 @@ static const char* kMsgTypeBodyField = "_msgtype";
 static const char* kSessionIdBodyField = "_sid";
 static const char* kNewSessionMessageType = "_session_opened";
 static const char* kSessionClosedMessageType = "_session_closed";
+static const char* kMaintenanceMessageType = "_maintenance";
 
 // Ping message-related constants.
 static const char* kServerPingMessageType = "_ping_s";
@@ -149,6 +150,22 @@ std::shared_ptr<FunapiManager> FunapiNetworkImpl::GetManager() {
 void FunapiNetworkImpl::Initialize() {
   assert(!initialized_);
 
+  // Installs event handlers.
+  message_handlers_[kNewSessionMessageType] =
+    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnNewSession(s, v); };
+  message_handlers_[kSessionClosedMessageType] =
+    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnSessionTimedout(s, v); };
+
+  // ping
+  message_handlers_[kServerPingMessageType] =
+    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnServerPingMessage(p, s, v); };
+  message_handlers_[kClientPingMessageType] =
+    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnClientPingMessage(p, s, v); };
+
+  // Maintenance
+  message_handlers_[kMaintenanceMessageType] =
+    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnMaintenance(p, s, v); };
+
   // Now ready.
   initialized_ = true;
 }
@@ -170,19 +187,6 @@ void FunapiNetworkImpl::RegisterHandler(
 
 
 void FunapiNetworkImpl::Start() {
-  // Installs event handlers.
-  message_handlers_[kNewSessionMessageType] =
-    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnNewSession(s, v); };
-  message_handlers_[kSessionClosedMessageType] =
-    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnSessionTimedout(s, v); };
-
-  // ping
-  message_handlers_[kServerPingMessageType] =
-    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnServerPingMessage(p, s, v); };
-  message_handlers_[kClientPingMessageType] =
-    [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnClientPingMessage(p, s, v); };
-
-  // Then, asks the transport to work.
   FUNAPI_LOG("Starting a network module.");
   {
     std::unique_lock<std::mutex> lock(transports_mutex_);

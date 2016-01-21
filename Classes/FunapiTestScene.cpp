@@ -3,6 +3,7 @@
 
 #include "funapi/funapi_network.h"
 #include "funapi/pb/test_messages.pb.h"
+#include "funapi/pb/management/maintenance_message.pb.h"
 
 #include "json/writer.h"
 #include "json/stringbuffer.h"
@@ -318,6 +319,27 @@ void FunapiTest::OnEchoProto(const std::string &type, const std::vector<uint8_t>
 void FunapiTest::OnMaintenanceMessage(const std::string &type, const std::vector<uint8_t> &v_body)
 {
   FUNAPI_LOG("OnMaintenanceMessage");
+
+  fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
+
+  if (encoding == fun::FunEncoding::kJson) {
+    std::string body(v_body.cbegin(), v_body.cend());
+    FUNAPI_LOG("Maintenance message\n%s", body.c_str());
+  }
+
+  if (encoding == fun::FunEncoding::kProtobuf) {
+    std::string body(v_body.cbegin(), v_body.cend());
+
+    FunMessage msg;
+    msg.ParseFromString(body);
+
+    MaintenanceMessage maintenance = msg.GetExtension(pbuf_maintenance);
+    std::string date_start = maintenance.date_start();
+    std::string date_end = maintenance.date_end();
+    std::string message = maintenance.messages();
+
+    FUNAPI_LOG("Maintenance message\nstart: %s\nend: %s\nmessage: %s", date_start.c_str(), date_end.c_str(), message.c_str());
+  }
 }
 
 void FunapiTest::OnStoppedAllTransport()
