@@ -45,7 +45,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   void SendMessage(const std::string &msg_type, std::string &json_string, TransportProtocol protocol);
   void SendMessage(FunMessage& message, TransportProtocol protocol);
   void SendMessage(const char *body, TransportProtocol protocol);
-  bool Started() const;
+  bool IsStarted() const;
   bool Connected(const TransportProtocol protocol);
   void Update();
   void AttachTransport(const std::shared_ptr<FunapiTransport> &transport, const std::weak_ptr<FunapiNetwork> &network);
@@ -187,7 +187,7 @@ void FunapiNetworkImpl::Start() {
   {
     std::unique_lock<std::mutex> lock(transports_mutex_);
     for (auto iter : transports_) {
-      if (!iter.second->Started())
+      if (!iter.second->IsStarted())
         iter.second->Start();
     }
   }
@@ -211,7 +211,7 @@ void FunapiNetworkImpl::Stop() {
   {
     std::unique_lock<std::mutex> lock(transports_mutex_);
     for (auto iter : transports_) {
-      if (iter.second->Started())
+      if (iter.second->IsStarted())
         iter.second->Stop();
     }
   }
@@ -310,7 +310,7 @@ void FunapiNetworkImpl::SendMessage(const char *body, TransportProtocol protocol
 }
 
 
-bool FunapiNetworkImpl::Started() const {
+bool FunapiNetworkImpl::IsStarted() const {
   return started_;
 }
 
@@ -319,7 +319,7 @@ bool FunapiNetworkImpl::Connected(const TransportProtocol protocol = TransportPr
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
 
   if (transport)
-    return transport->Started();
+    return transport->IsStarted();
 
   return false;
 }
@@ -739,8 +739,8 @@ void FunapiNetwork::SendMessage(FunMessage& message, TransportProtocol protocol)
 }
 
 
-bool FunapiNetwork::Started() const {
-  return impl_->Started();
+bool FunapiNetwork::IsStarted() const {
+  return impl_->IsStarted();
 }
 
 

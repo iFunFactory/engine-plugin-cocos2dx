@@ -36,7 +36,7 @@ class FunapiNetwork : public std::enable_shared_from_this<FunapiNetwork> {
   void SendMessage(const std::string &msg_type, std::string &json_string, TransportProtocol protocol = TransportProtocol::kDefault);
   void SendMessage(FunMessage &message, TransportProtocol protocol = TransportProtocol::kDefault);
 
-  bool Started() const;
+  bool IsStarted() const;
   bool Connected(const TransportProtocol protocol = TransportProtocol::kDefault) const;
   void Update();
   void AttachTransport(const std::shared_ptr<FunapiTransport> &transport);

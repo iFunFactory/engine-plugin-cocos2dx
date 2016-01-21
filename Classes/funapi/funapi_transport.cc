@@ -35,7 +35,7 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
   FunapiTransportBase(TransportProtocol type, FunEncoding encoding);
   virtual ~FunapiTransportBase();
 
-  bool Started();
+  bool IsStarted();
   virtual void Start() = 0;
   virtual void Stop() = 0;
 
@@ -54,7 +54,7 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   virtual void ResetPingClientTimeout() {};
@@ -97,12 +97,12 @@ class FunapiTransportBase : public std::enable_shared_from_this<FunapiTransportB
 
   FunapiEvent<TransportEventHandler> on_transport_stared_;
   FunapiEvent<TransportEventHandler> on_transport_closed_;
-  FunapiEvent<TransportEventHandler> on_transport_failure_;
+  FunapiEvent<TransportEventHandler> on_transport_failed_;
   FunapiEvent<TransportEventHandler> on_connect_timeout_;
 
   void OnTransportStarted(const TransportProtocol protocol);
   void OnTransportClosed(const TransportProtocol protocol);
-  void OnTransportFailure(const TransportProtocol protocol);
+  void OnTransportFailed(const TransportProtocol protocol);
   void OnConnectTimeout(const TransportProtocol protocol);
 
  private:
@@ -359,7 +359,7 @@ void FunapiTransportBase::SetNetwork(std::weak_ptr<FunapiNetwork> network)
 }
 
 
-bool FunapiTransportBase::Started() {
+bool FunapiTransportBase::IsStarted() {
   return (state_ == kConnected);
 }
 
@@ -428,8 +428,8 @@ void FunapiTransportBase::AddStoppedCallback(const TransportEventHandler &handle
 }
 
 
-void FunapiTransportBase::AddFailureCallback(const TransportEventHandler &handler) {
-  on_transport_failure_ += handler;
+void FunapiTransportBase::AddFailedCallback(const TransportEventHandler &handler) {
+  on_transport_failed_ += handler;
 }
 
 
@@ -448,8 +448,8 @@ void FunapiTransportBase::OnTransportClosed(const TransportProtocol protocol) {
 }
 
 
-void FunapiTransportBase::OnTransportFailure(const TransportProtocol protocol) {
-  PushTaskQueue([this, protocol] { on_transport_failure_(protocol); });
+void FunapiTransportBase::OnTransportFailed(const TransportProtocol protocol) {
+  PushTaskQueue([this, protocol] { on_transport_failed_(protocol); });
 }
 
 
@@ -697,7 +697,7 @@ void FunapiTcpTransportImpl::Start() {
     }
     else {
       FUNAPI_LOG("failed - tcp connect");
-      OnTransportFailure(TransportProtocol::kTcp);
+      OnTransportFailed(TransportProtocol::kTcp);
 
       ++connect_addr_index_;
       Connect();
@@ -1237,6 +1237,46 @@ void FunapiHttpTransportImpl::Update() {
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiTcpTransport implementation.
 
+int FunapiTransport::GetSocket() {
+  return -1;
+}
+
+
+void FunapiTransport::AddInitSocketCallback(const TransportEventHandler &handler) {
+}
+
+
+void FunapiTransport::AddCloseSocketCallback(const TransportEventHandler &handler) {
+}
+
+
+void FunapiTransport::OnSocketRead() {
+}
+
+
+void FunapiTransport::OnSocketWrite() {
+}
+
+
+void FunapiTransport::Update() {
+}
+
+
+void FunapiTransport::SetDisableNagle(const bool disable_nagle) {
+}
+
+
+void FunapiTransport::SetAutoReconnect(const bool disable_nagle) {
+}
+
+
+void FunapiTransport::SetEnablePing(const bool disable_nagle) {
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// FunapiTcpTransport implementation.
+
 FunapiTcpTransport::FunapiTcpTransport (const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding)
   : impl_(std::make_shared<FunapiTcpTransportImpl>(TransportProtocol::kTcp, hostname_or_ip, port, encoding)) {
 }
@@ -1283,8 +1323,8 @@ void FunapiTcpTransport::SendMessage(const char *body) {
 }
 
 
-bool FunapiTcpTransport::Started() const {
-  return impl_->Started();
+bool FunapiTcpTransport::IsStarted() const {
+  return impl_->IsStarted();
 }
 
 
@@ -1313,8 +1353,8 @@ void FunapiTcpTransport::AddStoppedCallback(const TransportEventHandler &handler
 }
 
 
-void FunapiTcpTransport::AddFailureCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailureCallback(handler);
+void FunapiTcpTransport::AddFailedCallback(const TransportEventHandler &handler) {
+  return impl_->AddFailedCallback(handler);
 }
 
 
@@ -1422,8 +1462,8 @@ void FunapiUdpTransport::SendMessage(const char *body) {
 }
 
 
-bool FunapiUdpTransport::Started() const {
-  return impl_->Started();
+bool FunapiUdpTransport::IsStarted() const {
+  return impl_->IsStarted();
 }
 
 
@@ -1452,8 +1492,8 @@ void FunapiUdpTransport::AddStoppedCallback(const TransportEventHandler &handler
 }
 
 
-void FunapiUdpTransport::AddFailureCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailureCallback(handler);
+void FunapiUdpTransport::AddFailedCallback(const TransportEventHandler &handler) {
+  return impl_->AddFailedCallback(handler);
 }
 
 
@@ -1548,8 +1588,8 @@ void FunapiHttpTransport::SendMessage(const char *body) {
 }
 
 
-bool FunapiHttpTransport::Started() const {
-  return impl_->Started();
+bool FunapiHttpTransport::IsStarted() const {
+  return impl_->IsStarted();
 }
 
 
@@ -1578,8 +1618,8 @@ void FunapiHttpTransport::AddStoppedCallback(const TransportEventHandler &handle
 }
 
 
-void FunapiHttpTransport::AddFailureCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailureCallback(handler);
+void FunapiHttpTransport::AddFailedCallback(const TransportEventHandler &handler) {
+  return impl_->AddFailedCallback(handler);
 }
 
 

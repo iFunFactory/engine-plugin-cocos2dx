@@ -96,7 +96,7 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual void Stop() = 0;
 
   // Check connection
-  virtual bool Started() const = 0;
+  virtual bool IsStarted() const = 0;
 
   // Send a message
   virtual void SendMessage(rapidjson::Document &message) = 0;
@@ -112,23 +112,23 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
 
   virtual void AddStartedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddStoppedCallback(const TransportEventHandler &handler) = 0;
-  virtual void AddFailureCallback(const TransportEventHandler &handler) = 0;
+  virtual void AddFailedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler) = 0;
 
   virtual void ResetPingClientTimeout() = 0;
 
-  virtual int GetSocket() { return -1; };
+  virtual int GetSocket();
 
-  virtual void AddInitSocketCallback(const TransportEventHandler &handler) {};
-  virtual void AddCloseSocketCallback(const TransportEventHandler &handler) {};
+  virtual void AddInitSocketCallback(const TransportEventHandler &handler);
+  virtual void AddCloseSocketCallback(const TransportEventHandler &handler);
 
-  virtual void OnSocketRead() {};
-  virtual void OnSocketWrite() {};
-  virtual void Update() {};
+  virtual void OnSocketRead();
+  virtual void OnSocketWrite();
+  virtual void Update();
 
-  virtual void SetDisableNagle(const bool disable_nagle) {};
-  virtual void SetAutoReconnect(const bool auto_reconnect) {};
-  virtual void SetEnablePing(const bool enable_ping) {};
+  virtual void SetDisableNagle(const bool disable_nagle);
+  virtual void SetAutoReconnect(const bool auto_reconnect);
+  virtual void SetEnablePing(const bool enable_ping);
 };
 
 
@@ -142,7 +142,7 @@ class FunapiTcpTransport : public FunapiTransport {
 
   void Start(); // Start connecting
   void Stop(); // Disconnection
-  bool Started() const; // Check connection
+  bool IsStarted() const; // Check connection
 
   // Send a message
   void SendMessage(rapidjson::Document &message);
@@ -158,7 +158,7 @@ class FunapiTcpTransport : public FunapiTransport {
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void SetDisableNagle(const bool disable_nagle);
@@ -191,7 +191,7 @@ class FunapiUdpTransport : public FunapiTransport {
 
   void Start(); // Start connecting
   void Stop(); // Disconnection
-  bool Started() const; // Check connection
+  bool IsStarted() const; // Check connection
 
   // Send a message
   void SendMessage(rapidjson::Document &message);
@@ -207,7 +207,7 @@ class FunapiUdpTransport : public FunapiTransport {
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void ResetPingClientTimeout();
@@ -236,7 +236,7 @@ class FunapiHttpTransport : public FunapiTransport {
 
   void Start(); // Start connecting
   void Stop(); // Disconnection
-  bool Started() const; // Check connection
+  bool IsStarted() const; // Check connection
 
   // Send a message
   void SendMessage(rapidjson::Document &message);
@@ -252,7 +252,7 @@ class FunapiHttpTransport : public FunapiTransport {
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailureCallback(const TransportEventHandler &handler);
+  void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void ResetPingClientTimeout();

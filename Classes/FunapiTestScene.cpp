@@ -172,7 +172,7 @@ bool FunapiTest::IsConnected()
 
 void FunapiTest::Disconnect()
 {
-  if (network_ == nullptr || network_->Started() == false)
+  if (network_ == nullptr || network_->IsStarted() == false)
   {
     FUNAPI_LOG("You should connect first.");
     return;
@@ -183,7 +183,7 @@ void FunapiTest::Disconnect()
 
 void FunapiTest::SendEchoMessage()
 {
-  if (network_ == nullptr || (network_->Started() == false && network_->IsSessionReliability()))
+  if (network_ == nullptr || (network_->IsStarted() == false && network_->IsSessionReliability()))
   {
     FUNAPI_LOG("You should connect first.");
   }
