@@ -57,7 +57,7 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  virtual void ResetPingClientTimeout() {};
+  virtual void ResetClientPingTimeout() {};
 
  protected:
   typedef std::map<std::string, std::string> HeaderFields;
@@ -467,7 +467,7 @@ class FunapiSocketTransportImpl : public FunapiTransportImpl {
                       const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiSocketTransportImpl();
   void Stop();
-  virtual void ResetPingClientTimeout() {};
+  virtual void ResetClientPingTimeout() {};
   virtual int GetSocket();
 
   virtual void AddInitSocketCallback(const TransportEventHandler &handler);
@@ -613,11 +613,13 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   void SetDisableNagle(const bool disable_nagle);
   void SetAutoReconnect(const bool auto_reconnect);
   void SetEnablePing(const bool enable_ping);
-  void ResetPingClientTimeout();
+  void ResetClientPingTimeout();
 
   void OnSocketRead();
   void OnSocketWrite();
   void Update();
+
+  void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
 
  protected:
   bool EncodeThenSendMessage(std::vector<uint8_t> body);
@@ -650,7 +652,9 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   bool auto_reconnect_ = false;
   bool enable_ping_ = false;
 
-  FunapiTimer ping_client_timeout_timer_;
+  FunapiTimer client_ping_timeout_timer_;
+
+  std::function<bool(const TransportProtocol protocol)> send_client_ping_message_handler_;
 };
 
 
@@ -688,7 +692,8 @@ void FunapiTcpTransportImpl::Start() {
       on_socket_read_ = [this](){ Recv(); };
       on_socket_write_ = [this](){ Send(); };
 
-      ping_client_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
+      client_ping_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
+
       on_update_ = [this](){
         Ping();
       };
@@ -713,21 +718,14 @@ void FunapiTcpTransportImpl::Start() {
 
 void FunapiTcpTransportImpl::Ping() {
   if (enable_ping_) {
-    static FunapiTimer ping_send_timer;
+    static FunapiTimer ping_send_timer(kPingIntervalSecond);
 
     if (ping_send_timer.IsExpired()){
-      auto network = network_.lock();
-      if (network) {
-        if (network->SendClientPingMessage(GetProtocol())) {
-          ping_send_timer.SetTimer(kPingIntervalSecond);
-        }
-        else {
-          ping_client_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
-        }
-      }
+      ping_send_timer.SetTimer(kPingIntervalSecond);
+      send_client_ping_message_handler_(GetProtocol());
     }
 
-    if (ping_client_timeout_timer_.IsExpired()) {
+    if (client_ping_timeout_timer_.IsExpired()) {
       FUNAPI_LOG("Network seems disabled. Stopping the transport.");
       PushStopTask();
       return;
@@ -796,8 +794,8 @@ void FunapiTcpTransportImpl::SetEnablePing(const bool enable_ping) {
 }
 
 
-void FunapiTcpTransportImpl::ResetPingClientTimeout() {
-  ping_client_timeout_timer_.SetTimer(kPingTimeoutSeconds);
+void FunapiTcpTransportImpl::ResetClientPingTimeout() {
+  client_ping_timeout_timer_.SetTimer(kPingTimeoutSeconds);
 }
 
 
@@ -943,6 +941,11 @@ void FunapiTcpTransportImpl::OnSocketWrite() {
 
 void FunapiTcpTransportImpl::Update() {
   on_update_();
+}
+
+
+void FunapiTcpTransportImpl::SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler) {
+  send_client_ping_message_handler_ = handler;
 }
 
 
@@ -1273,6 +1276,10 @@ void FunapiTransport::SetEnablePing(const bool disable_nagle) {
 }
 
 
+void FunapiTransport::SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler) {
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiTcpTransport implementation.
 
@@ -1377,8 +1384,8 @@ void FunapiTcpTransport::SetEnablePing(const bool enable_ping) {
 }
 
 
-void FunapiTcpTransport::ResetPingClientTimeout() {
-  return impl_->ResetPingClientTimeout();
+void FunapiTcpTransport::ResetClientPingTimeout() {
+  return impl_->ResetClientPingTimeout();
 }
 
 
@@ -1409,6 +1416,11 @@ void FunapiTcpTransport::OnSocketWrite() {
 
 void FunapiTcpTransport::Update() {
   return impl_->Update();
+}
+
+
+void FunapiTcpTransport::SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler) {
+  return impl_->SetSendClientPingMessageHandler(handler);
 }
 
 
@@ -1501,8 +1513,8 @@ void FunapiUdpTransport::AddConnectTimeoutCallback(const TransportEventHandler &
 }
 
 
-void FunapiUdpTransport::ResetPingClientTimeout() {
-  return impl_->ResetPingClientTimeout();
+void FunapiUdpTransport::ResetClientPingTimeout() {
+  return impl_->ResetClientPingTimeout();
 }
 
 
@@ -1627,8 +1639,8 @@ void FunapiHttpTransport::AddConnectTimeoutCallback(const TransportEventHandler 
 }
 
 
-void FunapiHttpTransport::ResetPingClientTimeout() {
-  return impl_->ResetPingClientTimeout();
+void FunapiHttpTransport::ResetClientPingTimeout() {
+  return impl_->ResetClientPingTimeout();
 }
 
 

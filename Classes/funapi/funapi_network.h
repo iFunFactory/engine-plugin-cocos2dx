@@ -57,8 +57,6 @@ class FunapiNetwork : public std::enable_shared_from_this<FunapiNetwork> {
   void AddTransportConnectFailedCallback(const TransportEventHandler &handler);
   void AddTransportDisconnectedCallback(const TransportEventHandler &handler);
 
-  bool SendClientPingMessage(const TransportProtocol protocol);
-
  private:
   std::shared_ptr<FunapiNetworkImpl> impl_;
 };

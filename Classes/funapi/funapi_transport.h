@@ -110,7 +110,7 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual void AddFailedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler) = 0;
 
-  virtual void ResetPingClientTimeout() = 0;
+  virtual void ResetClientPingTimeout() = 0;
 
   virtual int GetSocket();
 
@@ -124,6 +124,8 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual void SetDisableNagle(const bool disable_nagle);
   virtual void SetAutoReconnect(const bool auto_reconnect);
   virtual void SetEnablePing(const bool enable_ping);
+
+  virtual void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
 };
 
 
@@ -160,7 +162,7 @@ class FunapiTcpTransport : public FunapiTransport {
   void SetAutoReconnect(const bool auto_reconnect);
   void SetEnablePing(const bool enable_ping);
 
-  void ResetPingClientTimeout();
+  void ResetClientPingTimeout();
 
   int GetSocket();
 
@@ -170,6 +172,8 @@ class FunapiTcpTransport : public FunapiTransport {
   void OnSocketRead();
   void OnSocketWrite();
   void Update();
+
+  void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
 
  private:
   std::shared_ptr<FunapiTcpTransportImpl> impl_;
@@ -205,7 +209,7 @@ class FunapiUdpTransport : public FunapiTransport {
   void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  void ResetPingClientTimeout();
+  void ResetClientPingTimeout();
 
   int GetSocket();
 
@@ -250,7 +254,7 @@ class FunapiHttpTransport : public FunapiTransport {
   void AddFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  void ResetPingClientTimeout();
+  void ResetClientPingTimeout();
 
   void Update();
 

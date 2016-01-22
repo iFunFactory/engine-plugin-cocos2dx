@@ -59,7 +59,14 @@ class FunapiEvent
 class FunapiTimer
 {
  public:
+  FunapiTimer(time_t seconds = 0) {
+    SetTimer(seconds);
+  }
+
   bool IsExpired() const {
+    if (time_miliseconds_ == 0)
+      return false;
+
     if ((std::chrono::system_clock::now().time_since_epoch().count()/1000) > time_miliseconds_)
       return true;
 

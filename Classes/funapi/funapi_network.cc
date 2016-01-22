@@ -67,8 +67,6 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   FunEncoding GetEncoding(const TransportProtocol protocol) const;
   TransportProtocol GetDefaultProtocol() const;
 
-  bool SendClientPingMessage(const TransportProtocol protocol);
-
  private:
   void OnSessionInitiated(const std::string &session_id);
   void OnSessionClosed();
@@ -124,6 +122,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   void EraseTransport(const TransportProtocol protocol);
 
   void SendEmptyMessage(const TransportProtocol protocol);
+  bool SendClientPingMessage(const TransportProtocol protocol);
 };
 
 
@@ -462,7 +461,7 @@ void FunapiNetworkImpl::OnClientPingMessage(
 
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
   if (transport) {
-    transport->ResetPingClientTimeout();
+    transport->ResetClientPingTimeout();
   }
   else {
     FUNAPI_LOG("Invaild Protocol - Transport is not founded");
@@ -489,6 +488,10 @@ void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
     [this](const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body){ OnTransportReceived(protocol, encoding, header, body); },
     [this](){ OnTransportStopped(); });
   transport->SetNetwork(network);
+
+  if (transport->GetProtocol() == TransportProtocol::kTcp) {
+    transport->SetSendClientPingMessageHandler([this](const TransportProtocol protocol)->bool{ return SendClientPingMessage(protocol); });
+  }
 
   if (transport->GetProtocol() == TransportProtocol::kHttp) {
     transport->AddStartedCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
@@ -822,11 +825,6 @@ FunEncoding FunapiNetwork::GetEncoding(const TransportProtocol protocol) const {
 
 TransportProtocol FunapiNetwork::GetDefaultProtocol() const {
   return impl_->GetDefaultProtocol();
-}
-
-
-bool FunapiNetwork::SendClientPingMessage(const TransportProtocol protocol) {
-  return impl_->SendClientPingMessage(protocol);
 }
 
 }  // namespace fun
