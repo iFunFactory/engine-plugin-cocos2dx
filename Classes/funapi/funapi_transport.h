@@ -89,14 +89,9 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   FunapiTransport() = default;
   virtual ~FunapiTransport() = default;
 
-  // Start connecting
-  virtual void Start() = 0;
-
-  // Disconnection
-  virtual void Stop() = 0;
-
-  // Check connection
-  virtual bool IsStarted() const = 0;
+  virtual void Start() = 0; // Start connecting
+  virtual void Stop() = 0; // Disconnection
+  virtual bool IsStarted() const = 0; // Check connection
 
   // Send a message
   virtual void SendMessage(rapidjson::Document &message) = 0;

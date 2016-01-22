@@ -80,10 +80,6 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   OnReceived on_received_;
   OnStopped on_stopped_;
 
-  // State-related.
-  TransportProtocol protocol_;
-  FunapiTransportState state_;
-
   std::weak_ptr<FunapiNetwork> network_;
 
   std::vector<std::function<bool()>> v_send_;
@@ -95,19 +91,23 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   time_t connect_timeout_seconds_ = 1;
   FunapiTimer connect_timeout_timer_;
 
-  FunapiEvent<TransportEventHandler> on_transport_stared_;
-  FunapiEvent<TransportEventHandler> on_transport_closed_;
-  FunapiEvent<TransportEventHandler> on_transport_failed_;
-  FunapiEvent<TransportEventHandler> on_connect_timeout_;
-
   void OnTransportStarted(const TransportProtocol protocol);
   void OnTransportClosed(const TransportProtocol protocol);
   void OnTransportFailed(const TransportProtocol protocol);
   void OnConnectTimeout(const TransportProtocol protocol);
 
+  FunapiTransportState state_;
+
  private:
   // Message-related.
   bool first_sending_ = true;
+
+  TransportProtocol protocol_;
+
+  FunapiEvent<TransportEventHandler> on_transport_stared_;
+  FunapiEvent<TransportEventHandler> on_transport_closed_;
+  FunapiEvent<TransportEventHandler> on_transport_failed_;
+  FunapiEvent<TransportEventHandler> on_connect_timeout_;
 };
 
 
@@ -313,7 +313,7 @@ bool FunapiTransportImpl::TryToDecodeBody(std::vector<uint8_t> &receiving, int &
     next_decoding_offset += body_length;
 
     // The network module eats the fields and invokes registered handler
-    PushTaskQueue([this, header_fields, v](){ on_received_(protocol_, encoding_, header_fields, v); });
+    PushTaskQueue([this, header_fields, v](){ on_received_(GetProtocol(), GetEncoding(), header_fields, v); });
   }
 
   // Prepares for a next message.
@@ -607,7 +607,7 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
     const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiTcpTransportImpl();
 
-  virtual TransportProtocol GetProtocol();
+  TransportProtocol GetProtocol();
 
   void Start();
   void SetDisableNagle(const bool disable_nagle);
@@ -620,18 +620,12 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   void Update();
 
  protected:
-  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body);
+  bool EncodeThenSendMessage(std::vector<uint8_t> body);
   void Connect();
   void Recv();
 
-  bool disable_nagle_ = false;
-  bool auto_reconnect_ = false;
-  bool enable_ping_ = false;
-  FunapiTimer ping_client_timeout_timer_;
-
  private:
   void InitSocket();
-  bool Connect(Endpoint endpoint);
 
   // Ping message-related constants.
   static const time_t kPingIntervalSecond = 3;
@@ -651,6 +645,12 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   void Ping();
   void CheckConnectTimeout();
   void WaitForAutoReconnect();
+
+  bool disable_nagle_ = false;
+  bool auto_reconnect_ = false;
+  bool enable_ping_ = false;
+
+  FunapiTimer ping_client_timeout_timer_;
 };
 
 
@@ -739,7 +739,7 @@ void FunapiTcpTransportImpl::Ping() {
 void FunapiTcpTransportImpl::CheckConnectTimeout() {
   if (connect_timeout_timer_.IsExpired()) {
     FUNAPI_LOG("failed - tcp connect - timeout");
-    PushTaskQueue([this](){ on_connect_timeout_(TransportProtocol::kTcp); });
+    PushTaskQueue([this](){ OnConnectTimeout(TransportProtocol::kTcp); });
 
     if (auto_reconnect_) {
       ++reconnect_count_;
@@ -955,7 +955,7 @@ public:
     const std::string &hostname_or_ip, uint16_t port, FunEncoding encoding);
   virtual ~FunapiUdpTransportImpl();
 
-  virtual TransportProtocol GetProtocol();
+  TransportProtocol GetProtocol();
 
   void Start();
 
@@ -963,7 +963,7 @@ public:
   void OnSocketWrite();
 
 protected:
-  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body);
+  bool EncodeThenSendMessage(std::vector<uint8_t> body);
   void Recv();
 
 private:
@@ -1076,7 +1076,7 @@ class FunapiHttpTransportImpl : public FunapiTransportImpl {
   FunapiHttpTransportImpl(const std::string &hostname_or_ip, uint16_t port, bool https, FunEncoding encoding);
   virtual ~FunapiHttpTransportImpl();
 
-  virtual TransportProtocol GetProtocol();
+  TransportProtocol GetProtocol();
 
   void Start();
   void Stop();
@@ -1084,7 +1084,7 @@ class FunapiHttpTransportImpl : public FunapiTransportImpl {
   void Update();
 
  protected:
-  virtual bool EncodeThenSendMessage(std::vector<uint8_t> body);
+  bool EncodeThenSendMessage(std::vector<uint8_t> body);
 
  private:
   static size_t HttpResponseCb(void *data, size_t size, size_t count, void *cb);
@@ -1229,7 +1229,6 @@ void FunapiHttpTransportImpl::WebResponseBodyCb(void *data, int len, std::vector
 
 
 void FunapiHttpTransportImpl::Update() {
-  // FUNAPI_LOG("%s", __FUNCTION__);
   Send();
 }
 
