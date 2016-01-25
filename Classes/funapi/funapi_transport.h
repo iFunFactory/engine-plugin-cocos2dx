@@ -81,7 +81,6 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   typedef std::map<std::string, std::string> HeaderType;
 
   typedef std::function<void(const TransportProtocol, const FunEncoding, const HeaderType &, const std::vector<uint8_t> &)> OnReceived;
-  typedef std::function<void(void)> OnStopped;
 
   // Event handler delegate
   typedef std::function<void(const TransportProtocol protocol)> TransportEventHandler;
@@ -101,7 +100,6 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual TransportProtocol GetProtocol() const = 0;
   virtual FunEncoding GetEncoding() const = 0;
 
-  virtual void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2) = 0;
   virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network) = 0;
   virtual void SetConnectTimeout(time_t timeout) = 0;
 
@@ -125,6 +123,7 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual void SetEnablePing(const bool enable_ping);
 
   virtual void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
+  virtual void SetReceivedHandler(OnReceived handler) = 0;
 };
 
 
@@ -148,7 +147,6 @@ class FunapiTcpTransport : public FunapiTransport {
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
 
-  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
   void SetNetwork(std::weak_ptr<FunapiNetwork> network);
   void SetConnectTimeout(time_t timeout);
 
@@ -172,6 +170,7 @@ class FunapiTcpTransport : public FunapiTransport {
   void Update();
 
   void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
+  void SetReceivedHandler(OnReceived handler);
 
  private:
   std::shared_ptr<FunapiTcpTransportImpl> impl_;
@@ -198,7 +197,6 @@ class FunapiUdpTransport : public FunapiTransport {
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
 
-  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
   void SetNetwork(std::weak_ptr<FunapiNetwork> network);
   void SetConnectTimeout(time_t timeout);
 
@@ -216,6 +214,8 @@ class FunapiUdpTransport : public FunapiTransport {
 
   void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
   void Update();
+
+  void SetReceivedHandler(OnReceived handler);
 
  private:
   std::shared_ptr<FunapiUdpTransportImpl> impl_;
@@ -242,7 +242,6 @@ class FunapiHttpTransport : public FunapiTransport {
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
 
-  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
   void SetNetwork(std::weak_ptr<FunapiNetwork> network);
   void SetConnectTimeout(time_t timeout);
 
@@ -254,6 +253,8 @@ class FunapiHttpTransport : public FunapiTransport {
   void ResetClientPingTimeout();
 
   void Update();
+
+  void SetReceivedHandler(OnReceived handler);
 
  private:
   std::shared_ptr<FunapiHttpTransportImpl> impl_;

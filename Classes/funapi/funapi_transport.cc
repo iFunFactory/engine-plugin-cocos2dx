@@ -27,7 +27,6 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
  public:
   typedef FunapiTransport::TransportEventHandler TransportEventHandler;
   typedef FunapiTransport::OnReceived OnReceived;
-  typedef FunapiTransport::OnStopped OnStopped;
 
   // Buffer-related constants.
   static const int kUnitBufferSize = 65536;
@@ -38,8 +37,6 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   bool IsStarted();
   virtual void Start() = 0;
   virtual void Stop() = 0;
-
-  void RegisterEventHandlers(const OnReceived &cb1, const OnStopped &cb2);
 
   void SendMessage(rapidjson::Document &message);
   void SendMessage(FunMessage &message);
@@ -58,6 +55,8 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   virtual void ResetClientPingTimeout() {};
+
+  void SetReceivedHandler(OnReceived handler);
 
  protected:
   typedef std::map<std::string, std::string> HeaderFields;
@@ -78,7 +77,6 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
 
   // Registered event handlers.
   OnReceived on_received_;
-  OnStopped on_stopped_;
 
   std::weak_ptr<FunapiNetwork> network_;
 
@@ -117,13 +115,6 @@ FunapiTransportImpl::FunapiTransportImpl(TransportProtocol protocol, FunEncoding
 
 
 FunapiTransportImpl::~FunapiTransportImpl() {
-}
-
-
-void FunapiTransportImpl::RegisterEventHandlers(
-    const OnReceived &on_received, const OnStopped &on_stopped) {
-  on_received_ = on_received;
-  on_stopped_ = on_stopped;
 }
 
 
@@ -408,7 +399,6 @@ void FunapiTransportImpl::PushTaskQueue(std::function<void()> task) {
 void FunapiTransportImpl::PushStopTask() {
   PushTaskQueue([this](){
     Stop();
-    on_stopped_();
   });
 }
 
@@ -455,6 +445,11 @@ void FunapiTransportImpl::OnTransportFailed(const TransportProtocol protocol) {
 
 void FunapiTransportImpl::OnConnectTimeout(const TransportProtocol protocol) {
   PushTaskQueue([this, protocol] { on_connect_timeout_(protocol); });
+}
+
+
+void FunapiTransportImpl::SetReceivedHandler(OnReceived handler) {
+  on_received_ = handler;
 }
 
 
@@ -1290,12 +1285,6 @@ TransportProtocol FunapiTcpTransport::GetProtocol() const {
 }
 
 
-void FunapiTcpTransport::RegisterEventHandlers(
-  const OnReceived &on_received, const OnStopped &on_stopped) {
-  impl_->RegisterEventHandlers(on_received, on_stopped);
-}
-
-
 void FunapiTcpTransport::Start() {
   impl_->Start();
 }
@@ -1412,6 +1401,11 @@ void FunapiTcpTransport::SetSendClientPingMessageHandler(std::function<bool(cons
 }
 
 
+void FunapiTcpTransport::SetReceivedHandler(OnReceived handler) {
+  return impl_->SetReceivedHandler(handler);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiUdpTransport implementation.
 
@@ -1427,12 +1421,6 @@ std::shared_ptr<FunapiUdpTransport> FunapiUdpTransport::create(const std::string
 
 TransportProtocol FunapiUdpTransport::GetProtocol() const {
   return impl_->GetProtocol();
-}
-
-
-void FunapiUdpTransport::RegisterEventHandlers(
-  const OnReceived &on_received, const OnStopped &on_stopped) {
-  impl_->RegisterEventHandlers(on_received, on_stopped);
 }
 
 
@@ -1531,6 +1519,11 @@ void FunapiUdpTransport::Update() {
 }
 
 
+void FunapiUdpTransport::SetReceivedHandler(OnReceived handler) {
+  return impl_->SetReceivedHandler(handler);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiHttpTransport implementation.
 
@@ -1548,12 +1541,6 @@ std::shared_ptr<FunapiHttpTransport> FunapiHttpTransport::create(const std::stri
 
 TransportProtocol FunapiHttpTransport::GetProtocol() const {
   return impl_->GetProtocol();
-}
-
-
-void FunapiHttpTransport::RegisterEventHandlers(
-  const OnReceived &on_received, const OnStopped &on_stopped) {
-  impl_->RegisterEventHandlers(on_received, on_stopped);
 }
 
 
@@ -1629,6 +1616,11 @@ void FunapiHttpTransport::ResetClientPingTimeout() {
 
 void FunapiHttpTransport::Update() {
   return impl_->Update();
+}
+
+
+void FunapiHttpTransport::SetReceivedHandler(OnReceived handler) {
+  return impl_->SetReceivedHandler(handler);
 }
 
 }  // namespace fun

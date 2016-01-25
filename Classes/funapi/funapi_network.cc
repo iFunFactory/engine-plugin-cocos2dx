@@ -484,9 +484,8 @@ void FunapiNetworkImpl::Update() {
 
 
 void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &transport, const std::weak_ptr<FunapiNetwork> &network) {
-  transport->RegisterEventHandlers(
-    [this](const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body){ OnTransportReceived(protocol, encoding, header, body); },
-    [this](){ OnTransportStopped(); });
+  transport->SetReceivedHandler([this](const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body){ OnTransportReceived(protocol, encoding, header, body);
+  });
   transport->SetNetwork(network);
 
   if (transport->GetProtocol() == TransportProtocol::kTcp) {
