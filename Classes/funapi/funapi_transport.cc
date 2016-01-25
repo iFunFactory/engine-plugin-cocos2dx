@@ -473,8 +473,7 @@ class FunapiSocketTransportImpl : public FunapiTransportImpl {
   virtual void AddInitSocketCallback(const TransportEventHandler &handler);
   virtual void AddCloseSocketCallback(const TransportEventHandler &handler);
 
-  virtual void OnSocketRead();
-  virtual void OnSocketWrite();
+  virtual void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
   virtual void Update();
 
  protected:
@@ -483,7 +482,7 @@ class FunapiSocketTransportImpl : public FunapiTransportImpl {
 
   // State-related.
   Endpoint endpoint_;
-  int sock_;
+  int socket_;
 
   std::vector<struct in_addr> in_addrs_;
   uint16_t port_;
@@ -500,7 +499,7 @@ class FunapiSocketTransportImpl : public FunapiTransportImpl {
 FunapiSocketTransportImpl::FunapiSocketTransportImpl(TransportProtocol protocol,
                                          const std::string &hostname_or_ip,
                                          uint16_t port, FunEncoding encoding)
-    : FunapiTransportImpl(protocol, encoding), sock_(-1), port_(port) {
+    : FunapiTransportImpl(protocol, encoding), socket_(-1), port_(port) {
   struct hostent *entry = gethostbyname(hostname_or_ip.c_str());
   assert(entry);
 
@@ -548,21 +547,21 @@ void FunapiSocketTransportImpl::Stop() {
 
 
 void FunapiSocketTransportImpl::CloseSocket() {
-  if (sock_ >= 0) {
+  if (socket_ >= 0) {
+    OnCloseSocket(GetProtocol());
+
 #if FUNAPI_PLATFORM_WINDOWS
     closesocket(sock_);
 #else
-    close(sock_);
+    close(socket_);
 #endif
-    sock_ = -1;
-
-    OnCloseSocket(GetProtocol());
+    socket_ = -1;
   }
 }
 
 
 int FunapiSocketTransportImpl::GetSocket() {
-  return sock_;
+  return socket_;
 }
 
 
@@ -586,11 +585,14 @@ void FunapiSocketTransportImpl::OnCloseSocket(const TransportProtocol protocol) 
 }
 
 
-void FunapiSocketTransportImpl::OnSocketRead() {
-}
+void FunapiSocketTransportImpl::OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset) {
+  if (FD_ISSET(socket_, &rset)) {
+    Recv();
+  }
 
-
-void FunapiSocketTransportImpl::OnSocketWrite() {
+  if (FD_ISSET(socket_, &wset)) {
+    Send();
+  }
 }
 
 
@@ -615,8 +617,7 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   void SetEnablePing(const bool enable_ping);
   void ResetClientPingTimeout();
 
-  void OnSocketRead();
-  void OnSocketWrite();
+  void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
   void Update();
 
   void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
@@ -640,8 +641,7 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   FunapiTimer reconnect_wait_timer_;
   time_t reconnect_wait_seconds_;
 
-  std::function<void()> on_socket_read_;
-  std::function<void()> on_socket_write_;
+  std::function<void(const fd_set rset, const fd_set wset, const fd_set eset)> on_socket_select_;
   std::function<void()> on_update_;
 
   void Ping();
@@ -680,32 +680,46 @@ void FunapiTcpTransportImpl::Start() {
   state_ = kConnecting;
 
   on_update_ = [](){};
-  on_socket_read_ = [](){};
-  on_socket_write_ = [this](){
-    int e;
-    socklen_t e_size = sizeof(e);
-    int r = getsockopt(sock_, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&e), &e_size);
-    if (r == 0 && e == 0) {
-      // Makes a state transition.
-      state_ = kConnected;
+  on_socket_select_ = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
+    if (FD_ISSET(socket_, &rset) && FD_ISSET(socket_, &wset)) {
+      bool isConnected = true;
 
-      on_socket_read_ = [this](){ Recv(); };
-      on_socket_write_ = [this](){ Send(); };
+#ifdef FUNAPI_PLATFORM_WINDOWS
+      if (FD_ISSET(socket_, eset)) {
+        isConnected = false;
+      }
+#else
+      int e;
+      socklen_t e_size = sizeof(e);
+      int r = getsockopt(socket_, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&e), &e_size);
+      if (r < 0) {
+        isConnected = false;
+      }
+#endif
 
-      client_ping_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
+      if (isConnected) {
+        // Makes a state transition.
+        state_ = kConnected;
 
-      on_update_ = [this](){
-        Ping();
-      };
+        on_socket_select_ = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
+          FunapiSocketTransportImpl::OnSocketSelect(rset, wset, eset);
+        };
 
-      OnTransportStarted(TransportProtocol::kTcp);
-    }
-    else {
-      FUNAPI_LOG("failed - tcp connect");
-      OnTransportFailed(TransportProtocol::kTcp);
+        client_ping_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
 
-      ++connect_addr_index_;
-      Connect();
+        on_update_ = [this](){
+          Ping();
+        };
+
+        OnTransportStarted(TransportProtocol::kTcp);
+      }
+      else {
+        FUNAPI_LOG("failed - tcp connect");
+        OnTransportFailed(TransportProtocol::kTcp);
+
+        ++connect_addr_index_;
+        Connect();
+      }
     }
   };
 
@@ -807,10 +821,10 @@ bool FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 
   static int offset = 0;
 
-  if (sock_ < 0)
+  if (socket_ < 0)
     return false;
 
-  int nSent = static_cast<int>(send(sock_, reinterpret_cast<char*>(body.data()) + offset, body.size() - offset, 0));
+  int nSent = static_cast<int>(send(socket_, reinterpret_cast<char*>(body.data()) + offset, body.size() - offset, 0));
 
   if (nSent < 0) {
     PushStopTask();
@@ -833,24 +847,24 @@ bool FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 
 void FunapiTcpTransportImpl::InitSocket() {
   // Initiates a new socket.
-  sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  assert(sock_ >= 0);
+  socket_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  assert(socket_ >= 0);
 
   // Makes the fd non-blocking.
 #if FUNAPI_PLATFORM_WINDOWS
   u_long argp = 0;
-  int flag = ioctlsocket(sock_, FIONBIO, &argp);
+  int flag = ioctlsocket(socket_, FIONBIO, &argp);
   assert(flag >= 0);
 #else
-  int flag = fcntl(sock_, F_GETFL);
+  int flag = fcntl(socket_, F_GETFL);
   assert(flag >= 0);
-  int rc = fcntl(sock_, F_SETFL, O_NONBLOCK | flag);
+  int rc = fcntl(socket_, F_SETFL, O_NONBLOCK | flag);
   assert(rc >= 0);
 #endif
 
   if (disable_nagle_) {
     int flag = 1;
-    int result = setsockopt(sock_,
+    int result = setsockopt(socket_,
                             IPPROTO_TCP,
                             TCP_NODELAY,
                             reinterpret_cast<char*>(&flag),
@@ -869,8 +883,7 @@ void FunapiTcpTransportImpl::Connect() {
 
   if (connect_addr_index_ >= in_addrs_.size()) {
     on_update_ = [](){};
-    on_socket_read_ = [](){};
-    on_socket_write_ = [](){};
+    on_socket_select_ = [](const fd_set rset, const fd_set wset, const fd_set eset){};
     return;
   }
 
@@ -884,7 +897,7 @@ void FunapiTcpTransportImpl::Connect() {
   connect_timeout_timer_.SetTimer(connect_timeout_seconds_);
 
   // Tries to connect.
-  int rc = connect(sock_,
+  int rc = connect(socket_,
                    reinterpret_cast<const struct sockaddr *>(&endpoint_),
                    sizeof(endpoint_));
   assert(rc == 0 || (rc < 0 && errno == EINPROGRESS));
@@ -903,12 +916,12 @@ void FunapiTcpTransportImpl::Recv() {
   static bool header_decoded = false;
   static HeaderFields header_fields;
 
-  if (sock_ < 0)
+  if (socket_ < 0)
     return;
 
   std::vector<uint8_t> buffer(kUnitBufferSize);
 
-  int nRead = static_cast<int>(recv(sock_, buffer.data(), kUnitBufferSize, 0));
+  int nRead = static_cast<int>(recv(socket_, buffer.data(), kUnitBufferSize, 0));
 
   if (nRead <= 0) {
     if (nRead < 0) {
@@ -922,20 +935,16 @@ void FunapiTcpTransportImpl::Recv() {
 
   if (!DecodeMessage(nRead, receiving_vector, next_decoding_offset, header_decoded, header_fields)) {
     if (nRead == 0)
-      FUNAPI_LOG("Socket [%d] closed.", sock_);
+      FUNAPI_LOG("Socket [%d] closed.", socket_);
 
     PushStopTask();
   }
 }
 
 
-void FunapiTcpTransportImpl::OnSocketRead() {
-  on_socket_read_();
-}
-
-
-void FunapiTcpTransportImpl::OnSocketWrite() {
-  on_socket_write_();
+void FunapiTcpTransportImpl::OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset)
+{
+  on_socket_select_(rset, wset, eset);
 }
 
 
@@ -961,9 +970,6 @@ public:
   TransportProtocol GetProtocol();
 
   void Start();
-
-  void OnSocketRead();
-  void OnSocketWrite();
 
 protected:
   bool EncodeThenSendMessage(std::vector<uint8_t> body);
@@ -998,8 +1004,8 @@ TransportProtocol FunapiUdpTransportImpl::GetProtocol() {
 void FunapiUdpTransportImpl::Start() {
   CloseSocket();
 
-  sock_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  assert(sock_ >= 0);
+  socket_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  assert(socket_ >= 0);
   state_ = kConnected;
 
   OnInitSocket(TransportProtocol::kUdp);
@@ -1019,10 +1025,10 @@ bool FunapiUdpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 
   socklen_t len = sizeof(endpoint_);
 
-  if (sock_ < 0)
+  if (socket_ < 0)
     return false;
 
-  int nSent = static_cast<int>(sendto(sock_, reinterpret_cast<char*>(body.data()), body.size(), 0, reinterpret_cast<struct sockaddr*>(&endpoint_), len));
+  int nSent = static_cast<int>(sendto(socket_, reinterpret_cast<char*>(body.data()), body.size(), 0, reinterpret_cast<struct sockaddr*>(&endpoint_), len));
 
   if (nSent < 0) {
     PushStopTask();
@@ -1039,10 +1045,10 @@ void FunapiUdpTransportImpl::Recv() {
   std::vector<uint8_t> receiving_vector(kUnitBufferSize);
   socklen_t len = sizeof(recv_endpoint_);
 
-  if (sock_<0)
+  if (socket_<0)
     return;
 
-  int nRead = static_cast<int>(recvfrom(sock_, reinterpret_cast<char*>(receiving_vector.data()), receiving_vector.size(), 0, reinterpret_cast<struct sockaddr*>(&recv_endpoint_), &len));
+  int nRead = static_cast<int>(recvfrom(socket_, reinterpret_cast<char*>(receiving_vector.data()), receiving_vector.size(), 0, reinterpret_cast<struct sockaddr*>(&recv_endpoint_), &len));
 
   // FUNAPI_LOG("nRead = %d", nRead);
 
@@ -1054,20 +1060,10 @@ void FunapiUdpTransportImpl::Recv() {
 
   if (!DecodeMessage(nRead, receiving_vector)) {
     if (nRead == 0)
-      FUNAPI_LOG("Socket [%d] closed.", sock_);
+      FUNAPI_LOG("Socket [%d] closed.", socket_);
 
     PushStopTask();
   }
-}
-
-
-void FunapiUdpTransportImpl::OnSocketRead() {
-  Recv();
-}
-
-
-void FunapiUdpTransportImpl::OnSocketWrite() {
-  Send();
 }
 
 
@@ -1252,11 +1248,7 @@ void FunapiTransport::AddCloseSocketCallback(const TransportEventHandler &handle
 }
 
 
-void FunapiTransport::OnSocketRead() {
-}
-
-
-void FunapiTransport::OnSocketWrite() {
+void FunapiTransport::OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset) {
 }
 
 
@@ -1404,13 +1396,9 @@ void FunapiTcpTransport::AddCloseSocketCallback(const TransportEventHandler &han
 }
 
 
-void FunapiTcpTransport::OnSocketRead() {
-  return impl_->OnSocketRead();
-}
-
-
-void FunapiTcpTransport::OnSocketWrite() {
-  return impl_->OnSocketWrite();
+void FunapiTcpTransport::OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset)
+{
+  return impl_->OnSocketSelect(rset, wset, eset);
 }
 
 
@@ -1533,13 +1521,8 @@ void FunapiUdpTransport::AddCloseSocketCallback(const TransportEventHandler &han
 }
 
 
-void FunapiUdpTransport::OnSocketRead() {
-  return impl_->OnSocketRead();
-}
-
-
-void FunapiUdpTransport::OnSocketWrite() {
-  return impl_->OnSocketWrite();
+void FunapiUdpTransport::OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset) {
+    return impl_->OnSocketSelect(rset, wset, eset);
 }
 
 

@@ -106,9 +106,11 @@ void FunapiManagerImpl::Update() {
 
   fd_set rset;
   fd_set wset;
+  fd_set eset;
 
   FD_ZERO(&rset);
   FD_ZERO(&wset);
+  FD_ZERO(&eset);
 
   {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -116,8 +118,10 @@ void FunapiManagerImpl::Update() {
       int fd = transport->GetSocket();
       if (fd > 0) {
         if (fd > max_fd) max_fd = fd;
+
         FD_SET(fd, &rset);
         FD_SET(fd, &wset);
+        FD_SET(fd, &eset);
       }
 
       transport->Update();
@@ -126,18 +130,11 @@ void FunapiManagerImpl::Update() {
 
   struct timeval timeout = { 0, 1 };
 
-  if (select(max_fd + 1, &rset, &wset, NULL, &timeout) > 0) {
+  if (select(max_fd + 1, &rset, &wset, &eset, &timeout) > 0) {
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto transport : set_) {
-      int fd = transport->GetSocket();
-      if (fd > 0) {
-        if (FD_ISSET(fd, &rset)) {
-          transport->OnSocketRead();
-        }
-
-        if (FD_ISSET(fd, &wset)) {
-          transport->OnSocketWrite();
-        }
+      if (transport->GetSocket() > 0) {
+        transport->OnSocketSelect(rset, wset, eset);
       }
     }
   }

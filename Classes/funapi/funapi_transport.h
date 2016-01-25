@@ -117,8 +117,7 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual void AddInitSocketCallback(const TransportEventHandler &handler);
   virtual void AddCloseSocketCallback(const TransportEventHandler &handler);
 
-  virtual void OnSocketRead();
-  virtual void OnSocketWrite();
+  virtual void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
   virtual void Update();
 
   virtual void SetDisableNagle(const bool disable_nagle);
@@ -169,8 +168,7 @@ class FunapiTcpTransport : public FunapiTransport {
   void AddInitSocketCallback(const TransportEventHandler &handler);
   void AddCloseSocketCallback(const TransportEventHandler &handler);
 
-  void OnSocketRead();
-  void OnSocketWrite();
+  void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
   void Update();
 
   void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
@@ -216,8 +214,7 @@ class FunapiUdpTransport : public FunapiTransport {
   void AddInitSocketCallback(const TransportEventHandler &handler);
   void AddCloseSocketCallback(const TransportEventHandler &handler);
 
-  void OnSocketRead();
-  void OnSocketWrite();
+  void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
   void Update();
 
  private:
