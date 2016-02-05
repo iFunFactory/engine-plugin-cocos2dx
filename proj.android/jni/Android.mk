@@ -10,13 +10,12 @@ LOCAL_MODULE := cocos2dcpp_shared
 
 LOCAL_MODULE_FILENAME := libcocos2dcpp
 
-LOCAL_CFLAGS    := -DFUNAPI_TARGET_COCOS2D
-
 LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/AppDelegate.cpp \
                    ../../Classes/FunapiTestScene.cpp \
                    ../../Classes/funapi/funapi_network.cc \
                    ../../Classes/funapi/funapi_transport.cc \
+                   ../../Classes/funapi/funapi_multicasting.cc \
                    ../../Classes/funapi/pb/management/maintenance_message.pb.cc \
                    ../../Classes/funapi/pb/network/fun_message.pb.cc \
                    ../../Classes/funapi/pb/network/ping_message.pb.cc \

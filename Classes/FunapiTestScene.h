@@ -3,6 +3,7 @@
 
 #include "cocos2d.h"
 #include "funapi/funapi_network.h"
+#include "funapi/funapi_multicasting.h"
 
 class FunapiTest : public cocos2d::Layer
 {
@@ -21,24 +22,25 @@ public:
   void SendEchoMessage();
 
   //
+  void CreateMulticast();
+  void JoinMulticastChannel();
+  void SendMulticastMessage();
+  void LeaveMulticastChannel();
+
+  //
   bool IsConnected();
 
   // callback
   void OnSessionInitiated(const std::string &session_id);
   void OnSessionClosed();
-  void OnEchoJson(const std::string &type, const std::vector<uint8_t> &v_body);
-  void OnEchoProto(const std::string &type, const std::vector<uint8_t> &v_body);
+  void OnEchoJson(const fun::TransportProtocol protocol,const std::string &type, const std::vector<uint8_t> &v_body);
+  void OnEchoProto(const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body);
 
-  void OnMaintenanceMessage(const std::string &type, const std::vector<uint8_t> &v_body);
+  void OnMaintenanceMessage(const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body);
   void OnStoppedAllTransport();
 
   void OnTransportConnectFailed (const fun::TransportProtocol protocol);
-  void OnTransportDisconnected (const fun::TransportProtocol protocol);
-
-  void OnTransportStarted (const fun::TransportProtocol protocol);
-  void OnTransportClosed (const fun::TransportProtocol protocol);
-  void OnTransportFailure (const fun::TransportProtocol protocol);
-  void OnConnectTimeout (const fun::TransportProtocol protocol);
+  void OnTransportConnectTimeout (const fun::TransportProtocol protocol);
 
   // implement the "static create()" method manually
   CREATE_FUNC(FunapiTest);
@@ -55,6 +57,12 @@ private:
   bool with_session_reliability_ = false;
 
   std::shared_ptr<fun::FunapiNetwork> network_ = nullptr;
+
+  const std::string kMulticastTestChannel = "multicast";
+  std::shared_ptr<fun::FunapiMulticastClient> multicast_ = nullptr;
+  fun::FunEncoding multicast_encoding_;
+
+  void OnMulticastChannelSignalle(const std::string &channel_id, const std::string &sender, const std::vector<uint8_t> &v_body);
 };
 
 #endif // __FUNAPI_TEST_SCENE_H__

@@ -8,8 +8,6 @@
 #include "funapi_plugin.h"
 #include "funapi_utils.h"
 #include "funapi_network.h"
-#include "funapi_utils.h"
-#include "funapi_manager.h"
 
 namespace fun {
 
@@ -47,7 +45,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   void SendMessage(FunMessage& message, TransportProtocol protocol);
   void SendMessage(const char *body, TransportProtocol protocol);
   bool IsStarted() const;
-  bool Connected(const TransportProtocol protocol);
+  bool IsConnected(const TransportProtocol protocol) const;
   void Update();
   void AttachTransport(const std::shared_ptr<FunapiTransport> &transport, const std::weak_ptr<FunapiNetwork> &network);
   std::shared_ptr<FunapiTransport> GetTransport(const TransportProtocol protocol) const;
@@ -60,6 +58,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   void AddStoppedAllTransportCallback(const NotifyHandler &handler);
   void AddTransportConnectFailedCallback(const TransportEventHandler &handler);
   void AddTransportDisconnectedCallback(const TransportEventHandler &handler);
+  void AddTransportConnectTimeoutCallback(const TransportEventHandler &handler);
 
   bool HasTransport(const TransportProtocol protocol) const;
   void SetDefaultProtocol(const TransportProtocol protocol);
@@ -75,6 +74,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   void OnStoppedAllTransport();
   void OnTransportConnectFailed(const TransportProtocol protocol);
   void OnTransportDisconnected(const TransportProtocol protocol);
+  void OnTransportConnectTimeout(const TransportProtocol protocol);
 
   void OnTransportReceived(const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body);
   void OnTransportStopped();
@@ -91,7 +91,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
 
   // Transport-releated member variables.
   std::map<TransportProtocol, std::shared_ptr<FunapiTransport>> transports_;
-  mutable std::mutex transports_mutex_;
+//  mutable std::mutex transports_mutex_;
   TransportProtocol default_protocol_ = TransportProtocol::kDefault;
 
   std::string session_id_;
@@ -104,7 +104,7 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   const time_t funapi_session_timeout_ = 3600;
 
   std::queue<std::function<void()>> tasks_queue_;
-  std::mutex tasks_queue_mutex_;
+//  std::mutex tasks_queue_mutex_;
 
   // Funapi message-related events.
   FunapiEvent<SessionInitHandler> on_session_initiated_;
@@ -113,10 +113,11 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
   FunapiEvent<NotifyHandler> on_stopped_all_transport_;
   FunapiEvent<TransportEventHandler> on_transport_connect_failed_;
   FunapiEvent<TransportEventHandler> on_transport_disconnected_;
+  FunapiEvent<TransportEventHandler> on_transport_connect_timeout_;
 
   bool session_reliability_ = false;
 
-  static std::shared_ptr<FunapiManager> GetManager();
+//  static std::shared_ptr<FunapiManager> GetManager();
 
   void InsertTransport(const TransportProtocol protocol);
   void EraseTransport(const TransportProtocol protocol);
@@ -137,12 +138,6 @@ FunapiNetworkImpl::~FunapiNetworkImpl() {
   Finalize();
   Stop();
   Update();
-}
-
-
-std::shared_ptr<FunapiManager> FunapiNetworkImpl::GetManager() {
-  static std::shared_ptr<FunapiManager> manager = std::make_shared<FunapiManager>();
-  return manager;
 }
 
 
@@ -180,15 +175,15 @@ void FunapiNetworkImpl::Finalize() {
 
 void FunapiNetworkImpl::RegisterHandler(
     const std::string &msg_type, const MessageEventHandler &handler) {
-  FUNAPI_LOG("New handler for message type %s", msg_type.c_str());
+  DebugUtils::Log("New handler for message type %s", msg_type.c_str());
   message_handlers_[msg_type] = handler;
 }
 
 
 void FunapiNetworkImpl::Start() {
-  FUNAPI_LOG("Starting a network module.");
+  DebugUtils::Log("Starting a network module.");
   {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
+//    std::unique_lock<std::mutex> lock(transports_mutex_);
     for (auto iter : transports_) {
       if (!iter.second->IsStarted())
         iter.second->Start();
@@ -202,7 +197,7 @@ void FunapiNetworkImpl::Start() {
 
 
 void FunapiNetworkImpl::Stop() {
-  FUNAPI_LOG("Stopping a network module.");
+  DebugUtils::Log("Stopping a network module.");
 
   if (!started_)
     return;
@@ -212,7 +207,7 @@ void FunapiNetworkImpl::Stop() {
 
   // Then, requests the transport to stop.
   {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
+//    std::unique_lock<std::mutex> lock(transports_mutex_);
     for (auto iter : transports_) {
       if (iter.second->IsStarted())
         iter.second->Stop();
@@ -227,7 +222,7 @@ void FunapiNetworkImpl::SendMessage(const std::string &msg_type, std::string &js
   time_t delta = funapi_session_timeout_;
 
   if (last_received_ != epoch_ && last_received_ + delta < now) {
-    FUNAPI_LOG("Session is too stale. The server might have invalidated my session. Resetting.");
+    DebugUtils::Log("Session is too stale. The server might have invalidated my session. Resetting.");
     session_id_ = "";
   }
 
@@ -255,7 +250,7 @@ void FunapiNetworkImpl::SendMessage(const std::string &msg_type, std::string &js
     transport->SendMessage(body);
   }
   else {
-    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
+    DebugUtils::Log("Invaild Protocol - Transport is not founded");
   }
 }
 
@@ -266,7 +261,7 @@ void FunapiNetworkImpl::SendMessage(FunMessage& message, TransportProtocol proto
   time_t delta = funapi_session_timeout_;
 
   if (last_received_ != epoch_ && last_received_ + delta < now) {
-    FUNAPI_LOG("Session is too stale. The server might have invalidated my session. Resetting.");
+    DebugUtils::Log("Session is too stale. The server might have invalidated my session. Resetting.");
     session_id_ = "";
   }
 
@@ -284,7 +279,7 @@ void FunapiNetworkImpl::SendMessage(FunMessage& message, TransportProtocol proto
     transport->SendMessage(message);
   }
   else {
-    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
+    DebugUtils::Log("Invaild Protocol - Transport is not founded");
   }
 }
 
@@ -295,7 +290,7 @@ void FunapiNetworkImpl::SendMessage(const char *body, TransportProtocol protocol
   time_t delta = funapi_session_timeout_;
 
   if (last_received_ != epoch_ && last_received_ + delta < now) {
-    FUNAPI_LOG("Session is too stale. The server might have invalidated my session. Resetting.");
+    DebugUtils::Log("Session is too stale. The server might have invalidated my session. Resetting.");
     session_id_ = "";
   }
 
@@ -308,7 +303,7 @@ void FunapiNetworkImpl::SendMessage(const char *body, TransportProtocol protocol
     transport->SendMessage(body);
   }
   else {
-    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
+    DebugUtils::Log("Invaild Protocol - Transport is not founded");
   }
 }
 
@@ -318,7 +313,7 @@ bool FunapiNetworkImpl::IsStarted() const {
 }
 
 
-bool FunapiNetworkImpl::Connected(const TransportProtocol protocol = TransportProtocol::kDefault) {
+bool FunapiNetworkImpl::IsConnected(const TransportProtocol protocol = TransportProtocol::kDefault) const {
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
 
   if (transport)
@@ -330,7 +325,7 @@ bool FunapiNetworkImpl::Connected(const TransportProtocol protocol = TransportPr
 
 void FunapiNetworkImpl::OnTransportReceived(
   const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body) {
-  FUNAPI_LOG("OnReceived invoked");
+  DebugUtils::Log("OnReceived invoked");
 
   last_received_ = time(NULL);
 
@@ -363,12 +358,12 @@ void FunapiNetworkImpl::OnTransportReceived(
 
   if (session_id_.empty()) {
     session_id_ = session_id;
-    FUNAPI_LOG("New session id: %s", session_id.c_str());
+    DebugUtils::Log("New session id: %s", session_id.c_str());
     OnSessionInitiated(session_id);
   }
 
   if (session_id_.compare(session_id) != 0) {
-    FUNAPI_LOG("Session id changed: %s => %s", session_id_.c_str(), session_id.c_str());
+    DebugUtils::Log("Session id changed: %s => %s", session_id_.c_str(), session_id.c_str());
     session_id_ = session_id;
     OnSessionClosed();
     OnSessionInitiated(session_id);
@@ -376,7 +371,7 @@ void FunapiNetworkImpl::OnTransportReceived(
 
   MessageHandlerMap::iterator it = message_handlers_.find(msg_type);
   if (it == message_handlers_.end()) {
-    FUNAPI_LOG("No handler for message '%s'. Ignoring.", msg_type.c_str());
+    DebugUtils::Log("No handler for message '%s'. Ignoring.", msg_type.c_str());
   } else {
     it->second(protocol, msg_type, body);
   }
@@ -384,7 +379,7 @@ void FunapiNetworkImpl::OnTransportReceived(
 
 
 void FunapiNetworkImpl::OnTransportStopped() {
-  FUNAPI_LOG("Transport terminated. Stopping. You may restart again.");
+  DebugUtils::Log("Transport terminated. Stopping. You may restart again.");
   Stop();
   OnStoppedAllTransport();
 }
@@ -398,7 +393,7 @@ void FunapiNetworkImpl::OnNewSession(
 
 void FunapiNetworkImpl::OnSessionTimedout(
   const std::string &msg_type, const std::vector<uint8_t>&v_body) {
-  FUNAPI_LOG("Session timed out. Resetting my session id. The server will send me another one next time.");
+  DebugUtils::Log("Session timed out. Resetting my session id. The server will send me another one next time.");
 
   session_id_ = "";
 
@@ -436,7 +431,7 @@ void FunapiNetworkImpl::OnClientPingMessage(
   assert(encoding!=FunEncoding::kNone);
 
   std::string body(v_body.cbegin(), v_body.cend());
-  int64_t timestamp_ms;
+  int64_t timestamp_ms = 0;
 
   if (encoding == FunEncoding::kJson)
   {
@@ -457,28 +452,64 @@ void FunapiNetworkImpl::OnClientPingMessage(
 
   int64_t ping_time_ms = (std::chrono::system_clock::now().time_since_epoch().count() - timestamp_ms) / 1000;
 
-  FUNAPI_LOG("Receive %s ping - timestamp:%lld time=%lld ms", "TCP", timestamp_ms, ping_time_ms);
+  DebugUtils::Log("Receive %s ping - timestamp:%lld time=%lld ms", "TCP", timestamp_ms, ping_time_ms);
 
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
   if (transport) {
     transport->ResetClientPingTimeout();
   }
   else {
-    FUNAPI_LOG("Invaild Protocol - Transport is not founded");
+    DebugUtils::Log("Invaild Protocol - Transport is not founded");
   }
 }
 
 
 void FunapiNetworkImpl::Update() {
-#ifndef FUNAPI_HAVE_THREAD
-  GetManager()->Update();
-#endif // FUNAPI_HAVE_THREAD
-
-  std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
-  while (!tasks_queue_.empty())
   {
-    (tasks_queue_.front())();
-    tasks_queue_.pop();
+    int max_fd = -1;
+
+    fd_set rset;
+    fd_set wset;
+    fd_set eset;
+
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+    FD_ZERO(&eset);
+
+    for (auto iter : transports_) {
+      auto transport = iter.second;
+
+      int fd = transport->GetSocket();
+      if (fd > 0) {
+        if (fd > max_fd) max_fd = fd;
+
+        FD_SET(fd, &rset);
+        FD_SET(fd, &wset);
+        FD_SET(fd, &eset);
+      }
+
+      transport->Update();
+    }
+
+    struct timeval timeout = { 0, 1 };
+
+    if (select(max_fd + 1, &rset, &wset, &eset, &timeout) > 0) {
+      for (auto iter : transports_) {
+        auto transport = iter.second;
+        if (transport->GetSocket() > 0) {
+          transport->OnSocketSelect(rset, wset, eset);
+        }
+      }
+    }
+  }
+
+  {
+    // std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
+    while (!tasks_queue_.empty())
+    {
+      (tasks_queue_.front())();
+      tasks_queue_.pop();
+    }
   }
 }
 
@@ -486,20 +517,23 @@ void FunapiNetworkImpl::Update() {
 void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &transport, const std::weak_ptr<FunapiNetwork> &network) {
   transport->SetReceivedHandler([this](const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body){ OnTransportReceived(protocol, encoding, header, body);
   });
+  transport->AddStoppedCallback([this](const TransportProtocol protocol){ OnTransportStopped(); });
+  transport->AddConnectFailedCallback([this](const TransportProtocol protocol){ OnTransportConnectFailed(protocol); });
+  transport->AddConnectTimeoutCallback([this](const TransportProtocol protocol){ OnTransportConnectTimeout(protocol); });
   transport->SetNetwork(network);
 
   if (transport->GetProtocol() == TransportProtocol::kTcp) {
     transport->SetSendClientPingMessageHandler([this](const TransportProtocol protocol)->bool{ return SendClientPingMessage(protocol); });
   }
 
-  if (transport->GetProtocol() == TransportProtocol::kHttp) {
-    transport->AddStartedCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
-    transport->AddStoppedCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
-  }
-  else {
-    transport->AddInitSocketCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
-    transport->AddCloseSocketCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
-  }
+//  if (transport->GetProtocol() == TransportProtocol::kHttp) {
+//    transport->AddStartedCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
+//    transport->AddStoppedCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
+//  }
+//  else {
+//    transport->AddInitSocketCallback([this](const TransportProtocol protocol){ InsertTransport(protocol); });
+//    transport->AddCloseSocketCallback([this](const TransportProtocol protocol){ EraseTransport(protocol); });
+//  }
 
   transport->AddStartedCallback([this](const TransportProtocol protocol){
     SendEmptyMessage(protocol);
@@ -507,12 +541,14 @@ void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
 
   if (HasTransport(transport->GetProtocol()))
   {
-    FUNAPI_LOG("AttachTransport - transport of '%d' type already exists.", static_cast<int>(transport->GetProtocol()));
-    FUNAPI_LOG(" You should call DetachTransport first.");
+    DebugUtils::Log("AttachTransport - transport of '%d' type already exists.", static_cast<int>(transport->GetProtocol()));
+    DebugUtils::Log(" You should call DetachTransport first.");
   }
   else {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    transports_[transport->GetProtocol()] = transport;
+    {
+//      std::unique_lock<std::mutex> lock(transports_mutex_);
+      transports_[transport->GetProtocol()] = transport;
+    }
 
     if (default_protocol_ == TransportProtocol::kDefault)
     {
@@ -523,7 +559,7 @@ void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
 
 
 std::shared_ptr<FunapiTransport> FunapiNetworkImpl::GetTransport(const TransportProtocol protocol) const {
-  std::unique_lock<std::mutex> lock(transports_mutex_);
+//  std::unique_lock<std::mutex> lock(transports_mutex_);
   if (protocol == TransportProtocol::kDefault) {
     return transports_.cbegin()->second;
   }
@@ -538,7 +574,7 @@ std::shared_ptr<FunapiTransport> FunapiNetworkImpl::GetTransport(const Transport
 
 void FunapiNetworkImpl::PushTaskQueue(const std::function<void()> &task)
 {
-  std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
+//  std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
   tasks_queue_.push(task);
 }
 
@@ -565,6 +601,11 @@ void FunapiNetworkImpl::AddStoppedAllTransportCallback(const NotifyHandler &hand
 
 void FunapiNetworkImpl::AddTransportConnectFailedCallback(const TransportEventHandler &handler) {
   on_transport_connect_failed_ += handler;
+}
+
+
+void FunapiNetworkImpl::AddTransportConnectTimeoutCallback(const TransportEventHandler &handler) {
+  on_transport_connect_timeout_ += handler;
 }
 
 
@@ -595,6 +636,11 @@ void FunapiNetworkImpl::OnStoppedAllTransport() {
 
 void FunapiNetworkImpl::OnTransportConnectFailed(const TransportProtocol protocol) {
   on_transport_connect_failed_(protocol);
+}
+
+
+void FunapiNetworkImpl::OnTransportConnectTimeout(const TransportProtocol protocol) {
+  on_transport_connect_timeout_(protocol);
 }
 
 
@@ -660,7 +706,7 @@ bool FunapiNetworkImpl::SendClientPingMessage(const TransportProtocol protocol) 
   assert(encoding!=FunEncoding::kNone);
 
   int64_t timestamp = std::chrono::system_clock::now().time_since_epoch().count();
-  FUNAPI_LOG("Send TCP ping - timestamp: %lld", timestamp);
+  DebugUtils::Log("Send TCP ping - timestamp: %lld", timestamp);
 
   if (encoding == FunEncoding::kProtobuf) {
     FunMessage msg;
@@ -692,18 +738,10 @@ bool FunapiNetworkImpl::SendClientPingMessage(const TransportProtocol protocol) 
 
 
 void FunapiNetworkImpl::InsertTransport(const TransportProtocol protocol) {
-  auto transport = GetTransport(protocol);
-  if (transport) {
-    GetManager()->InsertTransport(transport);
-  }
 }
 
 
 void FunapiNetworkImpl::EraseTransport(const TransportProtocol protocol) {
-  auto transport = GetTransport(protocol);
-  if (transport) {
-    GetManager()->EraseTransport(GetTransport(protocol));
-  }
 }
 
 
@@ -750,8 +788,8 @@ bool FunapiNetwork::IsStarted() const {
 }
 
 
-bool FunapiNetwork::Connected(const TransportProtocol protocol) const {
-  return impl_->Connected(protocol);
+bool FunapiNetwork::IsConnected(const TransportProtocol protocol) const {
+  return impl_->IsConnected(protocol);
 }
 
 
@@ -796,8 +834,18 @@ void FunapiNetwork::AddTransportConnectFailedCallback(const TransportEventHandle
 }
 
 
+void FunapiNetwork::AddTransportConnectTimeoutCallback(const TransportEventHandler &handler) {
+  return impl_->AddTransportConnectTimeoutCallback(handler);
+}
+
+
 void FunapiNetwork::AddTransportDisconnectedCallback(const TransportEventHandler &handler) {
   return impl_->AddTransportDisconnectedCallback(handler);
+}
+
+
+std::shared_ptr<FunapiTransport> FunapiNetwork::GetTransport(const TransportProtocol protocol) const {
+  return impl_->GetTransport(protocol);
 }
 
 

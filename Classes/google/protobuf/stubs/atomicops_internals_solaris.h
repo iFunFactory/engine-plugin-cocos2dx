@@ -185,4 +185,3 @@ inline Atomic64 Release_Load(volatile const Atomic64* ptr) {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_ATOMICOPS_INTERNALS_SPARC_GCC_H_
-

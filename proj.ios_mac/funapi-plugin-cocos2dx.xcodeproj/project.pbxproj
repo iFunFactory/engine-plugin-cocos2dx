@@ -56,6 +56,7 @@
 		D44C620C132DFF330009C878 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620B132DFF330009C878 /* OpenAL.framework */; };
 		D44C620E132DFF430009C878 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620D132DFF430009C878 /* AVFoundation.framework */; };
 		D44C6210132DFF4E0009C878 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620F132DFF4E0009C878 /* AudioToolbox.framework */; };
+		D631CC441C58028600C07031 /* funapi_multicasting.cc in Sources */ = {isa = PBXBuildFile; fileRef = D631CC421C58028600C07031 /* funapi_multicasting.cc */; };
 		D647CBB41C0844B2008DC67E /* descriptor.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB11C0844B2008DC67E /* descriptor.cc */; };
 		D647CBB51C0844B2008DC67E /* descriptor.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB11C0844B2008DC67E /* descriptor.cc */; };
 		D647CBB61C0844B2008DC67E /* descriptor.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB31C0844B2008DC67E /* descriptor.pb.cc */; };
@@ -139,7 +140,7 @@
 		D647CC891C085860008DC67E /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC7B1C085860008DC67E /* test_messages.pb.cc */; };
 		D647CC8A1C085860008DC67E /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC7B1C085860008DC67E /* test_messages.pb.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
-		D6E91E161C4341A300F73639 /* funapi_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6E91E141C4341A300F73639 /* funapi_manager.cc */; };
+		D6E925761C60876700E16775 /* funapi_multicasting.cc in Sources */ = {isa = PBXBuildFile; fileRef = D631CC421C58028600C07031 /* funapi_multicasting.cc */; };
 		D6EC2BA31C069BB600F9FF88 /* arial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6EC2BA21C06990000F9FF88 /* arial.ttf */; };
 		D6EC2BA41C069F9F00F9FF88 /* arial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6EC2BA21C06990000F9FF88 /* arial.ttf */; };
 		D6EC2BA51C069F9F00F9FF88 /* button.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF18491C0599CF00DB4A80 /* button.png */; };
@@ -234,6 +235,8 @@
 		D44C620B132DFF330009C878 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		D44C620D132DFF430009C878 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		D44C620F132DFF4E0009C878 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		D631CC421C58028600C07031 /* funapi_multicasting.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_multicasting.cc; sourceTree = "<group>"; };
+		D631CC431C58028600C07031 /* funapi_multicasting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_multicasting.h; sourceTree = "<group>"; };
 		D647CAB11C0844B2008DC67E /* descriptor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = descriptor.cc; sourceTree = "<group>"; };
 		D647CAB21C0844B2008DC67E /* descriptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = descriptor.h; sourceTree = "<group>"; };
 		D647CAB31C0844B2008DC67E /* descriptor.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = descriptor.pb.cc; sourceTree = "<group>"; };
@@ -344,8 +347,6 @@
 		D6B05CF41C0BEB27008B3A80 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		D6B05CF51C0BEB27008B3A80 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/ios/libssl.a; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
-		D6E91E141C4341A300F73639 /* funapi_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_manager.cc; sourceTree = "<group>"; };
-		D6E91E151C4341A300F73639 /* funapi_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_manager.h; sourceTree = "<group>"; };
 		D6EC2BA21C06990000F9FF88 /* arial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = arial.ttf; sourceTree = "<group>"; };
 		D6EF18491C0599CF00DB4A80 /* button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button.png; sourceTree = "<group>"; };
 		D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = buttonHighlighted.png; sourceTree = "<group>"; };
@@ -667,8 +668,8 @@
 		D647CC681C085860008DC67E /* funapi */ = {
 			isa = PBXGroup;
 			children = (
-				D6E91E141C4341A300F73639 /* funapi_manager.cc */,
-				D6E91E151C4341A300F73639 /* funapi_manager.h */,
+				D631CC421C58028600C07031 /* funapi_multicasting.cc */,
+				D631CC431C58028600C07031 /* funapi_multicasting.h */,
 				D647CC691C085860008DC67E /* funapi_network.cc */,
 				D647CC6A1C085860008DC67E /* funapi_network.h */,
 				D647CC6C1C085860008DC67E /* funapi_transport.cc */,
@@ -873,6 +874,7 @@
 				D647CC001C0844B2008DC67E /* atomicops_internals_x86_msvc.cc in Sources */,
 				D647CC871C085860008DC67E /* multicast_message.pb.cc in Sources */,
 				D647CBFE1C0844B2008DC67E /* atomicops_internals_x86_gcc.cc in Sources */,
+				D631CC441C58028600C07031 /* funapi_multicasting.cc in Sources */,
 				D647CBBA1C0844B2008DC67E /* descriptor_database.cc in Sources */,
 				D647CBE21C0844B2008DC67E /* zero_copy_stream.cc in Sources */,
 				D647CC7D1C085860008DC67E /* funapi_network.cc in Sources */,
@@ -897,7 +899,6 @@
 				D647CC5C1C0844B2008DC67E /* unknown_field_set.cc in Sources */,
 				D647CC851C085860008DC67E /* ping_message.pb.cc in Sources */,
 				D647CC121C0844B2008DC67E /* strutil.cc in Sources */,
-				D6E91E161C4341A300F73639 /* funapi_manager.cc in Sources */,
 				D647CBB61C0844B2008DC67E /* descriptor.pb.cc in Sources */,
 				D647CBC01C0844B2008DC67E /* dynamic_message.cc in Sources */,
 				D647CC3C1C0844B2008DC67E /* text_format.cc in Sources */,
@@ -918,6 +919,7 @@
 				D647CC5D1C0844B2008DC67E /* unknown_field_set.cc in Sources */,
 				D647CC031C0844B2008DC67E /* common.cc in Sources */,
 				D647CBCB1C0844B2008DC67E /* generated_message_reflection.cc in Sources */,
+				D6E925761C60876700E16775 /* funapi_multicasting.cc in Sources */,
 				D647CBFF1C0844B2008DC67E /* atomicops_internals_x86_gcc.cc in Sources */,
 				D647CBF31C0844B2008DC67E /* reflection_ops.cc in Sources */,
 				D647CBC11C0844B2008DC67E /* dynamic_message.cc in Sources */,

@@ -9,17 +9,13 @@
 
 #include "funapi_build_config.h"
 
-#ifdef FUNAPI_COCOS2D
-#include "cocos2d.h"
-#endif
-
 #ifdef FUNAPI_UE4
 #include "Engine.h"
 #include "UnrealString.h"
 #include "Json.h"
 #endif
 
-#if FUNAPI_UE4_PLATFORM_WINDOWS
+#ifdef FUNAPI_UE4_PLATFORM_WINDOWS
 #include "AllowWindowsPlatformTypes.h"
 #endif
 
@@ -50,6 +46,7 @@
 #include <condition_variable>
 #include <thread>
 #include <chrono>
+#include <algorithm>
 
 #include "curl/curl.h"
 
@@ -65,25 +62,12 @@
 #include "rapidjson/document.h"
 #endif
 
-#if FUNAPI_UE4_PLATFORM_WINDOWS
+#ifdef FUNAPI_UE4_PLATFORM_WINDOWS
 #include "HideWindowsPlatformTypes.h"
 #endif
 
-namespace fun {
-
-#ifdef FUNAPI_COCOS2D
-#define FUNAPI_LOG(fmt, ...)          CCLOG(fmt, ##__VA_ARGS__)
-#define FUNAPI_LOG_WARNING(fmt, ...)  CCLOG(fmt, ##__VA_ARGS__)
-#define FUNAPI_LOG_ERROR(fmt, ...)    CCLOG(fmt, ##__VA_ARGS__)
-#endif 
-
 #ifdef FUNAPI_UE4
 DECLARE_LOG_CATEGORY_EXTERN(LogFunapi, Log, All);
-#define FUNAPI_LOG(fmt, ...)          UE_LOG(LogFunapi, Log, TEXT(fmt), ##__VA_ARGS__)
-#define FUNAPI_LOG_WARNING(fmt, ...)  UE_LOG(LogFunapi, Warning, TEXT(fmt), ##__VA_ARGS__)
-#define FUNAPI_LOG_ERROR(fmt, ...)    UE_LOG(LogFunapi, Error, TEXT(fmt), ##__VA_ARGS__)
-#endif 
-
-} // namespace fun
+#endif
 
 #endif  // SRC_FUNAPI_PLUGIN_H_

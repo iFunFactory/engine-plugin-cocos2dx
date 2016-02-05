@@ -105,7 +105,7 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
 
   virtual void AddStartedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddStoppedCallback(const TransportEventHandler &handler) = 0;
-  virtual void AddFailedCallback(const TransportEventHandler &handler) = 0;
+  virtual void AddConnectFailedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler) = 0;
 
   virtual void ResetClientPingTimeout() = 0;
@@ -152,7 +152,7 @@ class FunapiTcpTransport : public FunapiTransport {
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailedCallback(const TransportEventHandler &handler);
+  void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void SetDisableNagle(const bool disable_nagle);
@@ -202,7 +202,7 @@ class FunapiUdpTransport : public FunapiTransport {
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailedCallback(const TransportEventHandler &handler);
+  void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void ResetClientPingTimeout();
@@ -247,7 +247,7 @@ class FunapiHttpTransport : public FunapiTransport {
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailedCallback(const TransportEventHandler &handler);
+  void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void ResetClientPingTimeout();

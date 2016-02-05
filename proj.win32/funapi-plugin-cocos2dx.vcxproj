@@ -146,6 +146,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   <ItemGroup>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
     <ClCompile Include="..\Classes\FunapiTestScene.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_network.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_transport.cc" />
     <ClCompile Include="..\Classes\funapi\pb\management\maintenance_message.pb.cc" />
@@ -191,6 +192,8 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="..\Classes\FunapiTestScene.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_build_config.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_multicasting.h" />
     <ClInclude Include="..\Classes\funapi\funapi_network.h" />
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
     <ClInclude Include="..\Classes\funapi\funapi_transport.h" />

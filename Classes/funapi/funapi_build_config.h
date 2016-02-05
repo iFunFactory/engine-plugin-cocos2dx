@@ -19,12 +19,11 @@
 #endif
 
 #ifdef FUNAPI_COCOS2D
+#include "cocos2d.h"
   #if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
   #define FUNAPI_PLATFORM_WINDOWS
   #define FUNAPI_COCOS2D_PLATFORM_WINDOWS
   #endif
 #endif
-
-#define FUNAPI_HAVE_THREAD
 
 #endif  // SRC_FUNAPI_BUILD_CONFIG_H_

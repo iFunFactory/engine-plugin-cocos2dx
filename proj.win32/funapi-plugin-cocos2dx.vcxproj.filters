@@ -168,6 +168,9 @@
     <ClCompile Include="..\Classes\google\protobuf\stubs\substitute.cc">
       <Filter>src\google\protobuf\stubs</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -370,6 +373,12 @@
     </ClInclude>
     <ClInclude Include="..\Classes\google\protobuf\stubs\type_traits.h">
       <Filter>src\google\protobuf\stubs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_build_config.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_multicasting.h">
+      <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 iFunFactory Inc. All Rights Reserved.
+// Copyright (C) 2013-2015 iFunFactory Inc. All Rights Reserved.
 //
 // This work is confidential and proprietary to iFunFactory Inc. and
 // must not be used, disclosed, copied, or distributed without the prior
@@ -8,7 +8,6 @@
 #include "funapi_utils.h"
 #include "funapi_transport.h"
 #include "funapi_network.h"
-#include "funapi_manager.h"
 
 namespace fun {
 
@@ -51,8 +50,9 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
 
   void AddStartedCallback(const TransportEventHandler &handler);
   void AddStoppedCallback(const TransportEventHandler &handler);
-  void AddFailedCallback(const TransportEventHandler &handler);
+  void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
+  void AddDisconnectedCallback(const TransportEventHandler &handler);
 
   virtual void ResetClientPingTimeout() {};
 
@@ -81,18 +81,20 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   std::weak_ptr<FunapiNetwork> network_;
 
   std::vector<std::function<bool()>> v_send_;
-  std::mutex v_send_mutex_;
+//  std::mutex v_send_mutex_;
 
   // Encoding-serializer-releated member variables.
   FunEncoding encoding_ = FunEncoding::kNone;
 
-  time_t connect_timeout_seconds_ = 1;
+  time_t connect_timeout_seconds_ = 10;
   FunapiTimer connect_timeout_timer_;
 
   void OnTransportStarted(const TransportProtocol protocol);
   void OnTransportClosed(const TransportProtocol protocol);
-  void OnTransportFailed(const TransportProtocol protocol);
-  void OnConnectTimeout(const TransportProtocol protocol);
+
+  void OnTransportConnectFailed(const TransportProtocol protocol);
+  void OnTransportConnectTimeout(const TransportProtocol protocol);
+  void OnTransportDisconnected(const TransportProtocol protocol);
 
   FunapiTransportState state_;
 
@@ -104,13 +106,14 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
 
   FunapiEvent<TransportEventHandler> on_transport_stared_;
   FunapiEvent<TransportEventHandler> on_transport_closed_;
-  FunapiEvent<TransportEventHandler> on_transport_failed_;
-  FunapiEvent<TransportEventHandler> on_connect_timeout_;
+  FunapiEvent<TransportEventHandler> on_transport_connect_failed_;
+  FunapiEvent<TransportEventHandler> on_transport_connect_timeout_;
+  FunapiEvent<TransportEventHandler> on_transport_disconnect_;
 };
 
 
 FunapiTransportImpl::FunapiTransportImpl(TransportProtocol protocol, FunEncoding encoding)
-  : protocol_(protocol), state_(kDisconnected), encoding_(encoding) {
+  : protocol_(protocol), encoding_(encoding), state_(kDisconnected) {
 }
 
 
@@ -122,10 +125,10 @@ bool FunapiTransportImpl::EncodeMessage(std::vector<uint8_t> &body) {
   std::string header = MakeHeaderString(body);
 
   std::string body_string(body.cbegin(), body.cend());
-  FUNAPI_LOG("Header to send: %s", header.c_str());
-  FUNAPI_LOG("send message: %s", body_string.c_str());
+  DebugUtils::Log("Header to send: %s", header.c_str());
+  DebugUtils::Log("send message: %s", body_string.c_str());
 
-  body.insert(body.cbegin(), header.cbegin(), header.cend());
+  body.insert(body.begin(), header.cbegin(), header.cend());
 
   return true;
 }
@@ -133,7 +136,7 @@ bool FunapiTransportImpl::EncodeMessage(std::vector<uint8_t> &body) {
 
 bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
   if (nRead < 0) {
-    FUNAPI_LOG("receive failed: %s", strerror(errno));
+    DebugUtils::Log("receive failed: %s", strerror(errno));
 
     return false;
   }
@@ -152,7 +155,7 @@ bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
       else {
         int new_length = static_cast<int>(receiving.size() - next_decoding_offset);
         if (new_length > 0) {
-          receiving.assign(receiving.begin() + next_decoding_offset, receiving.end());
+          receiving.erase(receiving.begin(), receiving.begin() + next_decoding_offset);
         }
         else {
           new_length = 0;
@@ -169,7 +172,7 @@ bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
 
 bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receiving) {
   if (nRead < 0) {
-    FUNAPI_LOG("receive failed: %s", strerror(errno));
+    DebugUtils::Log("receive failed: %s", strerror(errno));
 
     return false;
   }
@@ -178,7 +181,7 @@ bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
   bool header_decoded = false;
   HeaderFields header_fields;
 
-  FUNAPI_LOG("Received %d bytes.", nRead);
+  DebugUtils::Log("Received %d bytes.", nRead);
 
   // Tries to decode as many messags as possible.
   while (true) {
@@ -222,7 +225,7 @@ void FunapiTransportImpl::SendMessage(const char *body) {
 
 
 bool FunapiTransportImpl::TryToDecodeHeader(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields) {
-  FUNAPI_LOG("Trying to decode header fields.");
+  DebugUtils::Log("Trying to decode header fields.");
   int received_size = static_cast<int>(receiving.size());
   for (; next_decoding_offset < received_size;) {
     char *base = reinterpret_cast<char *>(receiving.data());
@@ -235,14 +238,14 @@ bool FunapiTransportImpl::TryToDecodeHeader(std::vector<uint8_t> &receiving, int
     ssize_t eol_offset = ptr - base;
     if (eol_offset >= received_size) {
       // Not enough bytes. Wait for more bytes to come.
-      FUNAPI_LOG("We need more bytes for a header field. Waiting.");
+      DebugUtils::Log("We need more bytes for a header field. Waiting.");
       return false;
     }
 
     // Generates a null-termianted string by replacing the delimeter with \0.
     *ptr = '\0';
     char *line = base + next_decoding_offset;
-    FUNAPI_LOG("Header line: %s", line);
+    DebugUtils::Log("Header line: %s", line);
 
     ssize_t line_length = eol_offset - next_decoding_offset;
     next_decoding_offset = static_cast<int>(eol_offset + 1);
@@ -250,7 +253,7 @@ bool FunapiTransportImpl::TryToDecodeHeader(std::vector<uint8_t> &receiving, int
     if (line_length == 0) {
       // End of header.
       header_decoded = true;
-      FUNAPI_LOG("End of header reached. Will decode body from now.");
+      DebugUtils::Log("End of header reached. Will decode body from now.");
       return true;
     }
 
@@ -263,7 +266,7 @@ bool FunapiTransportImpl::TryToDecodeHeader(std::vector<uint8_t> &receiving, int
     *ptr = '\0';
     char *e1 = line, *e2 = ptr + 1;
     while (*e2 == ' ' || *e2 == '\t') ++e2;
-    FUNAPI_LOG("Decoded header field '%s' => '%s'", e1, e2);
+    DebugUtils::Log("Decoded header field '%s' => '%s'", e1, e2);
     header_fields[e1] = e2;
   }
   return false;
@@ -281,11 +284,11 @@ bool FunapiTransportImpl::TryToDecodeBody(std::vector<uint8_t> &receiving, int &
   // length header
   it = header_fields.find(kLengthHeaderField);
   int body_length = atoi(it->second.c_str());
-  FUNAPI_LOG("We need %d bytes for a message body.", body_length);
+  DebugUtils::Log("We need %d bytes for a message body.", body_length);
 
   if (received_size - next_decoding_offset < body_length) {
     // Need more bytes.
-    FUNAPI_LOG("We need more bytes for a message body. Waiting.");
+    DebugUtils::Log("We need more bytes for a message body. Waiting.");
     return false;
   }
 
@@ -293,7 +296,7 @@ bool FunapiTransportImpl::TryToDecodeBody(std::vector<uint8_t> &receiving, int &
     assert(state_ == kConnected);
 
     if (state_ != kConnected) {
-      FUNAPI_LOG("unexpected message");
+      DebugUtils::Log("unexpected message");
       return false;
     }
 
@@ -356,7 +359,7 @@ bool FunapiTransportImpl::IsStarted() {
 
 
 void FunapiTransportImpl::PushSendQueue(std::function<bool()> task) {
-  std::unique_lock<std::mutex> lock(v_send_mutex_);
+//  std::unique_lock<std::mutex> lock(v_send_mutex_);
   v_send_.push_back(task);
 }
 
@@ -366,20 +369,20 @@ void FunapiTransportImpl::Send() {
   while (true) {
     task = nullptr;
     {
-      std::unique_lock<std::mutex> lock(v_send_mutex_);
+//      std::unique_lock<std::mutex> lock(v_send_mutex_);
       if (v_send_.empty()) {
         break;
       }
       else {
         task = std::move(v_send_.front());
-        v_send_.erase(v_send_.cbegin());
+        v_send_.erase(v_send_.begin());
       }
     }
 
     if (task) {
       if (false == task()) {
-        std::unique_lock<std::mutex> lock(v_send_mutex_);
-        v_send_.insert(v_send_.cbegin(), task);
+//        std::unique_lock<std::mutex> lock(v_send_mutex_);
+        v_send_.insert(v_send_.begin(), task);
         break;
       }
     }
@@ -418,13 +421,18 @@ void FunapiTransportImpl::AddStoppedCallback(const TransportEventHandler &handle
 }
 
 
-void FunapiTransportImpl::AddFailedCallback(const TransportEventHandler &handler) {
-  on_transport_failed_ += handler;
+void FunapiTransportImpl::AddConnectFailedCallback(const TransportEventHandler &handler) {
+  on_transport_connect_failed_ += handler;
 }
 
 
 void FunapiTransportImpl::AddConnectTimeoutCallback(const TransportEventHandler &handler) {
-  on_connect_timeout_ += handler;
+  on_transport_connect_timeout_ += handler;
+}
+
+
+void FunapiTransportImpl::AddDisconnectedCallback(const TransportEventHandler &handler) {
+  on_transport_disconnect_ += handler;
 }
 
 
@@ -438,13 +446,18 @@ void FunapiTransportImpl::OnTransportClosed(const TransportProtocol protocol) {
 }
 
 
-void FunapiTransportImpl::OnTransportFailed(const TransportProtocol protocol) {
-  PushTaskQueue([this, protocol] { on_transport_failed_(protocol); });
+void FunapiTransportImpl::OnTransportConnectFailed(const TransportProtocol protocol) {
+  PushTaskQueue([this, protocol] { on_transport_connect_failed_(protocol); });
 }
 
 
-void FunapiTransportImpl::OnConnectTimeout(const TransportProtocol protocol) {
-  PushTaskQueue([this, protocol] { on_connect_timeout_(protocol); });
+void FunapiTransportImpl::OnTransportConnectTimeout(const TransportProtocol protocol) {
+  PushTaskQueue([this, protocol] { on_transport_connect_timeout_(protocol); });
+}
+
+
+void FunapiTransportImpl::OnTransportDisconnected(const TransportProtocol protocol) {
+  PushTaskQueue([this, protocol] { on_transport_disconnect_(protocol); });
 }
 
 
@@ -545,8 +558,8 @@ void FunapiSocketTransportImpl::CloseSocket() {
   if (socket_ >= 0) {
     OnCloseSocket(GetProtocol());
 
-#if FUNAPI_PLATFORM_WINDOWS
-    closesocket(sock_);
+#ifdef FUNAPI_PLATFORM_WINDOWS
+    closesocket(socket_);
 #else
     close(socket_);
 #endif
@@ -571,12 +584,14 @@ void FunapiSocketTransportImpl::AddCloseSocketCallback(const TransportEventHandl
 
 
 void FunapiSocketTransportImpl::OnInitSocket(const TransportProtocol protocol) {
-  PushTaskQueue([this, protocol] { on_init_socket_(protocol); });
+  // PushTaskQueue([this, protocol] { on_init_socket_(protocol); });
+  on_init_socket_(protocol);
 }
 
 
 void FunapiSocketTransportImpl::OnCloseSocket(const TransportProtocol protocol) {
-  PushTaskQueue([this, protocol] { on_close_socket_(protocol); });
+  // PushTaskQueue([this, protocol] { on_close_socket_(protocol); });
+  on_close_socket_(protocol);
 }
 
 
@@ -636,8 +651,25 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   FunapiTimer reconnect_wait_timer_;
   time_t reconnect_wait_seconds_;
 
-  std::function<void(const fd_set rset, const fd_set wset, const fd_set eset)> on_socket_select_;
-  std::function<void()> on_update_;
+  std::vector<std::function<void(const fd_set rset, const fd_set wset, const fd_set eset)>> on_socket_select_;
+  std::vector<std::function<void()>> on_update_;
+
+  enum class SocketSelectState : int {
+    kNone = 0,
+    kConnect,
+    kSelect,
+    kMax,
+  };
+  SocketSelectState socket_select_state_ = SocketSelectState::kNone;
+
+  enum class UpdateState : int {
+    kNone = 0,
+    kPing,
+    kWaitForAutoReconnect,
+    kCheckConnectTimeout,
+    kMax,
+  };
+  UpdateState update_state_ = UpdateState::kNone;
 
   void Ping();
   void CheckConnectTimeout();
@@ -658,6 +690,73 @@ FunapiTcpTransportImpl::FunapiTcpTransportImpl(TransportProtocol protocol,
   uint16_t port,
   FunEncoding encoding)
   : FunapiSocketTransportImpl(protocol, hostname_or_ip, port, encoding) {
+    on_update_.resize(static_cast<size_t>(UpdateState::kMax));
+
+    on_update_[static_cast<int>(UpdateState::kNone)] = [this](){
+    };
+
+    on_update_[static_cast<int>(UpdateState::kPing)] = [this](){
+      Ping();
+    };
+
+    on_update_[static_cast<int>(UpdateState::kWaitForAutoReconnect)] = [this](){
+      WaitForAutoReconnect();
+    };
+
+    on_update_[static_cast<int>(UpdateState::kCheckConnectTimeout)] = [this](){
+      CheckConnectTimeout();
+    };
+
+    on_socket_select_.resize(static_cast<size_t>(SocketSelectState::kMax));
+
+    on_socket_select_[static_cast<int>(SocketSelectState::kNone)] = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
+    };
+
+    on_socket_select_[static_cast<int>(SocketSelectState::kSelect)] = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
+      FunapiSocketTransportImpl::OnSocketSelect(rset, wset, eset);
+    };
+
+    on_socket_select_[static_cast<int>(SocketSelectState::kConnect)] = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
+      if (state_ != kConnecting) return;
+
+      if (FD_ISSET(socket_, &rset) && FD_ISSET(socket_, &wset)) {
+        bool isConnected = true;
+
+#ifdef FUNAPI_PLATFORM_WINDOWS
+        if (FD_ISSET(socket_, &eset)) {
+          isConnected = false;
+        }
+#else
+        int e;
+        socklen_t e_size = sizeof(e);
+
+        int r = getsockopt(socket_, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&e), &e_size);
+        if (r < 0 || e != 0) {
+          isConnected = false;
+        }
+#endif
+
+        if (isConnected) {
+          // Makes a state transition.
+          state_ = kConnected;
+
+          socket_select_state_ = SocketSelectState::kSelect;
+
+          client_ping_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
+
+          update_state_ = UpdateState::kPing;
+
+          OnTransportStarted(TransportProtocol::kTcp);
+        }
+        else {
+          DebugUtils::Log("failed - tcp connect");
+          OnTransportConnectFailed(TransportProtocol::kTcp);
+
+          ++connect_addr_index_;
+          Connect();
+        }
+      }
+    };
 }
 
 
@@ -674,49 +773,8 @@ TransportProtocol FunapiTcpTransportImpl::GetProtocol() {
 void FunapiTcpTransportImpl::Start() {
   state_ = kConnecting;
 
-  on_update_ = [](){};
-  on_socket_select_ = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
-    if (FD_ISSET(socket_, &rset) && FD_ISSET(socket_, &wset)) {
-      bool isConnected = true;
-
-#ifdef FUNAPI_PLATFORM_WINDOWS
-      if (FD_ISSET(socket_, eset)) {
-        isConnected = false;
-      }
-#else
-      int e;
-      socklen_t e_size = sizeof(e);
-      int r = getsockopt(socket_, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&e), &e_size);
-      if (r < 0) {
-        isConnected = false;
-      }
-#endif
-
-      if (isConnected) {
-        // Makes a state transition.
-        state_ = kConnected;
-
-        on_socket_select_ = [this](const fd_set rset, const fd_set wset, const fd_set eset) {
-          FunapiSocketTransportImpl::OnSocketSelect(rset, wset, eset);
-        };
-
-        client_ping_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
-
-        on_update_ = [this](){
-          Ping();
-        };
-
-        OnTransportStarted(TransportProtocol::kTcp);
-      }
-      else {
-        FUNAPI_LOG("failed - tcp connect");
-        OnTransportFailed(TransportProtocol::kTcp);
-
-        ++connect_addr_index_;
-        Connect();
-      }
-    }
-  };
+  update_state_ = UpdateState::kNone;
+  socket_select_state_ = SocketSelectState::kConnect;
 
   reconnect_count_ = 0;
   connect_addr_index_ = 0;
@@ -735,7 +793,7 @@ void FunapiTcpTransportImpl::Ping() {
     }
 
     if (client_ping_timeout_timer_.IsExpired()) {
-      FUNAPI_LOG("Network seems disabled. Stopping the transport.");
+      DebugUtils::Log("Network seems disabled. Stopping the transport.");
       PushStopTask();
       return;
     }
@@ -745,8 +803,9 @@ void FunapiTcpTransportImpl::Ping() {
 
 void FunapiTcpTransportImpl::CheckConnectTimeout() {
   if (connect_timeout_timer_.IsExpired()) {
-    FUNAPI_LOG("failed - tcp connect - timeout");
-    PushTaskQueue([this](){ OnConnectTimeout(TransportProtocol::kTcp); });
+    DebugUtils::Log("failed - tcp connect - timeout");
+    // PushTaskQueue([this](){ OnConnectTimeout(TransportProtocol::kTcp); });
+    OnTransportConnectTimeout(TransportProtocol::kTcp);
 
     if (auto_reconnect_) {
       ++reconnect_count_;
@@ -761,11 +820,9 @@ void FunapiTcpTransportImpl::CheckConnectTimeout() {
       else {
         reconnect_wait_timer_.SetTimer(reconnect_wait_seconds_);
 
-        FUNAPI_LOG("Wait %d seconds for connect to TCP transport.", static_cast<int>(reconnect_wait_seconds_));
+        DebugUtils::Log("Wait %d seconds for connect to TCP transport.", static_cast<int>(reconnect_wait_seconds_));
 
-        on_update_ = [this](){
-          WaitForAutoReconnect();
-        };
+        update_state_ = UpdateState::kWaitForAutoReconnect;
       }
     }
     else {
@@ -829,7 +886,7 @@ bool FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
     offset += nSent;
   }
 
-  FUNAPI_LOG("Sent %d bytes", nSent);
+  DebugUtils::Log("Sent %d bytes", nSent);
 
   if (offset == body.size()) {
     offset = 0;
@@ -846,7 +903,7 @@ void FunapiTcpTransportImpl::InitSocket() {
   assert(socket_ >= 0);
 
   // Makes the fd non-blocking.
-#if FUNAPI_PLATFORM_WINDOWS
+#ifdef FUNAPI_PLATFORM_WINDOWS
   u_long argp = 0;
   int flag = ioctlsocket(socket_, FIONBIO, &argp);
   assert(flag >= 0);
@@ -858,14 +915,14 @@ void FunapiTcpTransportImpl::InitSocket() {
 #endif
 
   if (disable_nagle_) {
-    int flag = 1;
+    int nagle_flag = 1;
     int result = setsockopt(socket_,
                             IPPROTO_TCP,
                             TCP_NODELAY,
-                            reinterpret_cast<char*>(&flag),
+                            reinterpret_cast<char*>(&nagle_flag),
                             sizeof(int));
     if (result < 0) {
-      FUNAPI_LOG("error - TCP_NODELAY");
+      DebugUtils::Log("error - TCP_NODELAY");
     }
   }
 
@@ -877,8 +934,8 @@ void FunapiTcpTransportImpl::Connect() {
   CloseSocket();
 
   if (connect_addr_index_ >= in_addrs_.size()) {
-    on_update_ = [](){};
-    on_socket_select_ = [](const fd_set rset, const fd_set wset, const fd_set eset){};
+    update_state_ = UpdateState::kNone;
+    socket_select_state_ = SocketSelectState::kNone;
     return;
   }
 
@@ -897,11 +954,9 @@ void FunapiTcpTransportImpl::Connect() {
                    sizeof(endpoint_));
   assert(rc == 0 || (rc < 0 && errno == EINPROGRESS));
 
-  FUNAPI_LOG("Try to connect to server - %s", inet_ntoa(endpoint.sin_addr));
+  DebugUtils::Log("Try to connect to server - %s", inet_ntoa(endpoint.sin_addr));
 
-  on_update_ = [this](){
-    CheckConnectTimeout();
-  };
+  update_state_ = UpdateState::kCheckConnectTimeout;
 }
 
 
@@ -916,21 +971,24 @@ void FunapiTcpTransportImpl::Recv() {
 
   std::vector<uint8_t> buffer(kUnitBufferSize);
 
-  int nRead = static_cast<int>(recv(socket_, buffer.data(), kUnitBufferSize, 0));
+  int nRead = static_cast<int>(recv(socket_, reinterpret_cast<char*>(buffer.data()), kUnitBufferSize, 0));
 
   if (nRead <= 0) {
     if (nRead < 0) {
-      FUNAPI_LOG("receive failed: %s", strerror(errno));
+      DebugUtils::Log("receive failed: %s", strerror(errno));
     }
     PushStopTask();
+    OnTransportDisconnected(GetProtocol());
     return;
   }
 
   receiving_vector.insert(receiving_vector.end(), buffer.cbegin(), buffer.cbegin() + nRead);
 
   if (!DecodeMessage(nRead, receiving_vector, next_decoding_offset, header_decoded, header_fields)) {
-    if (nRead == 0)
-      FUNAPI_LOG("Socket [%d] closed.", socket_);
+    if (nRead == 0) {
+      DebugUtils::Log("Socket [%d] closed.", socket_);
+      OnTransportDisconnected(GetProtocol());
+    }
 
     PushStopTask();
   }
@@ -939,12 +997,12 @@ void FunapiTcpTransportImpl::Recv() {
 
 void FunapiTcpTransportImpl::OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset)
 {
-  on_socket_select_(rset, wset, eset);
+  on_socket_select_[static_cast<int>(socket_select_state_)](rset, wset, eset);
 }
 
 
 void FunapiTcpTransportImpl::Update() {
-  on_update_();
+  on_update_[static_cast<int>(update_state_)]();
 }
 
 
@@ -1048,14 +1106,17 @@ void FunapiUdpTransportImpl::Recv() {
   // FUNAPI_LOG("nRead = %d", nRead);
 
   if (nRead < 0) {
-    FUNAPI_LOG("receive failed: %s", strerror(errno));
+    DebugUtils::Log("receive failed: %s", strerror(errno));
+    OnTransportDisconnected(TransportProtocol::kUdp);
     PushStopTask();
     return;
   }
 
   if (!DecodeMessage(nRead, receiving_vector)) {
-    if (nRead == 0)
-      FUNAPI_LOG("Socket [%d] closed.", socket_);
+    if (nRead == 0) {
+      DebugUtils::Log("Socket [%d] closed.", socket_);
+      OnTransportDisconnected(TransportProtocol::kUdp);
+    }
 
     PushStopTask();
   }
@@ -1098,7 +1159,7 @@ FunapiHttpTransportImpl::FunapiHttpTransportImpl(const std::string &hostname_or_
       static_cast<int>(FunapiVersion::kProtocolVersion));
   host_url_ = url;
 
-  FUNAPI_LOG("Host url : %s", host_url_.c_str());
+  DebugUtils::Log("Host url : %s", host_url_.c_str());
 }
 
 
@@ -1113,7 +1174,7 @@ TransportProtocol FunapiHttpTransportImpl::GetProtocol() {
 
 void FunapiHttpTransportImpl::Start() {
   state_ = kConnected;
-  FUNAPI_LOG("Started.");
+  DebugUtils::Log("Started.");
 
   OnTransportStarted(TransportProtocol::kHttp);
 }
@@ -1126,7 +1187,7 @@ void FunapiHttpTransportImpl::Stop() {
   OnTransportClosed(TransportProtocol::kHttp);
 
   state_ = kDisconnected;
-  FUNAPI_LOG("Stopped.");
+  DebugUtils::Log("Stopped.");
 }
 
 
@@ -1139,6 +1200,8 @@ size_t FunapiHttpTransportImpl::HttpResponseCb(void *data, size_t size, size_t c
 
 
 bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
+  if (state_ != kConnected) return false;
+
   std::string header = MakeHeaderString(body);
 
   // log
@@ -1147,7 +1210,7 @@ bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 
   CURL *ctx = curl_easy_init();
   if (ctx == NULL) {
-    FUNAPI_LOG("Unable to initialize cURL interface.");
+    DebugUtils::Log("Unable to initialize cURL interface.");
     return false;
   }
 
@@ -1170,7 +1233,7 @@ bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 
   CURLcode res = curl_easy_perform(ctx);
   if (res != CURLE_OK) {
-    FUNAPI_LOG("Error from cURL: %s", curl_easy_strerror(res));
+    DebugUtils::Log("Error from cURL: %s", curl_easy_strerror(res));
     return false;
   }
   else {
@@ -1212,13 +1275,13 @@ void FunapiHttpTransportImpl::WebResponseHeaderCb(void *data, int len, HeaderFie
   *ptr = '\0';
   const char *e1 = buf, *e2 = ptr + 1;
   while (*e2 == ' ' || *e2 == '\t') ++e2;
-  FUNAPI_LOG("Decoded header field '%s' => '%s'", e1, e2);
+  DebugUtils::Log("Decoded header field '%s' => '%s'", e1, e2);
   header_fields[e1] = e2;
 }
 
 
 void FunapiHttpTransportImpl::WebResponseBodyCb(void *data, int len, std::vector<uint8_t> &receiving) {
-  receiving.insert(receiving.cend(), (uint8_t*)data, (uint8_t*)data + len);
+  receiving.insert(receiving.end(), (uint8_t*)data, (uint8_t*)data + len);
 }
 
 
@@ -1340,8 +1403,8 @@ void FunapiTcpTransport::AddStoppedCallback(const TransportEventHandler &handler
 }
 
 
-void FunapiTcpTransport::AddFailedCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailedCallback(handler);
+void FunapiTcpTransport::AddConnectFailedCallback(const TransportEventHandler &handler) {
+  return impl_->AddConnectFailedCallback(handler);
 }
 
 
@@ -1479,8 +1542,8 @@ void FunapiUdpTransport::AddStoppedCallback(const TransportEventHandler &handler
 }
 
 
-void FunapiUdpTransport::AddFailedCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailedCallback(handler);
+void FunapiUdpTransport::AddConnectFailedCallback(const TransportEventHandler &handler) {
+  return impl_->AddConnectFailedCallback(handler);
 }
 
 
@@ -1599,8 +1662,8 @@ void FunapiHttpTransport::AddStoppedCallback(const TransportEventHandler &handle
 }
 
 
-void FunapiHttpTransport::AddFailedCallback(const TransportEventHandler &handler) {
-  return impl_->AddFailedCallback(handler);
+void FunapiHttpTransport::AddConnectFailedCallback(const TransportEventHandler &handler) {
+  return impl_->AddConnectFailedCallback(handler);
 }
 
 
