@@ -38,6 +38,7 @@ class FunapiMulticastClientImpl : public std::enable_shared_from_this<FunapiMult
 
   bool JoinChannel(const std::string &channel_id, const ChannelMessage &handler);
   bool LeaveChannel(const std::string &channel_id);
+  bool LeaveAllChannels();
 
   bool SendToChannel(FunMessage &msg);
   bool SendToChannel(std::string &json_string);
@@ -63,6 +64,8 @@ class FunapiMulticastClientImpl : public std::enable_shared_from_this<FunapiMult
   void OnError(int error);
 
   std::map<std::string, ChannelMessage> channels_;
+
+  void SendLeaveMessage(const std::string &channel_id);
 };
 
 
@@ -199,41 +202,29 @@ bool FunapiMulticastClientImpl::LeaveChannel(const std::string &channel_id) {
     return false;
   }
 
-  if (encoding_ == FunEncoding::kJson) {
-    rapidjson::Document msg;
-    msg.SetObject();
-
-    rapidjson::Value channel_id_node(channel_id.c_str(), msg.GetAllocator());
-    msg.AddMember(rapidjson::StringRef(kChannelId), channel_id_node, msg.GetAllocator());
-
-    rapidjson::Value sender_node(sender_.c_str(), msg.GetAllocator());
-    msg.AddMember(rapidjson::StringRef(kSender), sender_node, msg.GetAllocator());
-
-    rapidjson::Value leave_node(true);
-    msg.AddMember(rapidjson::StringRef(kLeave), leave_node, msg.GetAllocator());
-
-    // Convert JSON document to string
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    msg.Accept(writer);
-    std::string json_string = buffer.GetString();
-
-    network_->SendMessage(kMulticastMsgType, json_string);
-  }
-
-  if (encoding_ == FunEncoding::kProtobuf) {
-    FunMessage msg;
-    msg.set_msgtype(kMulticastMsgType);
-
-    FunMulticastMessage *mcast_msg = msg.MutableExtension(multicast);
-    mcast_msg->set_channel(channel_id.c_str());
-    mcast_msg->set_leave(true);
-    mcast_msg->set_sender(sender_.c_str());
-
-    network_->SendMessage(msg);
-  }
+  SendLeaveMessage(channel_id);
+  OnLeft(channel_id, sender_);
 
   channels_.erase(channel_id);
+
+  return true;
+}
+
+
+bool FunapiMulticastClientImpl::LeaveAllChannels() {
+  if (!IsConnected()) {
+    return false;
+  }
+
+  if (channels_.size() <= 0)
+    return false;
+
+  for (auto c : channels_) {
+    SendLeaveMessage(c.first);
+    OnLeft(c.first, sender_);
+  }
+
+  channels_.clear();
 
   return true;
 }
@@ -288,8 +279,44 @@ bool FunapiMulticastClientImpl::SendToChannel(std::string &json_string) {
 }
 
 
+void FunapiMulticastClientImpl::SendLeaveMessage(const std::string &channel_id) {
+  if (encoding_ == FunEncoding::kJson) {
+    rapidjson::Document msg;
+    msg.SetObject();
+
+    rapidjson::Value channel_id_node(channel_id.c_str(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef(kChannelId), channel_id_node, msg.GetAllocator());
+
+    rapidjson::Value sender_node(sender_.c_str(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef(kSender), sender_node, msg.GetAllocator());
+
+    rapidjson::Value leave_node(true);
+    msg.AddMember(rapidjson::StringRef(kLeave), leave_node, msg.GetAllocator());
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    network_->SendMessage(kMulticastMsgType, json_string);
+  }
+
+  if (encoding_ == FunEncoding::kProtobuf) {
+    FunMessage msg;
+    msg.set_msgtype(kMulticastMsgType);
+
+    FunMulticastMessage *mcast_msg = msg.MutableExtension(multicast);
+    mcast_msg->set_channel(channel_id.c_str());
+    mcast_msg->set_leave(true);
+    mcast_msg->set_sender(sender_.c_str());
+
+    network_->SendMessage(msg);
+  }
+}
+
 void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body) {
-  fun::DebugUtils::Log("OnReceived");
+  // fun::DebugUtils::Log("OnReceived");
 
   std::string channel_id = "";
   std::string sender = "";
@@ -352,6 +379,15 @@ void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol
 
   if (error_code != 0) {
     DebugUtils::Log("Multicast error - code: %d", error_code);
+
+    if (error_code == FunMulticastMessage_ErrorCode_EC_ALREADY_LEFT ||
+        error_code == FunMulticastMessage_ErrorCode_EC_FULL_MEMBER ) {
+
+      if (IsInChannel(channel_id)) {
+        channels_.erase(channel_id);
+      }
+    }
+
     OnError(error_code);
   }
 
@@ -428,6 +464,11 @@ bool FunapiMulticastClient::JoinChannel(const std::string &channel_id, const Cha
 
 bool FunapiMulticastClient::LeaveChannel(const std::string &channel_id) {
   return impl_->LeaveChannel(channel_id);
+}
+
+
+bool FunapiMulticastClient::LeaveAllChannels() {
+  return impl_->LeaveAllChannels();
 }
 
 

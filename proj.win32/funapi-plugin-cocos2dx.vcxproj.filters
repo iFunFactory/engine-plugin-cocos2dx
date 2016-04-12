@@ -171,6 +171,9 @@
     <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_encryption.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -378,6 +381,9 @@
       <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_multicasting.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_encryption.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>

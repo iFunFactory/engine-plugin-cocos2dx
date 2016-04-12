@@ -93,4 +93,16 @@ class DebugUtils
 
 }  // namespace fun
 
+
+class FunapiUtil
+{
+ public:
+  static bool SeqLess(const uint32_t x, const uint32_t y) {
+    // 아래 참고
+    //  - http://en.wikipedia.org/wiki/Serial_number_arithmetic
+    //  - RFC 1982
+    return (int32_t)(y - x) > 0;
+  }
+};
+
 #endif  // SRC_FUNAPI_UTILS_H_

@@ -234,6 +234,10 @@ bool FunapiTest::IsConnected()
 
 void FunapiTest::Disconnect()
 {
+  if (multicast_) {
+    multicast_->LeaveAllChannels();
+  }
+
   if (network_) {
     if (network_->IsStarted()) {
       network_->Stop();
@@ -246,7 +250,7 @@ void FunapiTest::Disconnect()
 
 void FunapiTest::SendEchoMessage()
 {
-  if (network_ == nullptr || (network_->IsStarted() == false && network_->IsSessionReliability()))
+  if (network_ == nullptr || (network_->IsStarted() == false && network_->IsReliableSession()))
   {
     fun::DebugUtils::Log("You should connect first.");
   }
@@ -301,7 +305,7 @@ void FunapiTest::SendEchoMessage()
 
 void FunapiTest::Connect(const fun::TransportProtocol protocol)
 {
-  if (!network_ || !network_->IsSessionReliability()) {
+  if (!network_ || !network_->IsReliableSession()) {
     network_ = std::make_shared<fun::FunapiNetwork>(with_session_reliability_);
 
     network_->AddSessionInitiatedCallback([this](const std::string &session_id){ OnSessionInitiated(session_id); });
@@ -342,12 +346,14 @@ std::shared_ptr<fun::FunapiTransport> FunapiTest::GetNewTransport(fun::Transport
     // transport->SetEnablePing(true);
     // transport->SetDisableNagle(true);
     // transport->SetConnectTimeout(10);
+    // transport->SetSequenceNumberValidation(true);
   }
   else if (protocol == fun::TransportProtocol::kUdp) {
     transport = fun::FunapiUdpTransport::create(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8023 : 8013), encoding);
   }
   else if (protocol == fun::TransportProtocol::kHttp) {
     transport = fun::FunapiHttpTransport::create(kServerIp, static_cast<uint16_t>(with_protobuf_ ? 8028 : 8018), false, encoding);
+    // transport->SetSequenceNumberValidation(true);
   }
 
   return transport;
@@ -438,8 +444,10 @@ void FunapiTest::CreateMulticast()
       multicast_ = std::make_shared<fun::FunapiMulticastClient>(network_, transport->GetEncoding());
 
       std::stringstream ss_temp;
-      srand(time(NULL));
-      ss_temp << "player" << static_cast<int>(rand()%100+1);
+      std::random_device rd;
+      std::default_random_engine re(rd());
+      std::uniform_int_distribution<int> dist(1,100);
+      ss_temp << "player" << dist(re);
       std::string sender = ss_temp.str();
 
       fun::DebugUtils::Log("sender = %s", sender.c_str());
@@ -456,11 +464,9 @@ void FunapiTest::CreateMulticast()
         fun::DebugUtils::Log("LeftCallback called. channel_id:%s player:%s", channel_id.c_str(), sender.c_str());
       });
       multicast_->AddErrorCallback([](int error){
-        /*
-         EC_ALREADY_JOINED = 1,
-         EC_ALREADY_LEFT,
-         EC_FULL_MEMBER
-         */
+        // EC_ALREADY_JOINED = 1,
+        // EC_ALREADY_LEFT,
+        // EC_FULL_MEMBER
       });
 
       return;
@@ -555,5 +561,172 @@ void FunapiTest::OnMulticastChannelSignalle(const std::string &channel_id, const
     std::string message = chat_msg->text();
 
     fun::DebugUtils::Log("channel_id=%s, sender=%s, message=%s", channel_id.c_str(), sender.c_str(), message.c_str());
+  }
+}
+
+static bool g_bTestRunning = true;
+
+void test_echo(const int index) {
+  std::string server_ip = "127.0.0.1";
+
+  // fun::FunEncoding encoding = fun::FunEncoding::kJson;
+  // const int server_port = 8012;
+
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  const int server_port = 8022;
+
+  std::string temp_session_id("");
+  bool is_ok = true;
+
+  std::shared_ptr<fun::FunapiNetwork> network = std::make_shared<fun::FunapiNetwork>();
+
+  network->AddSessionInitiatedCallback([encoding, network,index, &temp_session_id](const std::string &session_id) {
+    temp_session_id = session_id;
+    printf("(%d) init session id = %s\n", index, session_id.c_str());
+
+    // // // //
+    // send
+    std::stringstream ss_temp;
+    ss_temp << static_cast<int>(0);
+    std::string temp_string = ss_temp.str();
+
+    if (encoding == fun::FunEncoding::kJson) {
+      rapidjson::Document msg;
+      msg.SetObject();
+      rapidjson::Value message_node(temp_string.c_str(), msg.GetAllocator());
+      msg.AddMember("message", message_node, msg.GetAllocator());
+
+      // Convert JSON document to string
+      rapidjson::StringBuffer buffer;
+      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+      msg.Accept(writer);
+      std::string json_string = buffer.GetString();
+
+      network->SendMessage("echo", json_string);
+    }
+    else if (encoding == fun::FunEncoding::kProtobuf) {
+      FunMessage msg;
+      msg.set_msgtype("pbuf_echo");
+      PbufEchoMessage *echo = msg.MutableExtension(pbuf_echo);
+      echo->set_msg(temp_string.c_str());
+      network->SendMessage(msg);
+    }
+  });
+
+  network->AddSessionClosedCallback([index, &is_ok, &temp_session_id]() {
+    printf("(%d) close session id = %s\n", index, temp_session_id.c_str());
+    is_ok = false;
+  });
+
+  network->AddStoppedAllTransportCallback([index, &is_ok]() {
+    printf("(%d) stop transport\n", index);
+    is_ok = false;
+  });
+
+  network->AddTransportConnectFailedCallback([index, &is_ok](const fun::TransportProtocol p) {
+    printf("(%d) connect failed\n", index);
+    is_ok = false;
+  });
+
+  network->AddTransportConnectTimeoutCallback([index, &is_ok](const fun::TransportProtocol p) {
+    printf("(%d) connect timeout\n", index);
+    is_ok = false;
+  });
+
+  network->RegisterHandler("echo", [index, network](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body) {
+    std::string body(v_body.cbegin(), v_body.cend());
+    rapidjson::Document msg_recv;
+    msg_recv.Parse<0>(body.c_str());
+
+    int count = 0;
+    if (msg_recv.HasMember("message")) {
+      count = atoi(msg_recv["message"].GetString());
+      printf("(%d) echo - %d\n", index, count);
+      ++count;
+    }
+
+    // // // //
+    // wait
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    // // // //
+    // send
+    std::stringstream ss_temp;
+    ss_temp << static_cast<int>(count);
+    std::string temp_string = ss_temp.str();
+
+    rapidjson::Document msg;
+    msg.SetObject();
+    rapidjson::Value message_node(temp_string.c_str(), msg.GetAllocator());
+    msg.AddMember("message", message_node, msg.GetAllocator());
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    network->SendMessage("echo", json_string);
+  });
+
+  network->RegisterHandler("pbuf_echo", [index, network](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body) {
+    std::string body(v_body.begin(), v_body.end());
+
+    FunMessage msg_recv;
+    msg_recv.ParseFromString(body);
+    PbufEchoMessage echo_recv = msg_recv.GetExtension(pbuf_echo);
+
+    int count = 0;
+    count = atoi(echo_recv.msg().c_str());
+    printf("(%d) echo - %d\n", index, count);
+    ++count;
+
+    // // // //
+    // wait
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    // // // //
+    // send
+    std::stringstream ss_temp;
+    ss_temp << static_cast<int>(count);
+    std::string temp_string = ss_temp.str();
+
+    FunMessage msg;
+    msg.set_msgtype("pbuf_echo");
+    PbufEchoMessage *echo = msg.MutableExtension(pbuf_echo);
+    echo->set_msg(temp_string.c_str());
+    network->SendMessage(msg);
+  });
+
+  std::shared_ptr<fun::FunapiTransport> transport = fun::FunapiTcpTransport::create(server_ip, static_cast<uint16_t>(server_port), encoding);
+  network->AttachTransport(transport);
+  network->Start();
+
+  while (is_ok && g_bTestRunning) {
+    network->Update();
+  }
+
+  network->Stop();
+}
+
+
+void FunapiTest::TestFunapiNetwork(bool bStart)
+{
+  const int kMaxThread = 32;
+
+  static std::vector<std::thread> temp_thread(kMaxThread);
+
+  g_bTestRunning = false;
+  for (int i = 0; i < kMaxThread; ++i) {
+    if (temp_thread[i].joinable()) {
+      temp_thread[i].join();
+    }
+  }
+
+  if (bStart) {
+    g_bTestRunning = true;
+    for (int i = 0; i < kMaxThread; ++i) {
+      temp_thread[i] = std::thread(std::bind(test_echo, i));
+    }
   }
 }

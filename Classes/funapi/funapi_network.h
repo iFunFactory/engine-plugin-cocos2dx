@@ -46,7 +46,7 @@ class FunapiNetwork : public std::enable_shared_from_this<FunapiNetwork> {
   bool HasTransport(const TransportProtocol protocol) const;
   void SetDefaultProtocol(const TransportProtocol protocol);
 
-  bool IsSessionReliability() const;
+  bool IsReliableSession() const;
 
   FunEncoding GetEncoding(const TransportProtocol protocol) const;
   TransportProtocol GetDefaultProtocol() const;

@@ -13,6 +13,31 @@
 
 namespace fun {
 
+// Funapi header-related constants.
+static const char* kHeaderDelimeter = "\n";
+static const char* kHeaderFieldDelimeter = ":";
+static const char* kVersionHeaderField = "VER";
+static const char* kPluginVersionHeaderField = "PVER";
+static const char* kLengthHeaderField = "LEN";
+
+// Funapi message-related constants.
+static const char* kMsgTypeBodyField = "_msgtype";
+static const char* kSessionIdBodyField = "_sid";
+static const char* kSeqNumberField = "_seq";
+static const char* kAckNumberField = "_ack";
+static const char* kNewSessionMessageType = "_session_opened";
+static const char* kSessionClosedMessageType = "_session_closed";
+static const char* kMaintenanceMessageType = "_maintenance";
+
+// Ping message-related constants.
+static const char* kServerPingMessageType = "_ping_s";
+static const char* kClientPingMessageType = "_ping_c";
+static const char* kPingTimestampField = "timestamp";
+
+// http header
+static const char* kCookieRequestHeaderField = "Cookie";
+static const char* kCookieResponseHeaderField = "SET-COOKIE";
+
 typedef sockaddr_in Endpoint;
 typedef std::function<void(void*, const int)> AsyncWebResponseCallback;
 
@@ -54,6 +79,8 @@ enum class ErrorCode
   kExceptionError
 };
 
+enum class EncryptionType : int;
+
 class FunapiNetwork;
 class FunapiTransportImpl;
 class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
@@ -79,6 +106,7 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   };
 
   typedef std::map<std::string, std::string> HeaderType;
+  typedef std::map<std::string, std::string> HeaderFields;
 
   typedef std::function<void(const TransportProtocol, const FunEncoding, const HeaderType &, const std::vector<uint8_t> &)> OnReceived;
 
@@ -93,9 +121,9 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual bool IsStarted() const = 0; // Check connection
 
   // Send a message
-  virtual void SendMessage(rapidjson::Document &message) = 0;
-  virtual void SendMessage(FunMessage &message) = 0;
-  virtual void SendMessage(const char *body) = 0;
+  virtual void SendMessage(rapidjson::Document &message, bool is_priority = false) = 0;
+  virtual void SendMessage(FunMessage &message, bool is_priority = false) = 0;
+  virtual void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false) = 0;
 
   virtual TransportProtocol GetProtocol() const = 0;
   virtual FunEncoding GetEncoding() const = 0;
@@ -124,6 +152,12 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
 
   virtual void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
   virtual void SetReceivedHandler(OnReceived handler) = 0;
+
+  virtual bool OnAckReceived(const uint32_t ack) = 0;
+  virtual bool OnSeqReceived(const uint32_t seq) = 0;
+
+  virtual void SetEncryptionType(EncryptionType type) = 0;
+  virtual void SetSequenceNumberValidation(bool validation);
 };
 
 
@@ -140,9 +174,9 @@ class FunapiTcpTransport : public FunapiTransport {
   bool IsStarted() const; // Check connection
 
   // Send a message
-  void SendMessage(rapidjson::Document &message);
-  void SendMessage(FunMessage &message);
-  void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message, bool is_priority = false);
+  void SendMessage(FunMessage &message, bool is_priority = false);
+  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false);
 
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
@@ -172,6 +206,12 @@ class FunapiTcpTransport : public FunapiTransport {
   void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
   void SetReceivedHandler(OnReceived handler);
 
+  bool OnAckReceived(const uint32_t ack);
+  bool OnSeqReceived(const uint32_t seq);
+
+  void SetEncryptionType(EncryptionType type);
+  void SetSequenceNumberValidation(bool validation);
+
  private:
   std::shared_ptr<FunapiTcpTransportImpl> impl_;
 };
@@ -190,9 +230,9 @@ class FunapiUdpTransport : public FunapiTransport {
   bool IsStarted() const; // Check connection
 
   // Send a message
-  void SendMessage(rapidjson::Document &message);
-  void SendMessage(FunMessage &message);
-  void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message, bool is_priority = false);
+  void SendMessage(FunMessage &message, bool is_priority = false);
+  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false);
 
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
@@ -217,6 +257,11 @@ class FunapiUdpTransport : public FunapiTransport {
 
   void SetReceivedHandler(OnReceived handler);
 
+  bool OnAckReceived(const uint32_t ack);
+  bool OnSeqReceived(const uint32_t seq);
+
+  void SetEncryptionType(EncryptionType type);
+
  private:
   std::shared_ptr<FunapiUdpTransportImpl> impl_;
 };
@@ -235,9 +280,9 @@ class FunapiHttpTransport : public FunapiTransport {
   bool IsStarted() const; // Check connection
 
   // Send a message
-  void SendMessage(rapidjson::Document &message);
-  void SendMessage(FunMessage &message);
-  void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message, bool is_priority = false);
+  void SendMessage(FunMessage &message, bool is_priority = false);
+  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false);
 
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
@@ -255,6 +300,12 @@ class FunapiHttpTransport : public FunapiTransport {
   void Update();
 
   void SetReceivedHandler(OnReceived handler);
+
+  bool OnAckReceived(const uint32_t ack);
+  bool OnSeqReceived(const uint32_t seq);
+
+  void SetEncryptionType(EncryptionType type);
+  void SetSequenceNumberValidation(bool validation);
 
  private:
   std::shared_ptr<FunapiHttpTransportImpl> impl_;

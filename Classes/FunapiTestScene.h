@@ -63,6 +63,8 @@ private:
   fun::FunEncoding multicast_encoding_;
 
   void OnMulticastChannelSignalle(const std::string &channel_id, const std::string &sender, const std::vector<uint8_t> &v_body);
+
+  void TestFunapiNetwork(bool bStart);
 };
 
 #endif // __FUNAPI_TEST_SCENE_H__

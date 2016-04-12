@@ -8,16 +8,15 @@
 #include "funapi_utils.h"
 #include "funapi_transport.h"
 #include "funapi_network.h"
+#include "funapi_encryption.h"
 
 namespace fun {
 
-// Funapi header-related constants.
-static const char* kHeaderDelimeter = "\n";
-static const char* kHeaderFieldDelimeter = ":";
-static const char* kVersionHeaderField = "VER";
-static const char* kPluginVersionHeaderField = "PVER";
-static const char* kLengthHeaderField = "LEN";
-// static const char* kEncryptionHeaderField = "ENC";
+struct FunapiMessage {
+  bool has_seq;
+  uint32_t seq;
+  std::vector<uint8_t> body;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiTransportImpl implementation.
@@ -26,9 +25,11 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
  public:
   typedef FunapiTransport::TransportEventHandler TransportEventHandler;
   typedef FunapiTransport::OnReceived OnReceived;
+  typedef FunapiTransport::HeaderFields HeaderFields;
 
   // Buffer-related constants.
   static const int kUnitBufferSize = 65536;
+  static const size_t kMaxSend = 32;
 
   FunapiTransportImpl(TransportProtocol type, FunEncoding encoding);
   virtual ~FunapiTransportImpl();
@@ -37,9 +38,9 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   virtual void Start() = 0;
   virtual void Stop() = 0;
 
-  void SendMessage(rapidjson::Document &message);
-  void SendMessage(FunMessage &message);
-  void SendMessage(const char *body);
+  void SendMessage(rapidjson::Document &message, bool is_priority);
+  void SendMessage(FunMessage &message, bool is_priority);
+  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority);
 
   void SetNetwork(std::weak_ptr<FunapiNetwork> network);
 
@@ -57,13 +58,16 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   virtual void ResetClientPingTimeout() {};
 
   void SetReceivedHandler(OnReceived handler);
+  void SetEncryptionType(EncryptionType type);
+  virtual void SetSequenceNumberValidation(bool validation);
+
+  bool OnAckReceived(const uint32_t ack);
+  bool OnSeqReceived(const uint32_t seq);
 
  protected:
-  typedef std::map<std::string, std::string> HeaderFields;
-
   virtual bool EncodeThenSendMessage(std::vector<uint8_t> body) = 0;
 
-  void PushSendQueue(std::function<bool()> task);
+  void PushSendQueue(const std::vector<uint8_t> &v_body, bool has_seq, uint32_t seq, bool is_priority);
   void Send();
   void PushTaskQueue(std::function<void()> task);
   void PushStopTask();
@@ -75,13 +79,19 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   bool DecodeMessage(int nRead, std::vector<uint8_t> &receiving);
   std::string MakeHeaderString(const std::vector<uint8_t> &body);
 
+  void MakeHeaderFields(HeaderFields &header_fields, const std::vector<uint8_t> &body);
+  void MakeHeaderString(std::string &header_string, const HeaderFields &header_fields);
+
+  void PushUnsent(const uint32_t ack);
+
   // Registered event handlers.
   OnReceived on_received_;
 
   std::weak_ptr<FunapiNetwork> network_;
 
-  std::vector<std::function<bool()>> v_send_;
-//  std::mutex v_send_mutex_;
+  // std::mutex v_send_mutex_;
+  std::vector<FunapiMessage> v_send_;
+  std::vector<FunapiMessage> v_sent_;
 
   // Encoding-serializer-releated member variables.
   FunEncoding encoding_ = FunEncoding::kNone;
@@ -96,7 +106,14 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   void OnTransportConnectTimeout(const TransportProtocol protocol);
   void OnTransportDisconnected(const TransportProtocol protocol);
 
-  FunapiTransportState state_;
+  bool IsReliableSession() const;
+
+  FunapiTransportState state_ = kDisconnected;
+
+  uint32_t seq_ = 0;
+  uint32_t seq_recvd_ = 0;
+  bool first_seq_receiving_ = true;
+  bool first_ack_receiving_ = true;
 
  private:
   // Message-related.
@@ -109,11 +126,24 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
   FunapiEvent<TransportEventHandler> on_transport_connect_failed_;
   FunapiEvent<TransportEventHandler> on_transport_connect_timeout_;
   FunapiEvent<TransportEventHandler> on_transport_disconnect_;
+
+ protected:
+  std::shared_ptr<FunapiEncrytion> encrytion_;
+  bool sequence_number_validation_ = false;
 };
 
 
 FunapiTransportImpl::FunapiTransportImpl(TransportProtocol protocol, FunEncoding encoding)
-  : protocol_(protocol), encoding_(encoding), state_(kDisconnected) {
+  : protocol_(protocol), encoding_(encoding), state_(kDisconnected),
+    encrytion_(std::make_shared<FunapiEncrytion>()) {
+  seq_recvd_ = 0;
+  first_seq_receiving_ = true;
+  first_ack_receiving_ = true;
+
+  std::random_device rd;
+  std::default_random_engine re(rd());
+  std::uniform_int_distribution<uint32_t> dist(0,std::numeric_limits<uint32_t>::max());
+  seq_ = dist(re);
 }
 
 
@@ -122,13 +152,21 @@ FunapiTransportImpl::~FunapiTransportImpl() {
 
 
 bool FunapiTransportImpl::EncodeMessage(std::vector<uint8_t> &body) {
-  std::string header = MakeHeaderString(body);
+  HeaderFields header_fields;
+  MakeHeaderFields(header_fields, body);
 
-  std::string body_string(body.cbegin(), body.cend());
-  DebugUtils::Log("Header to send: %s", header.c_str());
-  DebugUtils::Log("send message: %s", body_string.c_str());
+  encrytion_->Encrypt(header_fields, body);
 
-  body.insert(body.begin(), header.cbegin(), header.cend());
+  std::string header_string;
+  MakeHeaderString(header_string, header_fields);
+
+  // log
+  // std::string body_string(body.cbegin(), body.cend());
+  // DebugUtils::Log("Header to send: %s", header_string.c_str());
+  // DebugUtils::Log("send message: %s", body_string.c_str());
+  // //
+
+  body.insert(body.begin(), header_string.cbegin(), header_string.cend());
 
   return true;
 }
@@ -201,26 +239,65 @@ bool FunapiTransportImpl::DecodeMessage(int nRead, std::vector<uint8_t> &receivi
 }
 
 
-void FunapiTransportImpl::SendMessage(rapidjson::Document &message) {
+bool FunapiTransportImpl::IsReliableSession() const {
+  auto network = network_.lock();
+  if (network) {
+    return (network->IsReliableSession() && protocol_ == TransportProtocol::kTcp);
+  }
+
+  return false;
+}
+
+
+void FunapiTransportImpl::SendMessage(rapidjson::Document &message, bool is_priority = false) {
+  bool has_seq = false;
+
+  if (IsReliableSession() || sequence_number_validation_) {
+    has_seq = true;
+  }
+
+  uint32_t seq = 0;
+
+  if (has_seq) {
+    seq = seq_;
+    rapidjson::Value seq_node;
+    seq_node.SetUint(seq);
+    ++seq_;
+    message.AddMember(rapidjson::StringRef(kSeqNumberField), seq_node, message.GetAllocator());
+  }
+
   rapidjson::StringBuffer string_buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(string_buffer);
   message.Accept(writer);
 
-  SendMessage(string_buffer.GetString());
+  SendMessage(string_buffer.GetString(), has_seq, seq, is_priority);
 }
 
 
-void FunapiTransportImpl::SendMessage(FunMessage &message) {
-  std::string body = message.SerializeAsString();
-  SendMessage(body.c_str());
+void FunapiTransportImpl::SendMessage(FunMessage &message, bool is_priority = false) {
+  bool has_seq = false;
+
+  if (IsReliableSession() || sequence_number_validation_) {
+    has_seq = true;
+  }
+
+  uint32_t seq = 0;
+
+  if (has_seq) {
+    seq = seq_;
+    message.set_seq(seq);
+    ++seq_;
+  }
+
+  SendMessage(message.SerializeAsString().c_str(), has_seq, seq, is_priority);
 }
 
 
-void FunapiTransportImpl::SendMessage(const char *body) {
+void FunapiTransportImpl::SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false) {
   std::vector<uint8_t> v_body(strlen(body));
   memcpy(v_body.data(), body, strlen(body));
 
-  PushSendQueue([this,v_body]()->bool{ return EncodeThenSendMessage(v_body); });
+  PushSendQueue(v_body, has_seq, seq, is_priority);
 }
 
 
@@ -301,6 +378,7 @@ bool FunapiTransportImpl::TryToDecodeBody(std::vector<uint8_t> &receiving, int &
     }
 
     std::vector<uint8_t> v(receiving.begin() + next_decoding_offset, receiving.begin() + next_decoding_offset + body_length);
+    encrytion_->Decrypt(header_fields, v);
     v.push_back('\0');
 
     // Moves the read offset.
@@ -308,6 +386,10 @@ bool FunapiTransportImpl::TryToDecodeBody(std::vector<uint8_t> &receiving, int &
 
     // The network module eats the fields and invokes registered handler
     PushTaskQueue([this, header_fields, v](){ on_received_(GetProtocol(), GetEncoding(), header_fields, v); });
+  }
+  else {
+    // init encrytion
+    encrytion_->Decrypt(header_fields, receiving);
   }
 
   // Prepares for a next message.
@@ -347,6 +429,38 @@ std::string FunapiTransportImpl::MakeHeaderString(const std::vector<uint8_t> &bo
 }
 
 
+void FunapiTransportImpl::MakeHeaderFields(HeaderFields &header_fields, const std::vector<uint8_t> &body) {
+  std::stringstream ss_protocol_version;
+  ss_protocol_version << static_cast<int>(FunapiVersion::kProtocolVersion);
+  header_fields[kVersionHeaderField] = ss_protocol_version.str();
+
+  if (first_sending_) {
+    first_sending_ = false;
+
+    std::stringstream ss_plugin_version;
+    ss_plugin_version << static_cast<int>(FunapiVersion::kPluginVersion);
+    header_fields[kPluginVersionHeaderField] = ss_plugin_version.str();
+  }
+
+  std::stringstream ss_length;
+  ss_length << static_cast<size_t>(body.size());
+  header_fields[kLengthHeaderField] = ss_length.str();
+}
+
+
+void FunapiTransportImpl::MakeHeaderString(std::string &header_string, const HeaderFields &header_fields) {
+  std::stringstream ss;
+
+  for (auto it : header_fields) {
+    ss << it.first << kHeaderFieldDelimeter << it.second << kHeaderDelimeter;
+  }
+
+  ss << kHeaderDelimeter;
+
+  header_string = ss.str();
+}
+
+
 void FunapiTransportImpl::SetNetwork(std::weak_ptr<FunapiNetwork> network)
 {
   network_ = network;
@@ -358,34 +472,46 @@ bool FunapiTransportImpl::IsStarted() {
 }
 
 
-void FunapiTransportImpl::PushSendQueue(std::function<bool()> task) {
-//  std::unique_lock<std::mutex> lock(v_send_mutex_);
-  v_send_.push_back(task);
+void FunapiTransportImpl::PushSendQueue(const std::vector<uint8_t> &v_body, bool has_seq, uint32_t seq, bool is_priority) {
+  FunapiMessage messgae;
+  messgae.has_seq = has_seq;
+  messgae.seq = seq;
+  messgae.body = std::move(v_body);
+
+  if (is_priority) {
+    v_send_.insert(v_send_.begin(), messgae);
+  }
+  else {
+    v_send_.push_back(messgae);
+  }
 }
 
 
 void FunapiTransportImpl::Send() {
-  std::function<bool()> task;
+  size_t send_count = 0;
+
   while (true) {
-    task = nullptr;
     {
 //      std::unique_lock<std::mutex> lock(v_send_mutex_);
       if (v_send_.empty()) {
         break;
       }
       else {
-        task = std::move(v_send_.front());
-        v_send_.erase(v_send_.begin());
+        if (EncodeThenSendMessage(v_send_.front().body)) {
+          if (v_send_.front().has_seq) {
+            v_sent_.push_back(v_send_.front());
+          }
+          v_send_.erase(v_send_.begin());
+        }
+        else {
+          break;
+        }
       }
     }
 
-    if (task) {
-      if (false == task()) {
-//        std::unique_lock<std::mutex> lock(v_send_mutex_);
-        v_send_.insert(v_send_.begin(), task);
-        break;
-      }
-    }
+    ++send_count;
+    if (send_count >= kMaxSend)
+      break;
   }
 }
 
@@ -466,6 +592,74 @@ void FunapiTransportImpl::SetReceivedHandler(OnReceived handler) {
 }
 
 
+void FunapiTransportImpl::SetEncryptionType(EncryptionType type) {
+  encrytion_->SetEncryptionType(type);
+}
+
+
+void FunapiTransportImpl::SetSequenceNumberValidation(bool validation) {
+}
+
+
+bool FunapiTransportImpl::OnAckReceived(const uint32_t ack) {
+  if (first_ack_receiving_) {
+    first_ack_receiving_ = false;
+    PushUnsent(ack);
+  }
+
+  while (!v_sent_.empty()) {
+    if (FunapiUtil::SeqLess(v_sent_.front().seq, ack)) {
+      v_sent_.erase(v_sent_.begin());
+    }
+    else {
+      break;
+    }
+  }
+
+  return true;
+}
+
+
+bool FunapiTransportImpl::OnSeqReceived(const uint32_t seq) {
+  if (first_seq_receiving_) {
+    first_seq_receiving_ = false;
+  }
+  else {
+    if (!FunapiUtil::SeqLess(seq_recvd_, seq)) {
+      DebugUtils::Log("Last sequence number is %d but %d received. Skipping message.", seq_recvd_, seq);
+      return false;
+    }
+    else if (seq != seq_recvd_ + 1) {
+      DebugUtils::Log("Received wrong sequence number %d. %d expected.", seq, seq_recvd_ + 1);
+      Stop();
+      return false;
+    }
+  }
+
+  seq_recvd_ = seq;
+
+  return true;
+}
+
+
+void FunapiTransportImpl::PushUnsent(const uint32_t ack) {
+  while (!v_sent_.empty()) {
+    if (FunapiUtil::SeqLess(v_sent_.front().seq, ack)) {
+      v_sent_.erase(v_sent_.begin());
+    }
+    else {
+      break;
+    }
+  }
+
+  if (!v_sent_.empty()) {
+    v_send_.insert(v_send_.begin(), v_sent_.begin(), v_sent_.end());
+  }
+
+  v_sent_.clear();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiSocketTransportImpl implementation.
 
@@ -509,7 +703,7 @@ FunapiSocketTransportImpl::FunapiSocketTransportImpl(TransportProtocol protocol,
                                          uint16_t port, FunEncoding encoding)
     : FunapiTransportImpl(protocol, encoding), socket_(-1), port_(port) {
   struct hostent *entry = gethostbyname(hostname_or_ip.c_str());
-  assert(entry);
+  // assert(entry);
 
   struct in_addr addr;
 
@@ -546,6 +740,8 @@ FunapiSocketTransportImpl::~FunapiSocketTransportImpl() {
 
 
 void FunapiSocketTransportImpl::Stop() {
+  Send();
+
   CloseSocket();
 
   OnTransportClosed(GetProtocol());
@@ -631,6 +827,7 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   void Update();
 
   void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
+  void SetSequenceNumberValidation(bool validation);
 
  protected:
   bool EncodeThenSendMessage(std::vector<uint8_t> body);
@@ -675,11 +872,18 @@ class FunapiTcpTransportImpl : public FunapiSocketTransportImpl {
   void CheckConnectTimeout();
   void WaitForAutoReconnect();
 
+  int offset_ = 0;
+  std::vector<uint8_t> receiving_vector_;
+  int next_decoding_offset_ = 0;
+  bool header_decoded_ = false;
+  HeaderFields header_fields_;
+
   bool disable_nagle_ = false;
   bool auto_reconnect_ = false;
   bool enable_ping_ = false;
 
   FunapiTimer client_ping_timeout_timer_;
+  FunapiTimer ping_send_timer_;
 
   std::function<bool(const TransportProtocol protocol)> send_client_ping_message_handler_;
 };
@@ -743,6 +947,7 @@ FunapiTcpTransportImpl::FunapiTcpTransportImpl(TransportProtocol protocol,
           socket_select_state_ = SocketSelectState::kSelect;
 
           client_ping_timeout_timer_.SetTimer(kPingIntervalSecond + kPingTimeoutSeconds);
+          ping_send_timer_.SetTimer(kPingIntervalSecond);
 
           update_state_ = UpdateState::kPing;
 
@@ -771,6 +976,9 @@ TransportProtocol FunapiTcpTransportImpl::GetProtocol() {
 
 
 void FunapiTcpTransportImpl::Start() {
+  if (state_ == kConnected)
+    return;
+
   state_ = kConnecting;
 
   update_state_ = UpdateState::kNone;
@@ -785,10 +993,8 @@ void FunapiTcpTransportImpl::Start() {
 
 void FunapiTcpTransportImpl::Ping() {
   if (enable_ping_) {
-    static FunapiTimer ping_send_timer(kPingIntervalSecond);
-
-    if (ping_send_timer.IsExpired()){
-      ping_send_timer.SetTimer(kPingIntervalSecond);
+    if (ping_send_timer_.IsExpired()){
+      ping_send_timer_.SetTimer(kPingIntervalSecond);
       send_client_ping_message_handler_(GetProtocol());
     }
 
@@ -871,25 +1077,23 @@ bool FunapiTcpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
     return false;
   }
 
-  static int offset = 0;
-
   if (socket_ < 0)
     return false;
 
-  int nSent = static_cast<int>(send(socket_, reinterpret_cast<char*>(body.data()) + offset, body.size() - offset, 0));
+  int nSent = static_cast<int>(send(socket_, reinterpret_cast<char*>(body.data()) + offset_, body.size() - offset_, 0));
 
   if (nSent < 0) {
     PushStopTask();
     return false;
   }
   else {
-    offset += nSent;
+    offset_ += nSent;
   }
 
   DebugUtils::Log("Sent %d bytes", nSent);
 
-  if (offset == body.size()) {
-    offset = 0;
+  if (offset_ == body.size()) {
+    offset_ = 0;
     return true;
   }
 
@@ -961,11 +1165,6 @@ void FunapiTcpTransportImpl::Connect() {
 
 
 void FunapiTcpTransportImpl::Recv() {
-  static std::vector<uint8_t> receiving_vector;
-  static int next_decoding_offset = 0;
-  static bool header_decoded = false;
-  static HeaderFields header_fields;
-
   if (socket_ < 0)
     return;
 
@@ -982,9 +1181,9 @@ void FunapiTcpTransportImpl::Recv() {
     return;
   }
 
-  receiving_vector.insert(receiving_vector.end(), buffer.cbegin(), buffer.cbegin() + nRead);
+  receiving_vector_.insert(receiving_vector_.end(), buffer.cbegin(), buffer.cbegin() + nRead);
 
-  if (!DecodeMessage(nRead, receiving_vector, next_decoding_offset, header_decoded, header_fields)) {
+  if (!DecodeMessage(nRead, receiving_vector_, next_decoding_offset_, header_decoded_, header_fields_)) {
     if (nRead == 0) {
       DebugUtils::Log("Socket [%d] closed.", socket_);
       OnTransportDisconnected(GetProtocol());
@@ -1008,6 +1207,11 @@ void FunapiTcpTransportImpl::Update() {
 
 void FunapiTcpTransportImpl::SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler) {
   send_client_ping_message_handler_ = handler;
+}
+
+
+void FunapiTcpTransportImpl::SetSequenceNumberValidation(bool validation) {
+  sequence_number_validation_ = validation;
 }
 
 
@@ -1055,6 +1259,9 @@ TransportProtocol FunapiUdpTransportImpl::GetProtocol() {
 
 
 void FunapiUdpTransportImpl::Start() {
+  if (state_ == kConnected)
+    return;
+
   CloseSocket();
 
   socket_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -1138,6 +1345,8 @@ class FunapiHttpTransportImpl : public FunapiTransportImpl {
 
   void Update();
 
+  void SetSequenceNumberValidation(bool validation);
+
  protected:
   bool EncodeThenSendMessage(std::vector<uint8_t> body);
 
@@ -1147,6 +1356,7 @@ class FunapiHttpTransportImpl : public FunapiTransportImpl {
   void WebResponseBodyCb(void *data, int len, std::vector<uint8_t> &receiving);
 
   std::string host_url_;
+  std::string cookie_;
 };
 
 
@@ -1173,6 +1383,9 @@ TransportProtocol FunapiHttpTransportImpl::GetProtocol() {
 
 
 void FunapiHttpTransportImpl::Start() {
+  if (state_ == kConnected)
+    return;
+
   state_ = kConnected;
   DebugUtils::Log("Started.");
 
@@ -1181,6 +1394,8 @@ void FunapiHttpTransportImpl::Start() {
 
 
 void FunapiHttpTransportImpl::Stop() {
+  Send();
+
   if (state_ == kDisconnected)
     return;
 
@@ -1202,7 +1417,15 @@ size_t FunapiHttpTransportImpl::HttpResponseCb(void *data, size_t size, size_t c
 bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   if (state_ != kConnected) return false;
 
-  std::string header = MakeHeaderString(body);
+  HeaderFields header_fields_for_send;
+  MakeHeaderFields(header_fields_for_send, body);
+
+  encrytion_->Encrypt(header_fields_for_send, body);
+  encrytion_->SetHeaderFieldsForHttpSend(header_fields_for_send);
+
+  if (!cookie_.empty()) {
+    header_fields_for_send[kCookieRequestHeaderField] = cookie_;
+  }
 
   // log
   // std::string temp_string(body.cbegin(), body.cend());
@@ -1220,9 +1443,19 @@ bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   AsyncWebResponseCallback receive_header = [this, &header_fields](void* data, int len){ WebResponseHeaderCb(data, len, header_fields); };
   AsyncWebResponseCallback receive_body = [this, &receiving](void* data, int len){ WebResponseBodyCb(data, len, receiving); };
 
+  // set http header
   struct curl_slist *chunk = NULL;
-  chunk = curl_slist_append(chunk, header.c_str());
+
+  for (auto it : header_fields_for_send) {
+    std::stringstream ss;
+    ss << it.first << ": " << it.second;
+
+    // DebugUtils::Log("ss.str() = %s", ss.str().c_str());
+
+    chunk = curl_slist_append(chunk, ss.str().c_str());
+  }
   curl_easy_setopt(ctx, CURLOPT_HTTPHEADER, chunk);
+
   curl_easy_setopt(ctx, CURLOPT_URL, host_url_.c_str());
   curl_easy_setopt(ctx, CURLOPT_POST, 1L);
   curl_easy_setopt(ctx, CURLOPT_POSTFIELDS, body.data());
@@ -1245,6 +1478,14 @@ bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
     std::stringstream ss_version_header_field;
     ss_version_header_field << receiving.size();
     header_fields[kLengthHeaderField] = ss_version_header_field.str();
+
+    // cookie
+    auto it = header_fields.find(kCookieResponseHeaderField);
+    if (it != header_fields.end()) {
+      cookie_ = it->second;
+    }
+
+    encrytion_->SetHeaderFieldsForHttpRecv(header_fields);
 
     bool header_decoded = true;
     int next_decoding_offset = 0;
@@ -1276,7 +1517,25 @@ void FunapiHttpTransportImpl::WebResponseHeaderCb(void *data, int len, HeaderFie
   const char *e1 = buf, *e2 = ptr + 1;
   while (*e2 == ' ' || *e2 == '\t') ++e2;
   DebugUtils::Log("Decoded header field '%s' => '%s'", e1, e2);
-  header_fields[e1] = e2;
+
+  std::string cookie_field(kCookieResponseHeaderField);
+  bool is_cookie_field = false;
+
+  if (strlen(e1) == cookie_field.length()) {
+    std::string temp(e1);
+    std::transform(temp.begin(), temp.end(), temp.begin(), ::toupper);
+
+    if (temp.compare(cookie_field) == 0) {
+      is_cookie_field = true;
+    }
+  }
+
+  if (is_cookie_field) {
+    header_fields[cookie_field] = e2;
+  }
+  else {
+    header_fields[e1] = e2;
+  }
 }
 
 
@@ -1287,6 +1546,11 @@ void FunapiHttpTransportImpl::WebResponseBodyCb(void *data, int len, std::vector
 
 void FunapiHttpTransportImpl::Update() {
   Send();
+}
+
+
+void FunapiHttpTransportImpl::SetSequenceNumberValidation(bool validation) {
+  sequence_number_validation_ = validation;
 }
 
 
@@ -1330,6 +1594,10 @@ void FunapiTransport::SetSendClientPingMessageHandler(std::function<bool(const T
 }
 
 
+void FunapiTransport::SetSequenceNumberValidation(bool validation) {
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiTcpTransport implementation.
 
@@ -1358,18 +1626,18 @@ void FunapiTcpTransport::Stop() {
 }
 
 
-void FunapiTcpTransport::SendMessage(rapidjson::Document &message) {
-  impl_->SendMessage(message);
+void FunapiTcpTransport::SendMessage(rapidjson::Document &message, bool is_priority) {
+  impl_->SendMessage(message, is_priority);
 }
 
 
-void FunapiTcpTransport::SendMessage(FunMessage &message) {
-  impl_->SendMessage(message);
+void FunapiTcpTransport::SendMessage(FunMessage &message, bool is_priority) {
+  impl_->SendMessage(message, is_priority);
 }
 
 
-void FunapiTcpTransport::SendMessage(const char *body) {
-  impl_->SendMessage(body);
+void FunapiTcpTransport::SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority) {
+  impl_->SendMessage(body, has_seq, seq, is_priority);
 }
 
 
@@ -1469,6 +1737,26 @@ void FunapiTcpTransport::SetReceivedHandler(OnReceived handler) {
 }
 
 
+bool FunapiTcpTransport::OnAckReceived(const uint32_t ack) {
+  return impl_->OnAckReceived(ack);
+}
+
+
+bool FunapiTcpTransport::OnSeqReceived(const uint32_t seq) {
+  return impl_->OnSeqReceived(seq);
+}
+
+
+void FunapiTcpTransport::SetEncryptionType(EncryptionType type) {
+  return impl_->SetEncryptionType(type);
+}
+
+
+void FunapiTcpTransport::SetSequenceNumberValidation(bool validation) {
+  return impl_->SetSequenceNumberValidation(validation);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiUdpTransport implementation.
 
@@ -1497,18 +1785,18 @@ void FunapiUdpTransport::Stop() {
 }
 
 
-void FunapiUdpTransport::SendMessage(rapidjson::Document &message) {
-  impl_->SendMessage(message);
+void FunapiUdpTransport::SendMessage(rapidjson::Document &message, bool is_priority) {
+  impl_->SendMessage(message, is_priority);
 }
 
 
-void FunapiUdpTransport::SendMessage(FunMessage &message) {
-  impl_->SendMessage(message);
+void FunapiUdpTransport::SendMessage(FunMessage &message, bool is_priority) {
+  impl_->SendMessage(message, is_priority);
 }
 
 
-void FunapiUdpTransport::SendMessage(const char *body) {
-  impl_->SendMessage(body);
+void FunapiUdpTransport::SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority) {
+  impl_->SendMessage(body, has_seq, seq, is_priority);
 }
 
 
@@ -1587,6 +1875,21 @@ void FunapiUdpTransport::SetReceivedHandler(OnReceived handler) {
 }
 
 
+void FunapiUdpTransport::SetEncryptionType(EncryptionType type) {
+  return impl_->SetEncryptionType(type);
+}
+
+
+bool FunapiUdpTransport::OnAckReceived(const uint32_t ack) {
+  return impl_->OnAckReceived(ack);
+}
+
+
+bool FunapiUdpTransport::OnSeqReceived(const uint32_t seq) {
+  return impl_->OnSeqReceived(seq);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiHttpTransport implementation.
 
@@ -1617,18 +1920,18 @@ void FunapiHttpTransport::Stop() {
 }
 
 
-void FunapiHttpTransport::SendMessage(rapidjson::Document &message) {
-  impl_->SendMessage(message);
+void FunapiHttpTransport::SendMessage(rapidjson::Document &message, bool is_priority) {
+  impl_->SendMessage(message, is_priority);
 }
 
 
-void FunapiHttpTransport::SendMessage(FunMessage &message) {
-  impl_->SendMessage(message);
+void FunapiHttpTransport::SendMessage(FunMessage &message, bool is_priority) {
+  impl_->SendMessage(message, is_priority);
 }
 
 
-void FunapiHttpTransport::SendMessage(const char *body) {
-  impl_->SendMessage(body);
+void FunapiHttpTransport::SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority) {
+  impl_->SendMessage(body, has_seq, seq, is_priority);
 }
 
 
@@ -1684,6 +1987,26 @@ void FunapiHttpTransport::Update() {
 
 void FunapiHttpTransport::SetReceivedHandler(OnReceived handler) {
   return impl_->SetReceivedHandler(handler);
+}
+
+
+void FunapiHttpTransport::SetEncryptionType(EncryptionType type) {
+  return impl_->SetEncryptionType(type);
+}
+
+
+void FunapiHttpTransport::SetSequenceNumberValidation(bool validation) {
+  return impl_->SetSequenceNumberValidation(validation);
+}
+
+
+bool FunapiHttpTransport::OnAckReceived(const uint32_t ack) {
+  return impl_->OnAckReceived(ack);
+}
+
+
+bool FunapiHttpTransport::OnSeqReceived(const uint32_t seq) {
+  return impl_->OnSeqReceived(seq);
 }
 
 }  // namespace fun

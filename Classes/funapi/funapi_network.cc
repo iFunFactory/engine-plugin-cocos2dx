@@ -11,18 +11,6 @@
 
 namespace fun {
 
-// Funapi message-related constants.
-static const char* kMsgTypeBodyField = "_msgtype";
-static const char* kSessionIdBodyField = "_sid";
-static const char* kNewSessionMessageType = "_session_opened";
-static const char* kSessionClosedMessageType = "_session_closed";
-static const char* kMaintenanceMessageType = "_maintenance";
-
-// Ping message-related constants.
-static const char* kServerPingMessageType = "_ping_s";
-static const char* kClientPingMessageType = "_ping_c";
-static const char* kPingTimestampField = "timestamp";
-
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiNetworkImpl implementation.
 
@@ -65,6 +53,8 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
 
   FunEncoding GetEncoding(const TransportProtocol protocol) const;
   TransportProtocol GetDefaultProtocol() const;
+
+  bool IsReliableSession() const;
 
  private:
   void OnSessionInitiated(const std::string &session_id);
@@ -117,13 +107,15 @@ class FunapiNetworkImpl : public std::enable_shared_from_this<FunapiNetworkImpl>
 
   bool session_reliability_ = false;
 
-//  static std::shared_ptr<FunapiManager> GetManager();
-
   void InsertTransport(const TransportProtocol protocol);
   void EraseTransport(const TransportProtocol protocol);
 
   void SendEmptyMessage(const TransportProtocol protocol);
   bool SendClientPingMessage(const TransportProtocol protocol);
+
+  bool OnAckReceived(const TransportProtocol protocol, const uint32_t ack);
+  bool OnSeqReceived(const TransportProtocol protocol, const uint32_t seq);
+  void SendAck(const TransportProtocol protocol, const uint32_t ack);
 };
 
 
@@ -205,6 +197,11 @@ void FunapiNetworkImpl::Stop() {
   // Turns off the flag.
   started_ = false;
 
+  // remove session id
+  if (!session_reliability_) {
+    session_id_ = "";
+  }
+
   // Then, requests the transport to stop.
   {
 //    std::unique_lock<std::mutex> lock(transports_mutex_);
@@ -230,9 +227,11 @@ void FunapiNetworkImpl::SendMessage(const std::string &msg_type, std::string &js
   body.Parse<0>(json_string.c_str());
 
   // Encodes a messsage type.
-  rapidjson::Value msg_type_node;
-  msg_type_node.SetString(rapidjson::StringRef(msg_type.c_str()));
-  body.AddMember(rapidjson::StringRef(kMsgTypeBodyField), msg_type_node, body.GetAllocator());
+  if (msg_type.length() > 0) {
+    rapidjson::Value msg_type_node;
+    msg_type_node.SetString(rapidjson::StringRef(msg_type.c_str()));
+    body.AddMember(rapidjson::StringRef(kMsgTypeBodyField), msg_type_node, body.GetAllocator());
+  }
 
   // Encodes a session id, if any.
   if (!session_id_.empty()) {
@@ -300,7 +299,7 @@ void FunapiNetworkImpl::SendMessage(const char *body, TransportProtocol protocol
   // Sends the manipulated Protobuf object through the transport.
   std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
   if (transport) {
-    transport->SendMessage(body);
+    transport->SendMessage(body, false, 0);
   }
   else {
     DebugUtils::Log("Invaild Protocol - Transport is not founded");
@@ -325,12 +324,16 @@ bool FunapiNetworkImpl::IsConnected(const TransportProtocol protocol = Transport
 
 void FunapiNetworkImpl::OnTransportReceived(
   const TransportProtocol protocol, const FunEncoding encoding, const HeaderType &header, const std::vector<uint8_t> &body) {
-  DebugUtils::Log("OnReceived invoked");
+  // DebugUtils::Log("OnReceived invoked");
 
   last_received_ = time(NULL);
 
   std::string msg_type;
   std::string session_id;
+  uint32_t ack = 0;
+  uint32_t seq = 0;
+  bool hasAck = false;
+  bool hasSeq = false;
 
   if (encoding == FunEncoding::kJson) {
     // Parses the given json string.
@@ -338,22 +341,43 @@ void FunapiNetworkImpl::OnTransportReceived(
     json.Parse<0>(reinterpret_cast<char*>(const_cast<uint8_t*>(body.data())));
     assert(json.IsObject());
 
-    const rapidjson::Value &msg_type_node = json[kMsgTypeBodyField];
-    assert(msg_type_node.IsString());
-    msg_type = msg_type_node.GetString();
-    json.RemoveMember(kMsgTypeBodyField);
+    if (json.HasMember(kMsgTypeBodyField)) {
+      const rapidjson::Value &msg_type_node = json[kMsgTypeBodyField];
+      assert(msg_type_node.IsString());
+      msg_type = msg_type_node.GetString();
+      json.RemoveMember(kMsgTypeBodyField);
+    }
 
-    const rapidjson::Value &session_id_node = json[kSessionIdBodyField];
-    assert(session_id_node.IsString());
-    session_id = session_id_node.GetString();
-    json.RemoveMember(kSessionIdBodyField);
+    if (json.HasMember(kSessionIdBodyField)) {
+      const rapidjson::Value &session_id_node = json[kSessionIdBodyField];
+      assert(session_id_node.IsString());
+      session_id = session_id_node.GetString();
+      json.RemoveMember(kSessionIdBodyField);
+    }
 
+    hasAck = json.HasMember(kAckNumberField);
+    if (hasAck) {
+      ack = json[kAckNumberField].GetUint();
+      json.RemoveMember(kAckNumberField);
+    }
+
+    hasSeq = json.HasMember(kSeqNumberField);
+    if (hasSeq) {
+      seq = json[kSeqNumberField].GetUint();
+      json.RemoveMember(kSeqNumberField);
+    }
   } else if (encoding == FunEncoding::kProtobuf) {
     FunMessage proto;
     proto.ParseFromArray(body.data(), static_cast<int>(body.size()));
 
     msg_type = proto.msgtype();
     session_id = proto.sid();
+
+    hasAck = proto.has_ack();
+    ack = proto.ack();
+
+    hasSeq = proto.has_seq();
+    seq = proto.seq();
   }
 
   if (session_id_.empty()) {
@@ -367,6 +391,21 @@ void FunapiNetworkImpl::OnTransportReceived(
     session_id_ = session_id;
     OnSessionClosed();
     OnSessionInitiated(session_id);
+  }
+
+  if (session_reliability_) {
+    if (hasAck) {
+      OnAckReceived(protocol, ack);
+      return;
+    }
+
+    if (hasSeq) {
+      if (!OnSeqReceived(protocol, seq))
+        return;
+    }
+
+    if (msg_type.empty())
+      return;
   }
 
   MessageHandlerMap::iterator it = message_handlers_.find(msg_type);
@@ -536,7 +575,9 @@ void FunapiNetworkImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
 //  }
 
   transport->AddStartedCallback([this](const TransportProtocol protocol){
-    SendEmptyMessage(protocol);
+    if (session_id_.empty()) {
+      SendEmptyMessage(protocol);
+    }
   });
 
   if (HasTransport(transport->GetProtocol()))
@@ -690,7 +731,7 @@ void FunapiNetworkImpl::SendEmptyMessage(const TransportProtocol protocol) {
     }
     else if (encoding == FunEncoding::kProtobuf) {
       FunMessage msg;
-      SendMessage(msg);
+      SendMessage(msg.SerializeAsString().c_str());
     }
   }
 }
@@ -737,11 +778,89 @@ bool FunapiNetworkImpl::SendClientPingMessage(const TransportProtocol protocol) 
 }
 
 
+bool FunapiNetworkImpl::OnAckReceived(const TransportProtocol protocol, const uint32_t ack) {
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport == nullptr) {
+    DebugUtils::Log("OnAckReceived - transport is null.");
+    return false;
+  }
+
+  transport->OnAckReceived(ack);
+
+  return true;
+}
+
+
+bool FunapiNetworkImpl::OnSeqReceived(const TransportProtocol protocol, const uint32_t seq) {
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport == nullptr) {
+    DebugUtils::Log("OnSeqReceived - transport is null.");
+    return false;
+  }
+
+  bool is_ok = transport->OnSeqReceived(seq);
+
+  if (is_ok) {
+    SendAck(protocol, seq + 1);
+  }
+
+  return is_ok;
+}
+
+
+void FunapiNetworkImpl::SendAck(const TransportProtocol protocol, const uint32_t ack) {
+  std::shared_ptr<FunapiTransport> transport = GetTransport(protocol);
+  if (transport == nullptr) {
+    DebugUtils::Log("SendAck - transport is null.");
+  }
+
+  DebugUtils::Log("TCP send ack message - ack:%d", ack);
+
+  if (transport->GetEncoding() == FunEncoding::kJson) {
+    rapidjson::Document msg;
+    msg.SetObject();
+    rapidjson::Value key(kAckNumberField, msg.GetAllocator());
+    rapidjson::Value ack_node(rapidjson::kNumberType);
+    ack_node.SetUint(ack);
+    msg.AddMember(key, ack_node, msg.GetAllocator());
+
+    if (!session_id_.empty()) {
+      rapidjson::Value session_id_node;
+      session_id_node.SetString(rapidjson::StringRef(session_id_.c_str()));
+      msg.AddMember(rapidjson::StringRef(kSessionIdBodyField), session_id_node, msg.GetAllocator());
+    }
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    transport->SendMessage(msg, true);
+  }
+  else if (transport->GetEncoding() == FunEncoding::kProtobuf) {
+    FunMessage msg;
+    msg.set_ack(ack);
+
+    if (!session_id_.empty()) {
+      msg.set_sid(session_id_.c_str());
+    }
+
+    transport->SendMessage(msg, true);
+  }
+}
+
+
 void FunapiNetworkImpl::InsertTransport(const TransportProtocol protocol) {
 }
 
 
 void FunapiNetworkImpl::EraseTransport(const TransportProtocol protocol) {
+}
+
+
+bool FunapiNetworkImpl::IsReliableSession() const {
+  return session_reliability_;
 }
 
 
@@ -859,9 +978,8 @@ void FunapiNetwork::SetDefaultProtocol(const TransportProtocol protocol) {
 }
 
 
-bool FunapiNetwork::IsSessionReliability() const {
-  // return impl_->SessionReliability();
-  return false;
+bool FunapiNetwork::IsReliableSession() const {
+  return impl_->IsReliableSession();
 }
 
 
