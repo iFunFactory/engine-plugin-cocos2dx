@@ -29,16 +29,14 @@ template <typename T>
 class FunapiEvent
 {
  public:
-  // void operator+= (const T &handler) { std::unique_lock<std::mutex> lock(mutex_); vector_.push_back(handler); }
-  void operator+= (const T &handler) { vector_.push_back(handler); }
+  void operator+= (const T &handler) { std::unique_lock<std::mutex> lock(mutex_); vector_.push_back(handler); }
   template <typename... ARGS>
-  // void operator() (const ARGS&... args) { std::unique_lock<std::mutex> lock(mutex_); for (const auto &f : vector_) f(args...); }
-  void operator() (const ARGS&... args) { for (const auto &f : vector_) f(args...); }
+  void operator() (const ARGS&... args) { std::unique_lock<std::mutex> lock(mutex_); for (const auto &f : vector_) f(args...); }
   bool empty() { return vector_.empty(); }
 
  private:
   std::vector<T> vector_;
-//  std::mutex mutex_;
+  std::mutex mutex_;
 };
 
 
@@ -72,6 +70,7 @@ class DebugUtils
 {
  public:
    static void Log(std::string fmt, ...) {
+#ifdef DEBUG_LOG
     const int MAX_LENGTH = 2048;
 
     va_list args;
@@ -88,6 +87,8 @@ class DebugUtils
 #ifdef FUNAPI_UE4
     UE_LOG(LogClass, Warning, TEXT("%s"), *FString(buffer));
 #endif
+
+#endif // DEBUG_LOG
   };
 };
 

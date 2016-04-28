@@ -15,7 +15,7 @@ namespace fun {
 enum class FunapiVersion : int
 {
   kProtocolVersion = 1,
-  kPluginVersion = 4,
+  kPluginVersion = 5,
 };
 
 class FunapiNetworkImpl;
@@ -40,7 +40,6 @@ class FunapiNetwork : public std::enable_shared_from_this<FunapiNetwork> {
   bool IsConnected(const TransportProtocol protocol = TransportProtocol::kDefault) const;
   void Update();
   void AttachTransport(const std::shared_ptr<FunapiTransport> &transport);
-  void PushTaskQueue(const std::function<void()> &task);
 
   std::shared_ptr<FunapiTransport> GetTransport(const TransportProtocol protocol) const;
   bool HasTransport(const TransportProtocol protocol) const;
@@ -58,6 +57,8 @@ class FunapiNetwork : public std::enable_shared_from_this<FunapiNetwork> {
   void AddTransportConnectFailedCallback(const TransportEventHandler &handler);
   void AddTransportDisconnectedCallback(const TransportEventHandler &handler);
   void AddTransportConnectTimeoutCallback(const TransportEventHandler &handler);
+  void AddTransportStartedCallback(const TransportEventHandler &handler);
+  void AddTransportClosedCallback(const TransportEventHandler &handler);
 
  private:
   std::shared_ptr<FunapiNetworkImpl> impl_;

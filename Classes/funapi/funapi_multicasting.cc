@@ -325,11 +325,13 @@ void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol
   int error_code = 0;
 
   if (encoding_ == fun::FunEncoding::kJson) {
-    std::string body(v_body.cbegin(), v_body.cend());
-    fun::DebugUtils::Log("multicast message\n%s", body.c_str());
+    // log
+    // std::string body(v_body.cbegin(), v_body.cend());
+    // fun::DebugUtils::Log("multicast message\n%s", body.c_str());
+    // //
 
     rapidjson::Document msg;
-    msg.Parse<0>(body.c_str());
+    msg.Parse<0>(reinterpret_cast<char*>(const_cast<uint8_t*>(v_body.data())));
 
     channel_id = msg[kChannelId].GetString();
 
@@ -351,10 +353,8 @@ void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol
   }
 
   if (encoding_ == fun::FunEncoding::kProtobuf) {
-    std::string body(v_body.cbegin(), v_body.cend());
-
     FunMessage msg;
-    msg.ParseFromString(body);
+    msg.ParseFromArray(v_body.data(), static_cast<int>(v_body.size()));
 
     FunMulticastMessage *mcast_msg = msg.MutableExtension(multicast);
 

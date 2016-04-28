@@ -196,6 +196,8 @@ void FunapiTest::cleanup()
   {
     network_->Stop();
   }
+
+  TestFunapiNetwork(false);
 }
 
 void FunapiTest::update(float delta)
@@ -264,7 +266,7 @@ void FunapiTest::SendEchoMessage()
 
     if (encoding == fun::FunEncoding::kProtobuf)
     {
-      for (int i = 1; i < 100; ++i) {
+      for (int i = 0; i < 10; ++i) {
         // std::to_string is not supported on android, using std::stringstream instead.
         std::stringstream ss_temp;
         ss_temp << "hello proto - " << static_cast<int>(i);
@@ -280,7 +282,7 @@ void FunapiTest::SendEchoMessage()
 
     if (encoding == fun::FunEncoding::kJson)
     {
-      for (int i = 1; i < 100; ++i) {
+      for (int i = 0; i < 10; ++i) {
         // std::to_string is not supported on android, using std::stringstream instead.
         std::stringstream ss_temp;
         ss_temp <<  "hello world - " << static_cast<int>(i);
@@ -314,6 +316,8 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
     network_->AddStoppedAllTransportCallback([this]() { OnStoppedAllTransport(); });
     network_->AddTransportConnectFailedCallback([this](const fun::TransportProtocol p){ OnTransportConnectFailed(p); });
     network_->AddTransportConnectTimeoutCallback([this](const fun::TransportProtocol p){ OnTransportConnectTimeout(p); });
+    network_->AddTransportStartedCallback([this](const fun::TransportProtocol p){ OnTransportStarted(p); });
+    network_->AddTransportClosedCallback([this](const fun::TransportProtocol p){ OnTransportClosed(p); });
 
     network_->AddMaintenanceCallback([this](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body){ OnMaintenanceMessage(p, type, v_body); });
 
@@ -367,6 +371,9 @@ void FunapiTest::OnSessionInitiated(const std::string &session_id)
 void FunapiTest::OnSessionClosed()
 {
   fun::DebugUtils::Log("session closed");
+
+  network_ = nullptr;
+  multicast_ = nullptr;
 }
 
 void FunapiTest::OnEchoJson(const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body)
@@ -381,10 +388,8 @@ void FunapiTest::OnEchoProto(const fun::TransportProtocol protocol, const std::s
 {
   fun::DebugUtils::Log("msg '%s' arrived.", type.c_str());
 
-  std::string body(v_body.begin(), v_body.end());
-
   FunMessage msg;
-  msg.ParseFromString(body);
+  msg.ParseFromArray(v_body.data(), static_cast<int>(v_body.size()));
   PbufEchoMessage echo = msg.GetExtension(pbuf_echo);
   fun::DebugUtils::Log("proto: %s", echo.msg().c_str());
 }
@@ -401,10 +406,8 @@ void FunapiTest::OnMaintenanceMessage(const fun::TransportProtocol protocol, con
   }
 
   if (encoding == fun::FunEncoding::kProtobuf) {
-    std::string body(v_body.cbegin(), v_body.cend());
-
     FunMessage msg;
-    msg.ParseFromString(body);
+    msg.ParseFromArray(v_body.data(), static_cast<int>(v_body.size()));
 
     MaintenanceMessage maintenance = msg.GetExtension(pbuf_maintenance);
     std::string date_start = maintenance.date_start();
@@ -429,6 +432,19 @@ void FunapiTest::OnTransportConnectTimeout (const fun::TransportProtocol protoco
 {
   fun::DebugUtils::Log("OnTransportConnectTimeout called.");
 }
+
+
+void FunapiTest::OnTransportStarted (const fun::TransportProtocol protocol)
+{
+  fun::DebugUtils::Log("OnTransportStarted called.");
+}
+
+
+void FunapiTest::OnTransportClosed (const fun::TransportProtocol protocol)
+{
+  fun::DebugUtils::Log("OnTransportClosed called.");
+}
+
 
 void FunapiTest::CreateMulticast()
 {
@@ -551,10 +567,8 @@ void FunapiTest::OnMulticastChannelSignalle(const std::string &channel_id, const
   }
 
   if (multicast_encoding_ == fun::FunEncoding::kProtobuf) {
-    std::string body(v_body.cbegin(), v_body.cend());
-
     FunMessage msg;
-    msg.ParseFromString(body);
+    msg.ParseFromArray(v_body.data(), static_cast<int>(v_body.size()));
 
     FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
     FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
@@ -566,23 +580,23 @@ void FunapiTest::OnMulticastChannelSignalle(const std::string &channel_id, const
 
 static bool g_bTestRunning = true;
 
-void test_echo(const int index) {
-  std::string server_ip = "127.0.0.1";
-
-  // fun::FunEncoding encoding = fun::FunEncoding::kJson;
-  // const int server_port = 8012;
-
-  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
-  const int server_port = 8022;
-
+void test_echo(const int index, std::string server_ip,
+               const int server_port,
+               fun::TransportProtocol protocol,
+               fun::FunEncoding encoding,
+               bool use_session_reliability) {
   std::string temp_session_id("");
   bool is_ok = true;
 
-  std::shared_ptr<fun::FunapiNetwork> network = std::make_shared<fun::FunapiNetwork>();
+  std::shared_ptr<fun::FunapiNetwork> network = std::make_shared<fun::FunapiNetwork>(use_session_reliability);
 
   network->AddSessionInitiatedCallback([encoding, network,index, &temp_session_id](const std::string &session_id) {
     temp_session_id = session_id;
     printf("(%d) init session id = %s\n", index, session_id.c_str());
+
+    // // // //
+    // wait
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // // // //
     // send
@@ -633,6 +647,14 @@ void test_echo(const int index) {
     is_ok = false;
   });
 
+  network->AddTransportStartedCallback([index](const fun::TransportProtocol p){
+    printf("(%d) transport started\n", index);
+  });
+
+  network->AddTransportClosedCallback([index](const fun::TransportProtocol p){
+    printf("(%d) transport closed\n", index);
+  });
+
   network->RegisterHandler("echo", [index, network](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body) {
     std::string body(v_body.cbegin(), v_body.cend());
     rapidjson::Document msg_recv;
@@ -647,7 +669,7 @@ void test_echo(const int index) {
 
     // // // //
     // wait
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // // // //
     // send
@@ -670,10 +692,8 @@ void test_echo(const int index) {
   });
 
   network->RegisterHandler("pbuf_echo", [index, network](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body) {
-    std::string body(v_body.begin(), v_body.end());
-
     FunMessage msg_recv;
-    msg_recv.ParseFromString(body);
+    msg_recv.ParseFromArray(v_body.data(), static_cast<int>(v_body.size()));
     PbufEchoMessage echo_recv = msg_recv.GetExtension(pbuf_echo);
 
     int count = 0;
@@ -683,7 +703,7 @@ void test_echo(const int index) {
 
     // // // //
     // wait
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // // // //
     // send
@@ -698,11 +718,153 @@ void test_echo(const int index) {
     network->SendMessage(msg);
   });
 
-  std::shared_ptr<fun::FunapiTransport> transport = fun::FunapiTcpTransport::create(server_ip, static_cast<uint16_t>(server_port), encoding);
+  std::shared_ptr<fun::FunapiTransport> transport;
+  if (protocol == fun::TransportProtocol::kTcp) {
+    transport = fun::FunapiTcpTransport::create(server_ip, static_cast<uint16_t>(server_port), encoding);
+  }
+  else if (protocol == fun::TransportProtocol::kUdp) {
+    transport = fun::FunapiUdpTransport::create(server_ip, static_cast<uint16_t>(server_port), encoding);
+  }
+  else if (protocol == fun::TransportProtocol::kHttp) {
+    transport = fun::FunapiHttpTransport::create(server_ip, static_cast<uint16_t>(server_port), false, encoding);
+  }
+
   network->AttachTransport(transport);
   network->Start();
 
   while (is_ok && g_bTestRunning) {
+    network->Update();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  network->Stop();
+}
+
+
+void test_session_reliability(const int index, std::string server_ip,
+               const int server_port,
+               fun::TransportProtocol protocol,
+               fun::FunEncoding encoding,
+               bool use_session_reliability) {
+  std::string temp_session_id("");
+  bool is_ok = true;
+
+  std::shared_ptr<fun::FunapiNetwork> network = std::make_shared<fun::FunapiNetwork>(use_session_reliability);
+
+  int packet_no = 0;
+  std::function<void(int)> send_echo = [network, &packet_no, encoding, index](int count) {
+    for (int i=0;i<count;++i) {
+      ++packet_no;
+      std::stringstream ss_temp;
+      ss_temp << "(" << index << ")" << static_cast<int>(packet_no);
+      std::string temp_string = ss_temp.str();
+
+      if (encoding == fun::FunEncoding::kJson) {
+        rapidjson::Document msg;
+        msg.SetObject();
+        rapidjson::Value message_node(temp_string.c_str(), msg.GetAllocator());
+        msg.AddMember("message", message_node, msg.GetAllocator());
+
+        // Convert JSON document to string
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        msg.Accept(writer);
+        std::string json_string = buffer.GetString();
+
+        network->SendMessage("echo", json_string);
+      }
+      else if (encoding == fun::FunEncoding::kProtobuf) {
+        FunMessage msg;
+        msg.set_msgtype("pbuf_echo");
+        PbufEchoMessage *echo = msg.MutableExtension(pbuf_echo);
+        echo->set_msg(temp_string.c_str());
+        network->SendMessage(msg);
+      }
+    }
+  };
+
+  network->AddSessionInitiatedCallback([encoding, network,index, &temp_session_id](const std::string &session_id) {
+    temp_session_id = session_id;
+    printf("(%d) init session id = %s\n", index, session_id.c_str());
+  });
+
+  network->AddSessionClosedCallback([index, &is_ok, &temp_session_id]() {
+    printf("(%d) close session id = %s\n", index, temp_session_id.c_str());
+    // is_ok = false;
+  });
+
+  network->AddStoppedAllTransportCallback([index, &is_ok]() {
+    printf("(%d) stop transport\n", index);
+    // is_ok = false;
+  });
+
+  network->AddTransportConnectFailedCallback([index, &is_ok](const fun::TransportProtocol p) {
+    printf("(%d) connect failed\n", index);
+    // is_ok = false;
+  });
+
+  network->AddTransportConnectTimeoutCallback([index, &is_ok](const fun::TransportProtocol p) {
+    printf("(%d) connect timeout\n", index);
+    // is_ok = false;
+  });
+
+  network->AddTransportStartedCallback([index](const fun::TransportProtocol p){
+    printf("(%d) transport started\n", index);
+  });
+
+  network->AddTransportClosedCallback([index](const fun::TransportProtocol p){
+    printf("(%d) transport closed\n", index);
+  });
+
+  network->RegisterHandler("echo", [index, network](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body) {
+    std::string body(v_body.cbegin(), v_body.cend());
+    rapidjson::Document msg_recv;
+    msg_recv.Parse<0>(body.c_str());
+
+    if (msg_recv.HasMember("message")) {
+      printf("(%d) echo - %s\n", index, msg_recv["message"].GetString());
+    }
+  });
+
+  network->RegisterHandler("pbuf_echo", [index, network](const fun::TransportProtocol p, const std::string &type, const std::vector<uint8_t> &v_body) {
+    FunMessage msg_recv;
+    msg_recv.ParseFromArray(v_body.data(), static_cast<int>(v_body.size()));
+    PbufEchoMessage echo_recv = msg_recv.GetExtension(pbuf_echo);
+
+    printf("(%d) echo - %s\n", index, echo_recv.msg().c_str());
+  });
+
+  std::shared_ptr<fun::FunapiTransport> transport;
+  if (protocol == fun::TransportProtocol::kTcp) {
+    transport = fun::FunapiTcpTransport::create(server_ip, static_cast<uint16_t>(server_port), encoding);
+  }
+  else if (protocol == fun::TransportProtocol::kUdp) {
+    transport = fun::FunapiUdpTransport::create(server_ip, static_cast<uint16_t>(server_port), encoding);
+  }
+  else if (protocol == fun::TransportProtocol::kHttp) {
+    transport = fun::FunapiHttpTransport::create(server_ip, static_cast<uint16_t>(server_port), false, encoding);
+  }
+
+  network->AttachTransport(transport);
+  network->Start();
+
+  while (g_bTestRunning) {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    network->Update();
+    if (!temp_session_id.empty()) break;
+  }
+
+  send_echo(10);
+
+  network->Stop();
+
+  send_echo(10);
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  network->Start();
+
+  while (g_bTestRunning) {
     network->Update();
   }
 
@@ -712,7 +874,29 @@ void test_echo(const int index) {
 
 void FunapiTest::TestFunapiNetwork(bool bStart)
 {
-  const int kMaxThread = 32;
+  const int kMaxThread = 1;
+
+  fun::TransportProtocol protocol = fun::TransportProtocol::kTcp;
+
+  fun::FunEncoding encoding = fun::FunEncoding::kNone;
+  if (with_protobuf_) {
+    encoding = fun::FunEncoding::kProtobuf;
+  }
+  else {
+    encoding = fun::FunEncoding::kJson;
+  }
+
+  int server_port = 0;
+  if (encoding == fun::FunEncoding::kJson) {
+    if (protocol == fun::TransportProtocol::kTcp) server_port = 8012;
+    else if (protocol == fun::TransportProtocol::kUdp) server_port = 8013;
+    else if (protocol == fun::TransportProtocol::kHttp) server_port = 8018;
+  }
+  else if (encoding == fun::FunEncoding::kProtobuf) {
+    if (protocol == fun::TransportProtocol::kTcp) server_port = 8022;
+    else if (protocol == fun::TransportProtocol::kUdp) server_port = 8023;
+    else if (protocol == fun::TransportProtocol::kHttp) server_port = 8028;
+  }
 
   static std::vector<std::thread> temp_thread(kMaxThread);
 
@@ -726,7 +910,11 @@ void FunapiTest::TestFunapiNetwork(bool bStart)
   if (bStart) {
     g_bTestRunning = true;
     for (int i = 0; i < kMaxThread; ++i) {
-      temp_thread[i] = std::thread(std::bind(test_echo, i));
+      temp_thread[i] = std::thread([this, i, server_port, protocol, encoding](){
+        // test_echo(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
+        test_session_reliability(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
+      });
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   }
 }

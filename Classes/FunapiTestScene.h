@@ -42,6 +42,9 @@ public:
   void OnTransportConnectFailed (const fun::TransportProtocol protocol);
   void OnTransportConnectTimeout (const fun::TransportProtocol protocol);
 
+  void OnTransportStarted (const fun::TransportProtocol protocol);
+  void OnTransportClosed (const fun::TransportProtocol protocol);
+
   // implement the "static create()" method manually
   CREATE_FUNC(FunapiTest);
 

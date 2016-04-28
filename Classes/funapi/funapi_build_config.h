@@ -9,7 +9,6 @@
 
 #define FUNAPI_COCOS2D
 // #define FUNAPI_UE4
-// #define FUNAPI_STINGRAY
 
 #ifdef FUNAPI_UE4
   #ifdef PLATFORM_WINDOWS
@@ -25,5 +24,7 @@
   #define FUNAPI_COCOS2D_PLATFORM_WINDOWS
   #endif
 #endif
+
+#define DEBUG_LOG
 
 #endif  // SRC_FUNAPI_BUILD_CONFIG_H_

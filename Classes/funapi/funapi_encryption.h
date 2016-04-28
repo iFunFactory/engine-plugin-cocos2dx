@@ -11,13 +11,13 @@ namespace fun {
 
 enum class EncryptionType;
 
-class FunapiEncrytionImpl;
-class FunapiEncrytion : public std::enable_shared_from_this<FunapiEncrytion> {
+class FunapiEncryptionImpl;
+class FunapiEncryption : public std::enable_shared_from_this<FunapiEncryption> {
  public:
   typedef FunapiTransport::HeaderFields HeaderFields;
 
-  FunapiEncrytion();
-  ~FunapiEncrytion();
+  FunapiEncryption();
+  ~FunapiEncryption();
 
   void SetEncryptionType(EncryptionType type);
 
@@ -28,7 +28,7 @@ class FunapiEncrytion : public std::enable_shared_from_this<FunapiEncrytion> {
   void SetHeaderFieldsForHttpRecv (HeaderFields &header_fields);
 
  private:
-  std::shared_ptr<FunapiEncrytionImpl> impl_;
+  std::shared_ptr<FunapiEncryptionImpl> impl_;
 };
 
 }  // namespace fun

@@ -8,7 +8,6 @@
 #include "funapi_utils.h"
 #include "funapi_transport.h"
 #include "funapi_encryption.h"
-#include <stdlib.h>
 
 namespace fun {
 
@@ -19,42 +18,42 @@ enum class EncryptionType : int {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// FunapiEncrytionImpl implementation.
+// FunapiEncryptionImpl implementation.
 
-class FunapiEncrytionImpl : public std::enable_shared_from_this<FunapiEncrytionImpl> {
+class FunapiEncryptionImpl : public std::enable_shared_from_this<FunapiEncryptionImpl> {
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// FunapiEncrytion implementation.
+// FunapiEncryption implementation.
 
-FunapiEncrytion::FunapiEncrytion() {
+FunapiEncryption::FunapiEncryption() {
 }
 
 
-FunapiEncrytion::~FunapiEncrytion() {
+FunapiEncryption::~FunapiEncryption() {
 }
 
 
-void FunapiEncrytion::SetEncryptionType(EncryptionType type) {
+void FunapiEncryption::SetEncryptionType(EncryptionType type) {
 }
 
 
-bool FunapiEncrytion::Encrypt(HeaderFields &header_fields, std::vector<uint8_t> &body) {
+bool FunapiEncryption::Encrypt(HeaderFields &header_fields, std::vector<uint8_t> &body) {
   return true;
 }
 
 
-bool FunapiEncrytion::Decrypt(HeaderFields &header_fields, std::vector<uint8_t> &body) {
+bool FunapiEncryption::Decrypt(HeaderFields &header_fields, std::vector<uint8_t> &body) {
   return true;
 }
 
 
-void FunapiEncrytion::SetHeaderFieldsForHttpSend (HeaderFields &header_fields) {
+void FunapiEncryption::SetHeaderFieldsForHttpSend (HeaderFields &header_fields) {
 }
 
 
-void FunapiEncrytion::SetHeaderFieldsForHttpRecv (HeaderFields &header_fields) {
+void FunapiEncryption::SetHeaderFieldsForHttpRecv (HeaderFields &header_fields) {
 }
 
 }  // namespace fun

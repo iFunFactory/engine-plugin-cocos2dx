@@ -41,10 +41,10 @@ static const char* kCookieResponseHeaderField = "SET-COOKIE";
 typedef sockaddr_in Endpoint;
 typedef std::function<void(void*, const int)> AsyncWebResponseCallback;
 
-enum FunapiTransportState {
+enum class TransportState : int {
   kDisconnected = 0,
   kConnecting,
-  kConnected,
+  kConnected
 };
 
 // Funapi transport protocol
@@ -64,51 +64,15 @@ enum class FunEncoding
   kProtobuf
 };
 
-// Error code
-enum class ErrorCode
-{
-  kNone,
-  kConnectFailed,
-  kSendFailed,
-  kReceiveFailed,
-  kEncryptionFailed,
-  kInvalidEncryption,
-  kUnknownEncryption,
-  kRequestTimeout,
-  kDisconnected,
-  kExceptionError
-};
-
 enum class EncryptionType : int;
 
 class FunapiNetwork;
 class FunapiTransportImpl;
 class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
  public:
-  enum class State : int
-  {
-    kUnknown = 0,
-    kConnecting,
-    kEncryptionHandshaking,
-    kConnected,
-    kWaitForSession,
-    kWaitForAck,
-    kEstablished
-  };
-
-  enum class ConnectState : int
-  {
-    kUnknown = 0,
-    kConnecting,
-    kReconnecting,
-    kRedirecting,
-    kConnected
-  };
-
-  typedef std::map<std::string, std::string> HeaderType;
   typedef std::map<std::string, std::string> HeaderFields;
 
-  typedef std::function<void(const TransportProtocol, const FunEncoding, const HeaderType &, const std::vector<uint8_t> &)> OnReceived;
+  typedef std::function<void(const TransportProtocol, const FunEncoding, const HeaderFields &, const std::vector<uint8_t> &)> TransportReceivedHandler;
 
   // Event handler delegate
   typedef std::function<void(const TransportProtocol protocol)> TransportEventHandler;
@@ -121,43 +85,30 @@ class FunapiTransport : public std::enable_shared_from_this<FunapiTransport> {
   virtual bool IsStarted() const = 0; // Check connection
 
   // Send a message
-  virtual void SendMessage(rapidjson::Document &message, bool is_priority = false) = 0;
-  virtual void SendMessage(FunMessage &message, bool is_priority = false) = 0;
-  virtual void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false) = 0;
+  virtual void SendMessage(rapidjson::Document &message) = 0;
+  virtual void SendMessage(FunMessage &message) = 0;
+  virtual void SendMessage(const char *body, bool use_sent_queue, uint32_t seq, bool priority = false) = 0;
 
   virtual TransportProtocol GetProtocol() const = 0;
   virtual FunEncoding GetEncoding() const = 0;
 
-  virtual void SetNetwork(std::weak_ptr<FunapiNetwork> network) = 0;
   virtual void SetConnectTimeout(time_t timeout) = 0;
 
   virtual void AddStartedCallback(const TransportEventHandler &handler) = 0;
-  virtual void AddStoppedCallback(const TransportEventHandler &handler) = 0;
+  virtual void AddClosedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddConnectFailedCallback(const TransportEventHandler &handler) = 0;
   virtual void AddConnectTimeoutCallback(const TransportEventHandler &handler) = 0;
-
-  virtual void ResetClientPingTimeout() = 0;
-
-  virtual int GetSocket();
-
-  virtual void AddInitSocketCallback(const TransportEventHandler &handler);
-  virtual void AddCloseSocketCallback(const TransportEventHandler &handler);
-
-  virtual void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
-  virtual void Update();
 
   virtual void SetDisableNagle(const bool disable_nagle);
   virtual void SetAutoReconnect(const bool auto_reconnect);
   virtual void SetEnablePing(const bool enable_ping);
+  virtual void SetSequenceNumberValidation(const bool validation);
+  virtual void SetEncryptionType(EncryptionType type) = 0;
 
   virtual void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
-  virtual void SetReceivedHandler(OnReceived handler) = 0;
-
-  virtual bool OnAckReceived(const uint32_t ack) = 0;
-  virtual bool OnSeqReceived(const uint32_t seq) = 0;
-
-  virtual void SetEncryptionType(EncryptionType type) = 0;
-  virtual void SetSequenceNumberValidation(bool validation);
+  virtual void SetReceivedHandler(TransportReceivedHandler handler) = 0;
+  virtual void SetIsReliableSessionHandler(std::function<bool()> handler) = 0;
+  virtual void SetSendAckHandler(std::function<void(const TransportProtocol protocol, const uint32_t seq)> handler);
 };
 
 
@@ -174,43 +125,30 @@ class FunapiTcpTransport : public FunapiTransport {
   bool IsStarted() const; // Check connection
 
   // Send a message
-  void SendMessage(rapidjson::Document &message, bool is_priority = false);
-  void SendMessage(FunMessage &message, bool is_priority = false);
-  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false);
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+  void SendMessage(const char *body, bool use_sent_queue, uint32_t seq, bool priority = false);
 
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
 
-  void SetNetwork(std::weak_ptr<FunapiNetwork> network);
   void SetConnectTimeout(time_t timeout);
 
   void AddStartedCallback(const TransportEventHandler &handler);
-  void AddStoppedCallback(const TransportEventHandler &handler);
+  void AddClosedCallback(const TransportEventHandler &handler);
   void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
   void SetDisableNagle(const bool disable_nagle);
   void SetAutoReconnect(const bool auto_reconnect);
   void SetEnablePing(const bool enable_ping);
-
-  void ResetClientPingTimeout();
-
-  int GetSocket();
-
-  void AddInitSocketCallback(const TransportEventHandler &handler);
-  void AddCloseSocketCallback(const TransportEventHandler &handler);
-
-  void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
-  void Update();
+  void SetSequenceNumberValidation(const bool validation);
+  void SetEncryptionType(EncryptionType type);
 
   void SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler);
-  void SetReceivedHandler(OnReceived handler);
-
-  bool OnAckReceived(const uint32_t ack);
-  bool OnSeqReceived(const uint32_t seq);
-
-  void SetEncryptionType(EncryptionType type);
-  void SetSequenceNumberValidation(bool validation);
+  void SetReceivedHandler(TransportReceivedHandler handler);
+  void SetIsReliableSessionHandler(std::function<bool()> handler);
+  void SetSendAckHandler(std::function<void(const TransportProtocol protocol, const uint32_t seq)> handler);
 
  private:
   std::shared_ptr<FunapiTcpTransportImpl> impl_;
@@ -230,37 +168,25 @@ class FunapiUdpTransport : public FunapiTransport {
   bool IsStarted() const; // Check connection
 
   // Send a message
-  void SendMessage(rapidjson::Document &message, bool is_priority = false);
-  void SendMessage(FunMessage &message, bool is_priority = false);
-  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false);
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+  void SendMessage(const char *body, bool use_sent_queue, uint32_t seq, bool priority = false);
 
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
 
-  void SetNetwork(std::weak_ptr<FunapiNetwork> network);
   void SetConnectTimeout(time_t timeout);
 
   void AddStartedCallback(const TransportEventHandler &handler);
-  void AddStoppedCallback(const TransportEventHandler &handler);
+  void AddClosedCallback(const TransportEventHandler &handler);
   void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  void ResetClientPingTimeout();
-
-  int GetSocket();
-
-  void AddInitSocketCallback(const TransportEventHandler &handler);
-  void AddCloseSocketCallback(const TransportEventHandler &handler);
-
-  void OnSocketSelect(const fd_set rset, const fd_set wset, const fd_set eset);
-  void Update();
-
-  void SetReceivedHandler(OnReceived handler);
-
-  bool OnAckReceived(const uint32_t ack);
-  bool OnSeqReceived(const uint32_t seq);
-
   void SetEncryptionType(EncryptionType type);
+
+  void SetReceivedHandler(TransportReceivedHandler handler);
+  void SetIsReliableSessionHandler(std::function<bool()> handler);
+  void SetSendAckHandler(std::function<void(const TransportProtocol protocol, const uint32_t seq)> handler);
 
  private:
   std::shared_ptr<FunapiUdpTransportImpl> impl_;
@@ -280,32 +206,25 @@ class FunapiHttpTransport : public FunapiTransport {
   bool IsStarted() const; // Check connection
 
   // Send a message
-  void SendMessage(rapidjson::Document &message, bool is_priority = false);
-  void SendMessage(FunMessage &message, bool is_priority = false);
-  void SendMessage(const char *body, bool has_seq, uint32_t seq, bool is_priority = false);
+  void SendMessage(rapidjson::Document &message);
+  void SendMessage(FunMessage &message);
+  void SendMessage(const char *body, bool use_sent_queue, uint32_t seq, bool priority = false);
 
   TransportProtocol GetProtocol() const;
   FunEncoding GetEncoding() const;
 
-  void SetNetwork(std::weak_ptr<FunapiNetwork> network);
   void SetConnectTimeout(time_t timeout);
+  void SetSequenceNumberValidation(const bool validation);
+  void SetEncryptionType(EncryptionType type);
 
   void AddStartedCallback(const TransportEventHandler &handler);
-  void AddStoppedCallback(const TransportEventHandler &handler);
+  void AddClosedCallback(const TransportEventHandler &handler);
   void AddConnectFailedCallback(const TransportEventHandler &handler);
   void AddConnectTimeoutCallback(const TransportEventHandler &handler);
 
-  void ResetClientPingTimeout();
-
-  void Update();
-
-  void SetReceivedHandler(OnReceived handler);
-
-  bool OnAckReceived(const uint32_t ack);
-  bool OnSeqReceived(const uint32_t seq);
-
-  void SetEncryptionType(EncryptionType type);
-  void SetSequenceNumberValidation(bool validation);
+  void SetReceivedHandler(TransportReceivedHandler handler);
+  void SetIsReliableSessionHandler(std::function<bool()> handler);
+  void SetSendAckHandler(std::function<void(const TransportProtocol protocol, const uint32_t seq)> handler);
 
  private:
   std::shared_ptr<FunapiHttpTransportImpl> impl_;
