@@ -83,4 +83,4 @@ $(call import-module,.)
 # _COCOS_LIB_IMPORT_ANDROID_BEGIN
 # _COCOS_LIB_IMPORT_ANDROID_END
 
-$(call import-module,curl/prebuilt/android)
+# $(call import-module,curl/prebuilt/android)
