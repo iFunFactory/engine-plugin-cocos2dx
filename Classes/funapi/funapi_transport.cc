@@ -1254,7 +1254,7 @@ FunapiTcpTransportImpl::FunapiTcpTransportImpl(TransportProtocol protocol,
           OnTransportStarted(TransportProtocol::kTcp);
         }
         else {
-          DebugUtils::Log("failed - tcp connect");
+          DebugUtils::Log("Failed - tcp connect");
           OnTransportConnectFailed(TransportProtocol::kTcp);
 
           ++connect_addr_index_;
@@ -1319,7 +1319,7 @@ void FunapiTcpTransportImpl::Ping() {
 
 void FunapiTcpTransportImpl::CheckConnectTimeout() {
   if (connect_timeout_timer_.IsExpired()) {
-    DebugUtils::Log("failed - tcp connect - timeout");
+    DebugUtils::Log("Failed - tcp connect - timeout");
     OnTransportConnectTimeout(TransportProtocol::kTcp);
 
     if (auto_reconnect_) {
@@ -1477,9 +1477,15 @@ void FunapiTcpTransportImpl::Connect() {
   int rc = connect(fd,
                    reinterpret_cast<const struct sockaddr *>(&endpoint_),
                    sizeof(endpoint_));
-  assert(rc == 0 || (rc < 0 && errno == EINPROGRESS));
-
   DebugUtils::Log("Try to connect to server - %s", inet_ntoa(endpoint.sin_addr));
+
+  if (!(rc == 0 || (rc < 0 && errno == EINPROGRESS))) {
+    DebugUtils::Log("Failed - tcp connect");
+    OnTransportConnectFailed(TransportProtocol::kTcp);
+    update_state_ = UpdateState::kNone;
+    socket_select_state_ = SocketSelectState::kNone;
+    return;
+  }
 
   update_state_ = UpdateState::kCheckConnectTimeout;
 }
