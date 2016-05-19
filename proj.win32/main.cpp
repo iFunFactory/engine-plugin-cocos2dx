@@ -4,6 +4,10 @@
 
 USING_NS_CC;
 
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+#endif
+
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                        HINSTANCE hPrevInstance,
                        LPTSTR    lpCmdLine,
