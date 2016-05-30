@@ -1,5 +1,5 @@
 #include "FunapiTestScene.h"
-#include "ui/UIButton.h"
+#include "ui/CocosGUI.h"
 
 #include "funapi/funapi_network.h"
 #include "funapi/pb/test_messages.pb.h"
@@ -42,148 +42,294 @@ bool FunapiTest::init()
     return false;
   }
 
-  Size visibleSize = Director::getInstance()->getVisibleSize();
-  Vec2 origin = Director::getInstance()->getVisibleOrigin();
-
   /////////////////////////////
   // 2. add a menu items
 
-  const float gap_height = 1.0;
+  Size visibleSize = Director::getInstance()->getVisibleSize();
+  Vec2 visibleOrigin = Director::getInstance()->getVisibleOrigin();
+
   const float button_width = visibleSize.width * 0.5;
-  const float button_height = 25.0;
-  const float center_x = origin.x + (visibleSize.width * 0.5);
+  const float button_height = visibleSize.height * 0.1;
+  const float gap_height = button_height * 0.1;
+  const float center_x = visibleSize.width * 0.5;
 
-  // label : server hostname or ip
-  std::string label_string_server_hostname_or_ip = "[FunapiNetwork] - " + kServerIp;
-  auto label = Label::createWithTTF(label_string_server_hostname_or_ip.c_str(), "arial.ttf", 10);
-  label->setPosition(Vec2(center_x,
-                          origin.y + visibleSize.height - label->getContentSize().height));
-  this->addChild(label, 1);
+  // scroll view
+  cocos2d::ui::ScrollView* scrollView = cocos2d::ui::ScrollView::create();
+  scrollView->setContentSize(visibleSize);
+  scrollView->setPosition(visibleOrigin);
+  this->addChild(scrollView);
 
-  // Create the buttons
-  Button* button_connect_tcp = Button::create("button.png", "buttonHighlighted.png");
-  button_connect_tcp->setScale9Enabled(true);
-  button_connect_tcp->setContentSize(Size(button_width, button_height));
-  button_connect_tcp->setPressedActionEnabled(true);
-  button_connect_tcp->setAnchorPoint(Vec2(0.5, 1.0));
-  button_connect_tcp->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Connect (TCP)");
-    ConnectTcp();
-  });
-  button_connect_tcp->setTitleText("Connect (TCP)");
-  button_connect_tcp->setPosition(Vec2(center_x, label->getPositionY() - label->getContentSize().height - gap_height));
-  this->addChild(button_connect_tcp);
+  // layer
+  // funapi network
+  auto layer_funapi_network = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
+  layer_funapi_network->setAnchorPoint(Vec2(0.0,0.0));
 
-  Button* button_connect_udp = Button::create("button.png", "buttonHighlighted.png");
-  button_connect_udp->setScale9Enabled(true);
-  button_connect_udp->setContentSize(Size(button_width, button_height));
-  button_connect_udp->setPressedActionEnabled(true);
-  button_connect_udp->setAnchorPoint(Vec2(0.5, 1.0));
-  button_connect_udp->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Connect (UDP)");
-    ConnectUdp();
-  });
-  button_connect_udp->setTitleText("Connect (UDP)");
-  button_connect_udp->setPosition(Vec2(center_x, button_connect_tcp->getPositionY() - button_connect_tcp->getContentSize().height - gap_height));
-  this->addChild(button_connect_udp);
-
-  Button* button_connect_http = Button::create("button.png", "buttonHighlighted.png");
-  button_connect_http->setScale9Enabled(true);
-  button_connect_http->setContentSize(Size(button_width, button_height));
-  button_connect_http->setPressedActionEnabled(true);
-  button_connect_http->setAnchorPoint(Vec2(0.5, 1.0));
-  button_connect_http->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Connect (HTTP)");
-    ConnectHttp();
-  });
-  button_connect_http->setTitleText("Connect (HTTP)");
-  button_connect_http->setPosition(Vec2(center_x, button_connect_udp->getPositionY() - button_connect_udp->getContentSize().height - gap_height));
-  this->addChild(button_connect_http);
-
-  Button* button_disconnect = Button::create("button.png", "buttonHighlighted.png");
-  button_disconnect->setScale9Enabled(true);
-  button_disconnect->setContentSize(Size(button_width, button_height));
-  button_disconnect->setPressedActionEnabled(true);
-  button_disconnect->setAnchorPoint(Vec2(0.5, 1.0));
-  button_disconnect->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Disconnect");
-    Disconnect();
-  });
-  button_disconnect->setTitleText("Disconnect");
-  button_disconnect->setPosition(Vec2(center_x, button_connect_http->getPositionY() - button_connect_http->getContentSize().height - gap_height));
-  this->addChild(button_disconnect);
+  float y = gap_height;
 
   Button* button_send_a_message = Button::create("button.png", "buttonHighlighted.png");
   button_send_a_message->setScale9Enabled(true);
   button_send_a_message->setContentSize(Size(button_width, button_height));
   button_send_a_message->setPressedActionEnabled(true);
-  button_send_a_message->setAnchorPoint(Vec2(0.5, 1.0));
+  button_send_a_message->setAnchorPoint(Vec2(0.5, 0.0));
+  button_send_a_message->setPosition(Vec2(center_x, y));
+  button_send_a_message->setTitleText("Send a message");
   button_send_a_message->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Send a message");
+    fun::DebugUtils::Log("(Button)Send a message");
     SendEchoMessage();
   });
-  button_send_a_message->setTitleText("Send a message");
-  button_send_a_message->setPosition(Vec2(center_x, button_disconnect->getPositionY() - button_disconnect->getContentSize().height - gap_height));
-  this->addChild(button_send_a_message);
+  layer_funapi_network->addChild(button_send_a_message);
 
-  // label : multicasting
-  std::string label_string_multicast = "[Multicasting]";
-  auto label_multicast = Label::createWithTTF(label_string_multicast.c_str(), "arial.ttf", 10);
-  label_multicast->setAnchorPoint(Vec2(0.5, 1.0));
-  label_multicast->setPosition(Vec2(center_x, button_send_a_message->getPositionY() - button_send_a_message->getContentSize().height - (button_send_a_message->getContentSize().height*0.5)));
-  this->addChild(label_multicast, 1);
+  y += (button_height + gap_height);
 
-  Button* button_create_multicast = Button::create("button.png", "buttonHighlighted.png");
-  button_create_multicast->setScale9Enabled(true);
-  button_create_multicast->setContentSize(Size(button_width, button_height));
-  button_create_multicast->setPressedActionEnabled(true);
-  button_create_multicast->setAnchorPoint(Vec2(0.5, 1.0));
-  button_create_multicast->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Create 'multicast'");
-    CreateMulticast();
+  Button* button_disconnect = Button::create("button.png", "buttonHighlighted.png");
+  button_disconnect->setScale9Enabled(true);
+  button_disconnect->setContentSize(Size(button_width, button_height));
+  button_disconnect->setPressedActionEnabled(true);
+  button_disconnect->setAnchorPoint(Vec2(0.5, 0.0));
+  button_disconnect->setPosition(Vec2(center_x, y));
+  button_disconnect->setTitleText("Disconnect");
+  button_disconnect->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Disconnect");
+    Disconnect();
   });
-  button_create_multicast->setTitleText("Create 'multicast'");
-  button_create_multicast->setPosition(Vec2(center_x, label_multicast->getPositionY() - label_multicast->getContentSize().height - gap_height));
-  this->addChild(button_create_multicast);
+  layer_funapi_network->addChild(button_disconnect);
 
-  Button* button_join_multicast = Button::create("button.png", "buttonHighlighted.png");
-  button_join_multicast->setScale9Enabled(true);
-  button_join_multicast->setContentSize(Size(button_width, button_height));
-  button_join_multicast->setPressedActionEnabled(true);
-  button_join_multicast->setAnchorPoint(Vec2(0.5, 1.0));
-  button_join_multicast->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Join a channel");
-    JoinMulticastChannel();
-  });
-  button_join_multicast->setTitleText("Join a channel");
-  button_join_multicast->setPosition(Vec2(center_x, button_create_multicast->getPositionY() - button_create_multicast->getContentSize().height - gap_height));
-  this->addChild(button_join_multicast);
+  y += (button_height + gap_height);
 
-  Button* button_send_multicast = Button::create("button.png", "buttonHighlighted.png");
-  button_send_multicast->setScale9Enabled(true);
-  button_send_multicast->setContentSize(Size(button_width, button_height));
-  button_send_multicast->setPressedActionEnabled(true);
-  button_send_multicast->setAnchorPoint(Vec2(0.5, 1.0));
-  button_send_multicast->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Send a message");
-    SendMulticastMessage();
+  Button* button_connect_http = Button::create("button.png", "buttonHighlighted.png");
+  button_connect_http->setScale9Enabled(true);
+  button_connect_http->setContentSize(Size(button_width, button_height));
+  button_connect_http->setPressedActionEnabled(true);
+  button_connect_http->setAnchorPoint(Vec2(0.5, 0.0));
+  button_connect_http->setPosition(Vec2(center_x, y));
+  button_connect_http->setTitleText("Connect (HTTP)");
+  button_connect_http->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Connect (HTTP)");
+    ConnectHttp();
   });
-  button_send_multicast->setTitleText("Send a message");
-  button_send_multicast->setPosition(Vec2(center_x, button_join_multicast->getPositionY() - button_join_multicast->getContentSize().height - gap_height));
-  this->addChild(button_send_multicast);
+  layer_funapi_network->addChild(button_connect_http);
+
+  y += (button_height + gap_height);
+
+  Button* button_connect_udp = Button::create("button.png", "buttonHighlighted.png");
+  button_connect_udp->setScale9Enabled(true);
+  button_connect_udp->setContentSize(Size(button_width, button_height));
+  button_connect_udp->setPressedActionEnabled(true);
+  button_connect_udp->setAnchorPoint(Vec2(0.5, 0.0));
+  button_connect_udp->setPosition(Vec2(center_x, y));
+  button_connect_udp->setTitleText("Connect (UDP)");
+  button_connect_udp->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Connect (UDP)");
+    ConnectUdp();
+  });
+  layer_funapi_network->addChild(button_connect_udp);
+
+  y += (button_height + gap_height);
+
+  Button* button_connect_tcp = Button::create("button.png", "buttonHighlighted.png");
+  button_connect_tcp->setScale9Enabled(true);
+  button_connect_tcp->setContentSize(Size(button_width, button_height));
+  button_connect_tcp->setPressedActionEnabled(true);
+  button_connect_tcp->setAnchorPoint(Vec2(0.5, 0.0));
+  button_connect_tcp->setPosition(Vec2(center_x, y));
+  button_connect_tcp->setTitleText("Connect (TCP)");
+  button_connect_tcp->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Connect (TCP)");
+    ConnectTcp();
+  });
+  layer_funapi_network->addChild(button_connect_tcp);
+
+  y += button_height + (button_height * 0.5);
+
+  // label : server hostname or ip
+  std::string label_string_server_hostname_or_ip = "[FunapiNetwork] - " + kServerIp;
+  auto label_server_hostname_or_ip = Label::createWithTTF(label_string_server_hostname_or_ip.c_str(), "arial.ttf", 10);
+  label_server_hostname_or_ip->setAnchorPoint(Vec2(0.5, 0.5));
+  label_server_hostname_or_ip->setPosition(Vec2(center_x,y));
+  layer_funapi_network->addChild(label_server_hostname_or_ip, 1);
+
+  y += (button_height * 0.5);
+
+  layer_funapi_network->setContentSize(Size(visibleSize.width, y));
+
+  // layer
+  // multicast
+  auto layer_multicast = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
+  layer_multicast->setAnchorPoint(Vec2(0.0,0.0));
+
+  y = gap_height;
 
   Button* button_leave_multicast = Button::create("button.png", "buttonHighlighted.png");
   button_leave_multicast->setScale9Enabled(true);
   button_leave_multicast->setContentSize(Size(button_width, button_height));
   button_leave_multicast->setPressedActionEnabled(true);
-  button_leave_multicast->setAnchorPoint(Vec2(0.5, 1.0));
+  button_leave_multicast->setAnchorPoint(Vec2(0.5, 0.0));
+  button_leave_multicast->setPosition(Vec2(center_x, y));
+  button_leave_multicast->setTitleText("Leave a channel");
   button_leave_multicast->addClickEventListener([this](Ref* sender) {
-    // fun::DebugUtils::Log("Leave a channel");
+    fun::DebugUtils::Log("(Button)Leave a channel");
     LeaveMulticastChannel();
   });
-  button_leave_multicast->setTitleText("Leave a channel");
-  button_leave_multicast->setPosition(Vec2(center_x, button_send_multicast->getPositionY() - button_send_multicast->getContentSize().height - gap_height));
-  this->addChild(button_leave_multicast);
+  layer_multicast->addChild(button_leave_multicast);
+
+  y += (button_height + gap_height);
+
+  Button* button_send_multicast = Button::create("button.png", "buttonHighlighted.png");
+  button_send_multicast->setScale9Enabled(true);
+  button_send_multicast->setContentSize(Size(button_width, button_height));
+  button_send_multicast->setPressedActionEnabled(true);
+  button_send_multicast->setAnchorPoint(Vec2(0.5, 0.0));
+  button_send_multicast->setPosition(Vec2(center_x, y));
+  button_send_multicast->setTitleText("Send a message");
+  button_send_multicast->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Send a message");
+    SendMulticastMessage();
+  });
+  layer_multicast->addChild(button_send_multicast);
+
+  y += (button_height + gap_height);
+
+  Button* button_join_multicast = Button::create("button.png", "buttonHighlighted.png");
+  button_join_multicast->setScale9Enabled(true);
+  button_join_multicast->setContentSize(Size(button_width, button_height));
+  button_join_multicast->setPressedActionEnabled(true);
+  button_join_multicast->setAnchorPoint(Vec2(0.5, 0.0));
+  button_join_multicast->setPosition(Vec2(center_x, y));
+  button_join_multicast->setTitleText("Join a channel");
+  button_join_multicast->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Join a channel");
+    JoinMulticastChannel();
+  });
+  layer_multicast->addChild(button_join_multicast);
+
+  y += (button_height + gap_height);
+
+  Button* button_create_multicast = Button::create("button.png", "buttonHighlighted.png");
+  button_create_multicast->setScale9Enabled(true);
+  button_create_multicast->setContentSize(Size(button_width, button_height));
+  button_create_multicast->setPressedActionEnabled(true);
+  button_create_multicast->setAnchorPoint(Vec2(0.5, 0.0));
+  button_create_multicast->setPosition(Vec2(center_x, y));
+  button_create_multicast->setTitleText("Create 'multicast'");
+  button_create_multicast->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Create 'multicast'");
+    CreateMulticast();
+  });
+  layer_multicast->addChild(button_create_multicast);
+
+  y += button_height + (button_height * 0.5);
+
+  std::string label_string_multicast = "[Multicasting]";
+  auto label_multicast = Label::createWithTTF(label_string_multicast.c_str(), "arial.ttf", 10);
+  label_multicast->setAnchorPoint(Vec2(0.5, 0.5));
+  label_multicast->setPosition(Vec2(center_x, y));
+  layer_multicast->addChild(label_multicast, 1);
+
+  y += (button_height * 0.5);
+
+  layer_multicast->setContentSize(Size(visibleSize.width, y));
+
+  // layer
+  // download
+  auto layer_download = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
+  layer_download->setAnchorPoint(Vec2(0.0,0.0));
+
+  y = gap_height;
+
+  Button* button_download = Button::create("button.png", "buttonHighlighted.png");
+  button_download->setScale9Enabled(true);
+  button_download->setContentSize(Size(button_width, button_height));
+  button_download->setPressedActionEnabled(true);
+  button_download->setAnchorPoint(Vec2(0.5, 0.0));
+  button_download->setPosition(Vec2(center_x, y));
+  button_download->setTitleText("Download");
+  button_download->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Download");
+  });
+  layer_download->addChild(button_download);
+
+  y += button_height + (button_height * 0.5);
+
+  std::string label_string_download = "[Download] - " + kServerIp;
+  auto label_download = Label::createWithTTF(label_string_download.c_str(), "arial.ttf", 10);
+  label_download->setAnchorPoint(Vec2(0.5, 0.5));
+  label_download->setPosition(Vec2(center_x, y));
+  layer_download->addChild(label_download, 1);
+
+  y += (button_height * 0.5);
+
+  layer_download->setContentSize(Size(visibleSize.width, y));
+
+  // layer
+  // test
+  auto layer_test = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
+  layer_test->setAnchorPoint(Vec2(0.0,0.0));
+
+  y = gap_height;
+
+  Button* button_test_stop = Button::create("button.png", "buttonHighlighted.png");
+  button_test_stop->setScale9Enabled(true);
+  button_test_stop->setContentSize(Size(button_width, button_height));
+  button_test_stop->setPressedActionEnabled(true);
+  button_test_stop->setAnchorPoint(Vec2(0.5, 0.0));
+  button_test_stop->setPosition(Vec2(center_x, y));
+  button_test_stop->setTitleText("Test - Stop");
+  button_test_stop->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Test - Stop");
+    TestFunapiNetwork(false);
+  });
+  layer_test->addChild(button_test_stop);
+
+  y += (button_height + gap_height);
+
+  Button* button_test_start = Button::create("button.png", "buttonHighlighted.png");
+  button_test_start->setScale9Enabled(true);
+  button_test_start->setContentSize(Size(button_width, button_height));
+  button_test_start->setPressedActionEnabled(true);
+  button_test_start->setAnchorPoint(Vec2(0.5, 0.0));
+  button_test_start->setPosition(Vec2(center_x, y));
+  button_test_start->setTitleText("Test - Start");
+  button_test_start->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Test - Start");
+    TestFunapiNetwork(true);
+  });
+  layer_test->addChild(button_test_start);
+
+  y += button_height + (button_height * 0.5);
+
+  std::string label_string_test = "[Test] - " + kServerIp;
+  auto label_test = Label::createWithTTF(label_string_test.c_str(), "arial.ttf", 10);
+  label_test->setAnchorPoint(Vec2(0.5, 0.5));
+  label_test->setPosition(Vec2(center_x, y));
+  layer_test->addChild(label_test, 1);
+
+  y += (button_height * 0.5);
+
+  layer_test->setContentSize(Size(visibleSize.width, y));
+
+  // scroll view
+  // layer set position
+  std::vector<LayerColor*> layers;
+  layers.push_back(layer_funapi_network);
+  layers.push_back(layer_multicast);
+  layers.push_back(layer_download);
+  layers.push_back(layer_test);
+
+  y = 0;
+  float scroll_view_height = 0;
+  int count = static_cast<int>(layers.size());
+
+  for (int i=count-1;i>=0;--i) {
+    auto layer = layers[i];
+    layer->setPosition(0,y);
+    scrollView->addChild(layer);
+
+    Size size = layer->getContentSize();
+    scroll_view_height += size.height;
+    y += size.height;
+  }
+
+  scrollView->setInnerContainerSize(Size(scrollView->getContentSize().width, scroll_view_height));
 
   return true;
 }
@@ -911,8 +1057,8 @@ void FunapiTest::TestFunapiNetwork(bool bStart)
     g_bTestRunning = true;
     for (int i = 0; i < kMaxThread; ++i) {
       temp_thread[i] = std::thread([this, i, server_port, protocol, encoding](){
-        // test_echo(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
-        test_session_reliability(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
+        test_echo(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
+        // test_session_reliability(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
       });
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
