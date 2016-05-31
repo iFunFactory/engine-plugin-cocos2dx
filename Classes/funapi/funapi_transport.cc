@@ -274,7 +274,7 @@ class FunapiTransportImpl : public std::enable_shared_from_this<FunapiTransportI
 
   virtual bool EncodeThenSendMessage(std::vector<uint8_t> body) = 0;
   void PushSendQueue(const char* body, bool use_sent_queue, uint32_t seq, bool priority);
-  void Send(bool send_all = false);
+  virtual void Send(bool send_all = false);
 
   bool DecodeMessage(int nRead, std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields);
   bool TryToDecodeHeader(std::vector<uint8_t> &receiving, int &next_decoding_offset, bool &header_decoded, HeaderFields &header_fields);
@@ -1771,6 +1771,7 @@ class FunapiHttpTransportImpl : public FunapiTransportImpl {
   void SetSequenceNumberValidation(const bool validation);
 
  protected:
+  void Send(bool send_all = false);
   bool EncodeThenSendMessage(std::vector<uint8_t> body);
 
  private:
@@ -1850,6 +1851,19 @@ void FunapiHttpTransportImpl::Stop() {
   // DebugUtils::Log("Stopped.");
   // //
 }
+
+
+void FunapiHttpTransportImpl::Send(bool send_all) {
+  if (http_request_processing_) {
+    // log
+    // DebugUtils::Log("http_request_processing_ = true");
+    // //
+  }
+  else {
+    FunapiTransportImpl::Send(send_all);
+  }
+}
+
 
 #ifdef FUNAPI_UE4
 bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
@@ -1944,9 +1958,6 @@ bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
 bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
   if (state_ != TransportState::kConnected) return false;
 
-  if (http_request_processing_)
-    return false;
-
   HeaderFields header_fields_for_send;
   MakeHeaderFields(header_fields_for_send, body);
 
@@ -2029,12 +2040,9 @@ bool FunapiHttpTransportImpl::EncodeThenSendMessage(std::vector<uint8_t> body) {
         Stop();
       }
     }
-
-    http_request_processing_ = false;
   });
 
-  http_request_processing_ = true;
-  cocos2d::network::HttpClient::getInstance()->sendImmediate(request);
+  cocos2d::network::HttpClient::getInstance()->send(request);
   request->release();
 
   return true;
