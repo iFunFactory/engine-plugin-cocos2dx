@@ -594,8 +594,8 @@ void FunapiNetworkImpl::AddTransportClosedCallback(const TransportEventHandler &
 
 
 void FunapiNetworkImpl::OnSessionInitiated(const std::string &session_id) {
-  PushTaskQueue([this]() {
-    on_session_initiated_(session_id_);
+  PushTaskQueue([this, session_id]() {
+    on_session_initiated_(session_id);
   });
 }
 
