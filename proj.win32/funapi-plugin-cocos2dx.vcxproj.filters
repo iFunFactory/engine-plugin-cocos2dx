@@ -13,18 +13,6 @@
     <Filter Include="src\funapi">
       <UniqueIdentifier>{ca658ada-cf6c-4436-bef2-60b89788f551}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\funapi\pb">
-      <UniqueIdentifier>{9480ded2-9581-4659-95ca-1293f5ff46b4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\funapi\pb\management">
-      <UniqueIdentifier>{f0f1e195-ece8-4108-b7c1-fe94f9d7f3c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\funapi\pb\network">
-      <UniqueIdentifier>{fd9eb858-0498-4df2-aee5-284366c543ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\funapi\pb\service">
-      <UniqueIdentifier>{a0e7f12b-2159-4584-988f-ce4878988fc5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\google">
       <UniqueIdentifier>{0b80793a-be1f-454d-99d6-585233277692}</UniqueIdentifier>
     </Filter>
@@ -39,6 +27,15 @@
     </Filter>
     <Filter Include="src\funapi\md5">
       <UniqueIdentifier>{5d9d1eb0-b519-4fb6-8ebe-f91858c99f9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\funapi\management">
+      <UniqueIdentifier>{b31bf54c-b7fc-4fb0-9b39-674c55d62de5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\funapi\network">
+      <UniqueIdentifier>{474b70c9-bb98-4d42-90f2-752f2d989f11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\funapi\service">
+      <UniqueIdentifier>{745aaf91-27a8-4da5-89aa-154da6a5a2b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -56,21 +53,6 @@
     </ClCompile>
     <ClCompile Include="..\Classes\funapi\funapi_transport.cc">
       <Filter>src\funapi</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\pb\test_messages.pb.cc">
-      <Filter>src\funapi\pb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\pb\management\maintenance_message.pb.cc">
-      <Filter>src\funapi\pb\management</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\pb\network\fun_message.pb.cc">
-      <Filter>src\funapi\pb\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\pb\network\ping_message.pb.cc">
-      <Filter>src\funapi\pb\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\pb\service\multicast_message.pb.cc">
-      <Filter>src\funapi\pb\service</Filter>
     </ClCompile>
     <ClCompile Include="..\Classes\google\protobuf\descriptor.cc">
       <Filter>src\google\protobuf</Filter>
@@ -183,6 +165,21 @@
     <ClCompile Include="..\Classes\funapi\funapi_downloader.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\test_messages.pb.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\management\maintenance_message.pb.cc">
+      <Filter>src\funapi\management</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\network\fun_message.pb.cc">
+      <Filter>src\funapi\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\network\ping_message.pb.cc">
+      <Filter>src\funapi\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\service\multicast_message.pb.cc">
+      <Filter>src\funapi\service</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -205,21 +202,6 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_utils.h">
       <Filter>src\funapi</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\pb\test_messages.pb.h">
-      <Filter>src\funapi\pb</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\pb\management\maintenance_message.pb.h">
-      <Filter>src\funapi\pb\management</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\pb\network\fun_message.pb.h">
-      <Filter>src\funapi\pb\network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\pb\network\ping_message.pb.h">
-      <Filter>src\funapi\pb\network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\pb\service\multicast_message.pb.h">
-      <Filter>src\funapi\pb\service</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\google\config.h">
       <Filter>src\google</Filter>
@@ -400,6 +382,21 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_downloader.h">
       <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\test_messages.pb.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\management\maintenance_message.pb.h">
+      <Filter>src\funapi\management</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\network\fun_message.pb.h">
+      <Filter>src\funapi\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\network\ping_message.pb.h">
+      <Filter>src\funapi\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\service\multicast_message.pb.h">
+      <Filter>src\funapi\service</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

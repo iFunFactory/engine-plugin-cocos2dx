@@ -151,12 +151,11 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_network.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_transport.cc" />
+    <ClCompile Include="..\Classes\funapi\management\maintenance_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\md5\md5.cc" />
-    <ClCompile Include="..\Classes\funapi\pb\management\maintenance_message.pb.cc" />
-    <ClCompile Include="..\Classes\funapi\pb\network\fun_message.pb.cc" />
-    <ClCompile Include="..\Classes\funapi\pb\network\ping_message.pb.cc" />
-    <ClCompile Include="..\Classes\funapi\pb\service\multicast_message.pb.cc" />
-    <ClCompile Include="..\Classes\funapi\pb\test_messages.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\network\fun_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\network\ping_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\service\multicast_message.pb.cc" />
     <ClCompile Include="..\Classes\google\protobuf\descriptor.cc" />
     <ClCompile Include="..\Classes\google\protobuf\descriptor.pb.cc" />
     <ClCompile Include="..\Classes\google\protobuf\descriptor_database.cc" />
@@ -190,6 +189,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\google\protobuf\unknown_field_set.cc" />
     <ClCompile Include="..\Classes\google\protobuf\wire_format.cc" />
     <ClCompile Include="..\Classes\google\protobuf\wire_format_lite.cc" />
+    <ClCompile Include="..\Classes\test_messages.pb.cc" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -203,12 +203,11 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
     <ClInclude Include="..\Classes\funapi\funapi_transport.h" />
     <ClInclude Include="..\Classes\funapi\funapi_utils.h" />
+    <ClInclude Include="..\Classes\funapi\management\maintenance_message.pb.h" />
     <ClInclude Include="..\Classes\funapi\md5\md5.h" />
-    <ClInclude Include="..\Classes\funapi\pb\management\maintenance_message.pb.h" />
-    <ClInclude Include="..\Classes\funapi\pb\network\fun_message.pb.h" />
-    <ClInclude Include="..\Classes\funapi\pb\network\ping_message.pb.h" />
-    <ClInclude Include="..\Classes\funapi\pb\service\multicast_message.pb.h" />
-    <ClInclude Include="..\Classes\funapi\pb\test_messages.pb.h" />
+    <ClInclude Include="..\Classes\funapi\network\fun_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\network\ping_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\service\multicast_message.pb.h" />
     <ClInclude Include="..\Classes\google\config.h" />
     <ClInclude Include="..\Classes\google\protobuf\descriptor.h" />
     <ClInclude Include="..\Classes\google\protobuf\descriptor.pb.h" />
@@ -264,6 +263,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\google\protobuf\wire_format.h" />
     <ClInclude Include="..\Classes\google\protobuf\wire_format_lite.h" />
     <ClInclude Include="..\Classes\google\protobuf\wire_format_lite_inl.h" />
+    <ClInclude Include="..\Classes\test_messages.pb.h" />
     <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>

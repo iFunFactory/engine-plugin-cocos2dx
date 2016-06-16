@@ -4,7 +4,7 @@
 // must not be used, disclosed, copied, or distributed without the prior
 // consent of iFunFactory Inc.
 
-#include "pb/network/ping_message.pb.h"
+#include "network/ping_message.pb.h"
 #include "funapi_plugin.h"
 #include "funapi_utils.h"
 #include "funapi_network.h"

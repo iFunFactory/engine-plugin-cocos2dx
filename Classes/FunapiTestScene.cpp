@@ -2,9 +2,9 @@
 #include "ui/CocosGUI.h"
 
 #include "funapi/funapi_network.h"
-#include "funapi/pb/test_messages.pb.h"
-#include "funapi/pb/management/maintenance_message.pb.h"
-#include "funapi/pb/service/multicast_message.pb.h"
+#include "test_messages.pb.h"
+#include "funapi/management/maintenance_message.pb.h"
+#include "funapi/service/multicast_message.pb.h"
 #include "funapi/funapi_utils.h"
 
 #include "json/writer.h"
