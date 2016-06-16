@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "funapi/funapi_network.h"
 #include "funapi/funapi_multicasting.h"
+#include "funapi/funapi_downloader.h"
 
 class FunapiTest : public cocos2d::Layer
 {
@@ -29,6 +30,9 @@ public:
 
   //
   bool IsConnected();
+
+  //
+  void DownloaderTest();
 
   // callback
   void OnSessionInitiated(const std::string &session_id);
@@ -68,6 +72,13 @@ private:
   void OnMulticastChannelSignalle(const std::string &channel_id, const std::string &sender, const std::vector<uint8_t> &v_body);
 
   void TestFunapiNetwork(bool bStart);
+
+  // Please change this address for test.
+  const std::string kDownloadServerIp = "127.0.0.1";
+  const int kDownloadServerPort = 8020;
+
+  std::shared_ptr<fun::FunapiHttpDownloader> downloader_ = nullptr;
+  fun::DownloadResult code_ = fun::DownloadResult::NONE;
 };
 
 #endif // __FUNAPI_TEST_SCENE_H__

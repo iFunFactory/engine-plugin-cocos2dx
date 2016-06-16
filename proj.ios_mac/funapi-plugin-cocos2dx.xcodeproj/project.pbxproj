@@ -58,6 +58,8 @@
 		D44C6210132DFF4E0009C878 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620F132DFF4E0009C878 /* AudioToolbox.framework */; };
 		D6247EAD1CAD18D500D82AFA /* funapi_encryption.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62541461C9920DA008B9237 /* funapi_encryption.cc */; };
 		D62541481C9920DA008B9237 /* funapi_encryption.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62541461C9920DA008B9237 /* funapi_encryption.cc */; };
+		D62C04C41D000659000B627F /* funapi_downloader.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62C04C21D000659000B627F /* funapi_downloader.cc */; };
+		D62C04C51D000666000B627F /* funapi_downloader.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62C04C21D000659000B627F /* funapi_downloader.cc */; };
 		D631CC441C58028600C07031 /* funapi_multicasting.cc in Sources */ = {isa = PBXBuildFile; fileRef = D631CC421C58028600C07031 /* funapi_multicasting.cc */; };
 		D647CBB41C0844B2008DC67E /* descriptor.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB11C0844B2008DC67E /* descriptor.cc */; };
 		D647CBB51C0844B2008DC67E /* descriptor.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB11C0844B2008DC67E /* descriptor.cc */; };
@@ -142,6 +144,8 @@
 		D647CC891C085860008DC67E /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC7B1C085860008DC67E /* test_messages.pb.cc */; };
 		D647CC8A1C085860008DC67E /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC7B1C085860008DC67E /* test_messages.pb.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
+		D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6DF6AA51D0E47C100656A79 /* md5.cc */; };
+		D6DF6ABD1D0EA11F00656A79 /* md5.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6DF6AA51D0E47C100656A79 /* md5.cc */; };
 		D6E925761C60876700E16775 /* funapi_multicasting.cc in Sources */ = {isa = PBXBuildFile; fileRef = D631CC421C58028600C07031 /* funapi_multicasting.cc */; };
 		D6EC2BA31C069BB600F9FF88 /* arial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6EC2BA21C06990000F9FF88 /* arial.ttf */; };
 		D6EC2BA41C069F9F00F9FF88 /* arial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D6EC2BA21C06990000F9FF88 /* arial.ttf */; };
@@ -239,8 +243,11 @@
 		D44C620F132DFF4E0009C878 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		D62541461C9920DA008B9237 /* funapi_encryption.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_encryption.cc; sourceTree = "<group>"; };
 		D62541471C9920DA008B9237 /* funapi_encryption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_encryption.h; sourceTree = "<group>"; };
+		D62C04C21D000659000B627F /* funapi_downloader.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_downloader.cc; sourceTree = "<group>"; };
+		D62C04C31D000659000B627F /* funapi_downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_downloader.h; sourceTree = "<group>"; };
 		D631CC421C58028600C07031 /* funapi_multicasting.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_multicasting.cc; sourceTree = "<group>"; };
 		D631CC431C58028600C07031 /* funapi_multicasting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_multicasting.h; sourceTree = "<group>"; };
+		D63FB5A41D0A524C000A40CB /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = md5/md5.h; sourceTree = "<group>"; };
 		D647CAB11C0844B2008DC67E /* descriptor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = descriptor.cc; sourceTree = "<group>"; };
 		D647CAB21C0844B2008DC67E /* descriptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = descriptor.h; sourceTree = "<group>"; };
 		D647CAB31C0844B2008DC67E /* descriptor.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = descriptor.pb.cc; sourceTree = "<group>"; };
@@ -351,6 +358,7 @@
 		D6B05CF41C0BEB27008B3A80 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		D6B05CF51C0BEB27008B3A80 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/ios/libssl.a; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		D6DF6AA51D0E47C100656A79 /* md5.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5.cc; path = md5/md5.cc; sourceTree = "<group>"; };
 		D6EC2BA21C06990000F9FF88 /* arial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = arial.ttf; sourceTree = "<group>"; };
 		D6EF18491C0599CF00DB4A80 /* button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button.png; sourceTree = "<group>"; };
 		D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = buttonHighlighted.png; sourceTree = "<group>"; };
@@ -549,6 +557,15 @@
 			path = ios;
 			sourceTree = SOURCE_ROOT;
 		};
+		D63FB5A21D0A523F000A40CB /* md5 */ = {
+			isa = PBXGroup;
+			children = (
+				D6DF6AA51D0E47C100656A79 /* md5.cc */,
+				D63FB5A41D0A524C000A40CB /* md5.h */,
+			);
+			name = md5;
+			sourceTree = "<group>";
+		};
 		D647CA4A1C0844B2008DC67E /* google */ = {
 			isa = PBXGroup;
 			children = (
@@ -672,6 +689,9 @@
 		D647CC681C085860008DC67E /* funapi */ = {
 			isa = PBXGroup;
 			children = (
+				D63FB5A21D0A523F000A40CB /* md5 */,
+				D62C04C21D000659000B627F /* funapi_downloader.cc */,
+				D62C04C31D000659000B627F /* funapi_downloader.h */,
 				D62541461C9920DA008B9237 /* funapi_encryption.cc */,
 				D62541471C9920DA008B9237 /* funapi_encryption.h */,
 				D631CC421C58028600C07031 /* funapi_multicasting.cc */,
@@ -882,6 +902,7 @@
 				D647CBFE1C0844B2008DC67E /* atomicops_internals_x86_gcc.cc in Sources */,
 				D631CC441C58028600C07031 /* funapi_multicasting.cc in Sources */,
 				D647CBBA1C0844B2008DC67E /* descriptor_database.cc in Sources */,
+				D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */,
 				D647CBE21C0844B2008DC67E /* zero_copy_stream.cc in Sources */,
 				D647CC7D1C085860008DC67E /* funapi_network.cc in Sources */,
 				D647CBEC1C0844B2008DC67E /* message.cc in Sources */,
@@ -909,6 +930,7 @@
 				D647CBB61C0844B2008DC67E /* descriptor.pb.cc in Sources */,
 				D647CBC01C0844B2008DC67E /* dynamic_message.cc in Sources */,
 				D647CC3C1C0844B2008DC67E /* text_format.cc in Sources */,
+				D62C04C41D000659000B627F /* funapi_downloader.cc in Sources */,
 				D647CBD01C0844B2008DC67E /* coded_stream.cc in Sources */,
 				D647CBEE1C0844B2008DC67E /* message_lite.cc in Sources */,
 				D647CC811C085860008DC67E /* maintenance_message.pb.cc in Sources */,
@@ -926,6 +948,7 @@
 				D647CC5D1C0844B2008DC67E /* unknown_field_set.cc in Sources */,
 				D647CC031C0844B2008DC67E /* common.cc in Sources */,
 				D647CBCB1C0844B2008DC67E /* generated_message_reflection.cc in Sources */,
+				D6DF6ABD1D0EA11F00656A79 /* md5.cc in Sources */,
 				D6E925761C60876700E16775 /* funapi_multicasting.cc in Sources */,
 				D647CBFF1C0844B2008DC67E /* atomicops_internals_x86_gcc.cc in Sources */,
 				D647CBF31C0844B2008DC67E /* reflection_ops.cc in Sources */,
@@ -943,6 +966,7 @@
 				D647CC821C085860008DC67E /* maintenance_message.pb.cc in Sources */,
 				D647CC841C085860008DC67E /* fun_message.pb.cc in Sources */,
 				D6247EAD1CAD18D500D82AFA /* funapi_encryption.cc in Sources */,
+				D62C04C51D000666000B627F /* funapi_downloader.cc in Sources */,
 				D647CBBB1C0844B2008DC67E /* descriptor_database.cc in Sources */,
 				D647CC7E1C085860008DC67E /* funapi_network.cc in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,

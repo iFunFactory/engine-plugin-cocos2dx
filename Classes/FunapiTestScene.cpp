@@ -245,12 +245,13 @@ bool FunapiTest::init()
   button_download->setTitleText("Download");
   button_download->addClickEventListener([this](Ref* sender) {
     fun::DebugUtils::Log("(Button)Download");
+    DownloaderTest();
   });
   layer_download->addChild(button_download);
 
   y += button_height + (button_height * 0.5);
 
-  std::string label_string_download = "[Download] - " + kServerIp;
+  std::string label_string_download = "[Download] - " + kDownloadServerIp;
   auto label_download = Label::createWithTTF(label_string_download.c_str(), "arial.ttf", 10);
   label_download->setAnchorPoint(Vec2(0.5, 0.5));
   label_download->setPosition(Vec2(center_x, y));
@@ -353,6 +354,16 @@ void FunapiTest::update(float delta)
   if (network_)
   {
     network_->Update();
+  }
+
+  if (downloader_)
+  {
+    downloader_->Update();
+
+    if (code_ != fun::DownloadResult::NONE) {
+      code_ = fun::DownloadResult::NONE;
+      downloader_ = nullptr;
+    }
   }
 }
 
@@ -723,6 +734,37 @@ void FunapiTest::OnMulticastChannelSignalle(const std::string &channel_id, const
     fun::DebugUtils::Log("channel_id=%s, sender=%s, message=%s", channel_id.c_str(), sender.c_str(), message.c_str());
   }
 }
+
+
+void FunapiTest::DownloaderTest()
+{
+  if (!downloader_) {
+    downloader_ = std::make_shared<fun::FunapiHttpDownloader>();
+
+    downloader_->AddVerifyCallback([this](const std::string &path) {
+      fun::DebugUtils::Log("Check file - %s", path.c_str());
+    });
+    downloader_->AddReadyCallback([this](int total_count, uint64_t total_size) {
+      downloader_->StartDownload();
+    });
+    downloader_->AddUpdateCallback([this](const std::string &path, uint64_t bytes_received, uint64_t total_bytes, int percentage) {
+      fun::DebugUtils::Log("Downloading - path:%s / received:%llu / total:%llu / %d", path.c_str(), bytes_received, total_bytes, percentage);
+    });
+    downloader_->AddFinishedCallback([this](fun::DownloadResult code) {
+      fun::DebugUtils::Log("Downloader Finished - %d", code);
+      code_ = code;
+    });
+
+    std::stringstream ss_temp;
+    ss_temp << "http://" << kDownloadServerIp << ":" << kDownloadServerPort;
+    std::string download_url = ss_temp.str();
+
+    std::string target_path = fun::FunapiUtil::GetWritablePath();
+
+    downloader_->GetDownloadList(download_url, target_path);
+  }
+}
+
 
 static bool g_bTestRunning = true;
 

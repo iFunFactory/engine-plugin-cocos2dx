@@ -37,6 +37,9 @@
     <Filter Include="src\google\protobuf\stubs">
       <UniqueIdentifier>{caf891f2-9388-4726-9343-71747591ce4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\funapi\md5">
+      <UniqueIdentifier>{5d9d1eb0-b519-4fb6-8ebe-f91858c99f9d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -172,6 +175,12 @@
       <Filter>src\funapi</Filter>
     </ClCompile>
     <ClCompile Include="..\Classes\funapi\funapi_encryption.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\md5\md5.cc">
+      <Filter>src\funapi\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_downloader.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
   </ItemGroup>
@@ -384,6 +393,12 @@
       <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_encryption.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\md5\md5.h">
+      <Filter>src\funapi\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_downloader.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>
