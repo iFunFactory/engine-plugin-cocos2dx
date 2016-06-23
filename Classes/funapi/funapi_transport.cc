@@ -1728,7 +1728,7 @@ void FunapiUdpTransportImpl::Recv() {
     reinterpret_cast<char*>(receiving_vector.data()),
     receiving_vector.size(), 0, addrinfo_res_->ai_addr,
     (&addrinfo_res_->ai_addrlen)));
-#endif // FUNAPI_COCOS2D_PLATFORM_WINDOWS
+#endif // FUNAPI_PLATFORM_WINDOWS
 
   // FUNAPI_LOG("nRead = %d", nRead);
 
