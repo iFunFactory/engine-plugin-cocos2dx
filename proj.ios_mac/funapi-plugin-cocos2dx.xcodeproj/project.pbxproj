@@ -889,7 +889,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "git rev-list --count HEAD > ../Classes/funapi/version.txt";
+			shellScript = "date > ../Classes/funapi/version.txt";
 		};
 		D670805D1D1A1F1E000AC043 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -902,7 +902,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "git rev-list --count HEAD > ../Classes/funapi/version.txt";
+			shellScript = "date > ../Classes/funapi/version.txt";
 		};
 /* End PBXShellScriptBuildPhase section */
 
