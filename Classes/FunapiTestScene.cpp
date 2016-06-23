@@ -159,6 +159,21 @@ bool FunapiTest::init()
 
   y = gap_height;
 
+  Button* button_request_multicast_list = Button::create("button.png", "buttonHighlighted.png");
+  button_request_multicast_list->setScale9Enabled(true);
+  button_request_multicast_list->setContentSize(Size(button_width, button_height));
+  button_request_multicast_list->setPressedActionEnabled(true);
+  button_request_multicast_list->setAnchorPoint(Vec2(0.5, 0.0));
+  button_request_multicast_list->setPosition(Vec2(center_x, y));
+  button_request_multicast_list->setTitleText("Request list");
+  button_request_multicast_list->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Request channel list");
+    RequestMulticastChannelList();
+  });
+  layer_multicast->addChild(button_request_multicast_list);
+
+  y += (button_height + gap_height);
+
   Button* button_leave_multicast = Button::create("button.png", "buttonHighlighted.png");
   button_leave_multicast->setScale9Enabled(true);
   button_leave_multicast->setContentSize(Size(button_width, button_height));
@@ -640,6 +655,13 @@ void FunapiTest::CreateMulticast()
         // EC_ALREADY_JOINED = 1,
         // EC_ALREADY_LEFT,
         // EC_FULL_MEMBER
+        // EC_CLOSED
+      });
+      multicast_->AddChannelListCallback([](const std::map<std::string, int> &cl){
+        // fun::DebugUtils::Log("[channel list]");
+        for (auto i : cl) {
+          fun::DebugUtils::Log("%s - %d", i.first.c_str(), i.second);
+        }
       });
 
       return;
@@ -712,6 +734,16 @@ void FunapiTest::LeaveMulticastChannel()
     if (multicast_->IsConnected() && multicast_->IsInChannel(kMulticastTestChannel)) {
       multicast_->LeaveChannel(kMulticastTestChannel);
       multicast_ = nullptr;
+    }
+  }
+}
+
+void FunapiTest::RequestMulticastChannelList()
+{
+  fun::DebugUtils::Log("RequestMulticastChannelList");
+  if (multicast_) {
+    if (multicast_->IsConnected()) {
+      multicast_->RequestChannelList();
     }
   }
 }

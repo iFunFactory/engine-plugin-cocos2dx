@@ -19,6 +19,7 @@ class FunapiMulticastClient : public std::enable_shared_from_this<FunapiMulticas
   typedef std::function<void(const std::string &, const std::string &)> ChannelNotify;
   typedef std::function<void(const std::string &, const std::string &, const std::vector<uint8_t> &)> ChannelMessage;
   typedef std::function<void(const int)> ErrorNotify;
+  typedef std::function<void(const std::map<std::string, int> &)> ChannelListNotify;
 
   FunapiMulticastClient(std::shared_ptr<FunapiNetwork> network, FunEncoding encoding);
   ~FunapiMulticastClient();
@@ -29,6 +30,7 @@ class FunapiMulticastClient : public std::enable_shared_from_this<FunapiMulticas
   void AddJoinedCallback(const ChannelNotify &handler);
   void AddLeftCallback(const ChannelNotify &handler);
   void AddErrorCallback(const ErrorNotify &handler);
+  void AddChannelListCallback(const ChannelListNotify &handler);
 
   bool IsConnected() const;
   bool IsInChannel(const std::string &channel_id) const;
@@ -39,6 +41,8 @@ class FunapiMulticastClient : public std::enable_shared_from_this<FunapiMulticas
 
   bool SendToChannel(FunMessage &msg);
   bool SendToChannel(std::string &json_string);
+
+  bool RequestChannelList();
 
  private:
   std::shared_ptr<FunapiMulticastClientImpl> impl_;

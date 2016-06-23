@@ -27,6 +27,7 @@ public:
   void JoinMulticastChannel();
   void SendMulticastMessage();
   void LeaveMulticastChannel();
+  void RequestMulticastChannelList();
 
   //
   bool IsConnected();

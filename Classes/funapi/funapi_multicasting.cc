@@ -17,6 +17,7 @@ static const char* kSender = "_sender";
 static const char* kJoin = "_join";
 static const char* kLeave = "_leave";
 static const char* kErrorCode = "_error_code";
+static const char* kChannelListId = "_channels";
 
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiMulticastClientImpl implementation.
@@ -26,6 +27,7 @@ class FunapiMulticastClientImpl : public std::enable_shared_from_this<FunapiMult
   typedef FunapiMulticastClient::ChannelNotify ChannelNotify;
   typedef FunapiMulticastClient::ChannelMessage ChannelMessage;
   typedef FunapiMulticastClient::ErrorNotify ErrorNotify;
+  typedef FunapiMulticastClient::ChannelListNotify ChannelListNotify;
 
   FunapiMulticastClientImpl(std::shared_ptr<FunapiNetwork> network, FunEncoding encoding);
   ~FunapiMulticastClientImpl();
@@ -46,8 +48,11 @@ class FunapiMulticastClientImpl : public std::enable_shared_from_this<FunapiMult
   void AddJoinedCallback(const ChannelNotify &handler);
   void AddLeftCallback(const ChannelNotify &handler);
   void AddErrorCallback(const ErrorNotify &handler);
+  void AddChannelListCallback(const ChannelListNotify &handler);
 
   void OnReceived(const fun::TransportProtocol protocol, const std::string &type, const std::vector<uint8_t> &v_body);
+
+  bool RequestChannelList();
 
  private:
   std::shared_ptr<fun::FunapiNetwork> network_ = nullptr;
@@ -58,10 +63,15 @@ class FunapiMulticastClientImpl : public std::enable_shared_from_this<FunapiMult
   FunapiEvent<ChannelNotify> on_joined_;
   FunapiEvent<ChannelNotify> on_left_;
   FunapiEvent<ErrorNotify> on_error_;
+  FunapiEvent<ChannelListNotify> on_channel_list_;
 
   void OnJoined(const std::string &channel_id, const std::string &sender);
   void OnLeft(const std::string &channel_id, const std::string &sender);
   void OnError(int error);
+
+  void OnChannelList(const rapidjson::Document &msg);
+  void OnChannelList(FunMulticastMessage *msg);
+  void OnChannelList(const std::map<std::string, int> &cl);
 
   std::map<std::string, ChannelMessage> channels_;
 
@@ -105,6 +115,11 @@ void FunapiMulticastClientImpl::AddErrorCallback(const ErrorNotify &handler) {
 }
 
 
+void FunapiMulticastClientImpl::AddChannelListCallback(const ChannelListNotify &handler) {
+  on_channel_list_ += handler;
+}
+
+
 void FunapiMulticastClientImpl::OnJoined(const std::string &channel_id, const std::string &sender) {
   on_joined_(channel_id, sender);
 }
@@ -117,6 +132,38 @@ void FunapiMulticastClientImpl::OnLeft(const std::string &channel_id, const std:
 
 void FunapiMulticastClientImpl::OnError(const int error) {
   on_error_(error);
+}
+
+
+void FunapiMulticastClientImpl::OnChannelList(const std::map<std::string, int> &cl) {
+  on_channel_list_(cl);
+}
+
+
+void FunapiMulticastClientImpl::OnChannelList(FunMulticastMessage *msg) {
+  std::map<std::string, int> cl;
+
+  for (int i=0;i<msg->channels_size();++i) {
+    cl[msg->channels(i).channel_name()] = msg->channels(i).num_members();
+  }
+
+  OnChannelList(cl);
+}
+
+
+void FunapiMulticastClientImpl::OnChannelList(const rapidjson::Document &msg) {
+  const rapidjson::Value &d = msg[kChannelListId];
+
+  std::map<std::string, int> cl;
+
+  for (int i=0;i<d.Size();++i) {
+    const rapidjson::Value &v = d[i];
+    if (v.HasMember("_name") && v.HasMember("_members")) {
+      cl[v["_name"].GetString()] = v["_members"].GetInt();
+    }
+  }
+
+  OnChannelList(cl);
 }
 
 
@@ -333,7 +380,14 @@ void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol
     rapidjson::Document msg;
     msg.Parse<0>(reinterpret_cast<char*>(const_cast<uint8_t*>(v_body.data())));
 
-    channel_id = msg[kChannelId].GetString();
+    if (msg.HasMember(kChannelListId)) {
+      OnChannelList(msg);
+      return;
+    }
+
+    if (msg.HasMember(kChannelId)) {
+      channel_id = msg[kChannelId].GetString();
+    }
 
     if (msg.HasMember(kSender)) {
       sender = msg[kSender].GetString();
@@ -375,6 +429,11 @@ void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol
     if (mcast_msg->has_leave()) {
       leave = mcast_msg->leave();
     }
+
+    if (channel_id.length() == 0 && sender.length() == 0) {
+      OnChannelList(mcast_msg);
+      return;
+    }
   }
 
   if (error_code != 0) {
@@ -407,6 +466,37 @@ void FunapiMulticastClientImpl::OnReceived(const fun::TransportProtocol protocol
   else {
     channels_[channel_id](channel_id, sender, v_body);
   }
+}
+
+
+bool FunapiMulticastClientImpl::RequestChannelList() {
+  if (encoding_ == FunEncoding::kJson) {
+    rapidjson::Document msg;
+    msg.SetObject();
+
+    rapidjson::Value sender_node(sender_.c_str(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef(kSender), sender_node, msg.GetAllocator());
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    network_->SendMessage(kMulticastMsgType, json_string);
+  }
+
+  if (encoding_ == FunEncoding::kProtobuf) {
+    FunMessage msg;
+    msg.set_msgtype(kMulticastMsgType);
+
+    FunMulticastMessage *mcast_msg = msg.MutableExtension(multicast);
+    mcast_msg->set_sender(sender_.c_str());
+
+    network_->SendMessage(msg);
+  }
+
+  return true;
 }
 
 
@@ -447,6 +537,11 @@ void FunapiMulticastClient::AddErrorCallback(const ErrorNotify &handler) {
 }
 
 
+void FunapiMulticastClient::AddChannelListCallback(const ChannelListNotify &handler) {
+  impl_->AddChannelListCallback(handler);
+}
+
+
 bool FunapiMulticastClient::IsConnected() const {
   return impl_->IsConnected();
 }
@@ -479,6 +574,11 @@ bool FunapiMulticastClient::SendToChannel(FunMessage &msg) {
 
 bool FunapiMulticastClient::SendToChannel(std::string &json_string) {
   return impl_->SendToChannel(json_string);
+}
+
+
+bool FunapiMulticastClient::RequestChannelList() {
+  return impl_->RequestChannelList();
 }
 
 }  // namespace fun

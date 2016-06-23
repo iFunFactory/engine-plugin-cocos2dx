@@ -15,7 +15,7 @@ namespace fun {
 enum class FunapiVersion : int
 {
   kProtocolVersion = 1,
-  kPluginVersion = 6,
+  kPluginVersion = 7,
 };
 
 class FunapiNetworkImpl;
