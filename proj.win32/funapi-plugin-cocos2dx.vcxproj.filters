@@ -180,6 +180,9 @@
     <ClCompile Include="..\Classes\funapi\service\multicast_message.pb.cc">
       <Filter>src\funapi\service</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_session.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -397,6 +400,12 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\service\multicast_message.pb.h">
       <Filter>src\funapi\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_session.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_version.h">
+      <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

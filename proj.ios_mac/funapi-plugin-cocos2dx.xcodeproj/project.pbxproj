@@ -56,6 +56,7 @@
 		D44C620C132DFF330009C878 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620B132DFF330009C878 /* OpenAL.framework */; };
 		D44C620E132DFF430009C878 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620D132DFF430009C878 /* AVFoundation.framework */; };
 		D44C6210132DFF4E0009C878 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620F132DFF4E0009C878 /* AudioToolbox.framework */; };
+		D60AC1ED1D2CD5EB0043697C /* build_date.txt in Resources */ = {isa = PBXBuildFile; fileRef = D60AC1EC1D2CD5EB0043697C /* build_date.txt */; };
 		D6183A841D1274F400512F35 /* maintenance_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A821D1274F400512F35 /* maintenance_message.pb.cc */; };
 		D6183A891D1274FC00512F35 /* fun_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A851D1274FC00512F35 /* fun_message.pb.cc */; };
 		D6183A8A1D1274FC00512F35 /* ping_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A871D1274FC00512F35 /* ping_message.pb.cc */; };
@@ -144,6 +145,7 @@
 		D647CC7F1C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D647CC801C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
+		D6D171BA1D1CFDD5009A0E4C /* funapi_session.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */; };
 		D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6DF6AA51D0E47C100656A79 /* md5.cc */; };
 		D6DF6ABD1D0EA11F00656A79 /* md5.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6DF6AA51D0E47C100656A79 /* md5.cc */; };
 		D6E925761C60876700E16775 /* funapi_multicasting.cc in Sources */ = {isa = PBXBuildFile; fileRef = D631CC421C58028600C07031 /* funapi_multicasting.cc */; };
@@ -153,6 +155,7 @@
 		D6EC2BA61C069F9F00F9FF88 /* buttonHighlighted.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */; };
 		D6EF184B1C0599CF00DB4A80 /* button.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF18491C0599CF00DB4A80 /* button.png */; };
 		D6EF184C1C0599CF00DB4A80 /* buttonHighlighted.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */; };
+		D6FF499D1D20B48900E5019D /* funapi_session.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */; };
 		ED545A7C1B68A1F400C3958E /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED545A7B1B68A1F400C3958E /* libiconv.dylib */; };
 		ED545A7E1B68A1FA00C3958E /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED545A7D1B68A1FA00C3958E /* libiconv.dylib */; };
 /* End PBXBuildFile section */
@@ -241,6 +244,7 @@
 		D44C620B132DFF330009C878 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		D44C620D132DFF430009C878 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		D44C620F132DFF4E0009C878 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		D60AC1EC1D2CD5EB0043697C /* build_date.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build_date.txt; sourceTree = "<group>"; };
 		D6183A821D1274F400512F35 /* maintenance_message.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = maintenance_message.pb.cc; path = management/maintenance_message.pb.cc; sourceTree = "<group>"; };
 		D6183A831D1274F400512F35 /* maintenance_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maintenance_message.pb.h; path = management/maintenance_message.pb.h; sourceTree = "<group>"; };
 		D6183A851D1274FC00512F35 /* fun_message.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fun_message.pb.cc; path = network/fun_message.pb.cc; sourceTree = "<group>"; };
@@ -358,6 +362,9 @@
 		D6B05CF41C0BEB27008B3A80 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		D6B05CF51C0BEB27008B3A80 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/ios/libssl.a; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_session.cc; sourceTree = "<group>"; };
+		D6D171B91D1CFDD5009A0E4C /* funapi_session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_session.h; sourceTree = "<group>"; };
+		D6D171BB1D1CFE29009A0E4C /* funapi_version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = funapi_version.h; sourceTree = "<group>"; };
 		D6DF6AA51D0E47C100656A79 /* md5.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5.cc; path = md5/md5.cc; sourceTree = "<group>"; };
 		D6EC2BA21C06990000F9FF88 /* arial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = arial.ttf; sourceTree = "<group>"; };
 		D6EF18491C0599CF00DB4A80 /* button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button.png; sourceTree = "<group>"; };
@@ -720,10 +727,14 @@
 		D647CC681C085860008DC67E /* funapi */ = {
 			isa = PBXGroup;
 			children = (
+				D60AC1EC1D2CD5EB0043697C /* build_date.txt */,
 				D6183A811D1274C500512F35 /* service */,
 				D6183A801D1274BD00512F35 /* network */,
 				D6183A7F1D1274B100512F35 /* management */,
 				D63FB5A21D0A523F000A40CB /* md5 */,
+				D6D171BB1D1CFE29009A0E4C /* funapi_version.h */,
+				D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */,
+				D6D171B91D1CFDD5009A0E4C /* funapi_session.h */,
 				D62C04C21D000659000B627F /* funapi_downloader.cc */,
 				D62C04C31D000659000B627F /* funapi_downloader.h */,
 				D62541461C9920DA008B9237 /* funapi_encryption.cc */,
@@ -849,6 +860,7 @@
 				5087E78517EB970100C73F5D /* Icon-72.png in Resources */,
 				D6EF184C1C0599CF00DB4A80 /* buttonHighlighted.png in Resources */,
 				521A8E6519F0C34300D177D7 /* Default-736h@3x.png in Resources */,
+				D60AC1ED1D2CD5EB0043697C /* build_date.txt in Resources */,
 				50EF62A317ECD613001EB2F8 /* Icon-50.png in Resources */,
 				5087E78017EB970100C73F5D /* Icon-114.png in Resources */,
 				50EF62A217ECD613001EB2F8 /* Icon-29.png in Resources */,
@@ -889,7 +901,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "date > ../Classes/funapi/version.txt";
+			shellScript = "date > ../Classes/funapi/build_date.txt";
 		};
 		D670805D1D1A1F1E000AC043 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -902,7 +914,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "date > ../Classes/funapi/version.txt";
+			shellScript = "date > ../Classes/funapi/build_date.txt";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -926,6 +938,7 @@
 				D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */,
 				D647CBE21C0844B2008DC67E /* zero_copy_stream.cc in Sources */,
 				D647CC7D1C085860008DC67E /* funapi_network.cc in Sources */,
+				D6D171BA1D1CFDD5009A0E4C /* funapi_session.cc in Sources */,
 				D647CBEC1C0844B2008DC67E /* message.cc in Sources */,
 				D647CBE41C0844B2008DC67E /* zero_copy_stream_impl.cc in Sources */,
 				D647CBCA1C0844B2008DC67E /* generated_message_reflection.cc in Sources */,
@@ -994,6 +1007,7 @@
 				D647CC7E1C085860008DC67E /* funapi_network.cc in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				D6183A901D12767100512F35 /* ping_message.pb.cc in Sources */,
+				D6FF499D1D20B48900E5019D /* funapi_session.cc in Sources */,
 				D647CBE51C0844B2008DC67E /* zero_copy_stream_impl.cc in Sources */,
 				D647CBD91C0844B2008DC67E /* printer.cc in Sources */,
 				D647CBDF1C0844B2008DC67E /* tokenizer.cc in Sources */,
