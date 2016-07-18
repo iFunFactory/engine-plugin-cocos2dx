@@ -145,7 +145,7 @@ bool FunapiTest::init()
   y += button_height + (button_height * 0.5);
 
   // label : server hostname or ip
-  std::string label_string_server_hostname_or_ip = "[FunapiNetwork] - " + kServerIp;
+  std::string label_string_server_hostname_or_ip = "[FunapiSession] - " + kServerIp;
   auto label_server_hostname_or_ip = Label::createWithTTF(label_string_server_hostname_or_ip.c_str(), "arial.ttf", 10);
   label_server_hostname_or_ip->setAnchorPoint(Vec2(0.5, 0.5));
   label_server_hostname_or_ip->setPosition(Vec2(center_x,y));
