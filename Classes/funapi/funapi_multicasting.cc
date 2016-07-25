@@ -1151,9 +1151,10 @@ void FunapiMulticastImpl::AddTransportEventCallback(const FunapiMulticast::Trans
   if (session_) {
     session_->AddTransportEventCallback([this, handler](const std::shared_ptr<fun::FunapiSession> &session,
                                                         const fun::TransportProtocol protocol,
-                                                        const fun::TransportEventType type) {
+                                                        const fun::TransportEventType type,
+                                                        const std::shared_ptr<FunapiError> &error) {
       if (auto m = multicast_.lock()) {
-        handler(m, type);
+        handler(m, type, error);
       }
     });
   }

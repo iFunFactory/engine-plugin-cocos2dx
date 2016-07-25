@@ -630,7 +630,8 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
 
     session_->AddTransportEventCallback([](const std::shared_ptr<fun::FunapiSession> &session,
                                            const fun::TransportProtocol protocol,
-                                           const fun::TransportEventType type) {
+                                           const fun::TransportEventType type,
+                                           const std::shared_ptr<fun::FunapiError> &error) {
       if (type == fun::TransportEventType::kStarted) {
         fun::DebugUtils::Log("Transport Started called.");
       }
@@ -645,7 +646,6 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
       }
       else if (type == fun::TransportEventType::kDisconnected) {
         fun::DebugUtils::Log("Transport Disconnected called (%d)", (int)protocol);
-        // session->Connect(protocol);
       }
     });
 
@@ -776,7 +776,8 @@ void FunapiTest::CreateMulticast()
     });
 
     multicast_->AddTransportEventCallback([](const std::shared_ptr<fun::FunapiMulticast>& multicast,
-                                           const fun::TransportEventType type) {
+                                             const fun::TransportEventType type,
+                                             const std::shared_ptr<fun::FunapiError> &error) {
       if (type == fun::TransportEventType::kStarted) {
         fun::DebugUtils::Log("Transport Started called.");
       }
@@ -1050,7 +1051,8 @@ void test_funapi_session(const int index, std::string server_ip,
 
   session->AddTransportEventCallback([index, &is_ok](const std::shared_ptr<fun::FunapiSession> &s,
                                                      const fun::TransportProtocol protocol,
-                                                     const fun::TransportEventType type) {
+                                                     const fun::TransportEventType type,
+                                                     const std::shared_ptr<fun::FunapiError> &error) {
     if (type == fun::TransportEventType::kConnectionFailed ||
         type == fun::TransportEventType::kConnectionTimedOut ||
         type == fun::TransportEventType::kDisconnected) {

@@ -77,7 +77,8 @@ public:
                              const std::string&)> SessionEventHandler;
 
   typedef std::function<void(const std::shared_ptr<FunapiMulticast>&,
-                             const TransportEventType)> TransportEventHandler;
+                             const TransportEventType,
+                             const std::shared_ptr<FunapiError>&)>TransportEventHandler;
 
   FunapiMulticast() = delete;
   FunapiMulticast(const char* sender, const char* hostname_or_ip, uint16_t port, FunEncoding encoding, bool reliability);
