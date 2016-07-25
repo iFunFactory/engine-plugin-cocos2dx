@@ -56,7 +56,6 @@
 		D44C620C132DFF330009C878 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620B132DFF330009C878 /* OpenAL.framework */; };
 		D44C620E132DFF430009C878 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620D132DFF430009C878 /* AVFoundation.framework */; };
 		D44C6210132DFF4E0009C878 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620F132DFF4E0009C878 /* AudioToolbox.framework */; };
-		D60AC1ED1D2CD5EB0043697C /* build_date.txt in Resources */ = {isa = PBXBuildFile; fileRef = D60AC1EC1D2CD5EB0043697C /* build_date.txt */; };
 		D6183A841D1274F400512F35 /* maintenance_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A821D1274F400512F35 /* maintenance_message.pb.cc */; };
 		D6183A891D1274FC00512F35 /* fun_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A851D1274FC00512F35 /* fun_message.pb.cc */; };
 		D6183A8A1D1274FC00512F35 /* ping_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A871D1274FC00512F35 /* ping_message.pb.cc */; };
@@ -76,8 +75,6 @@
 		D647CBB51C0844B2008DC67E /* descriptor.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB11C0844B2008DC67E /* descriptor.cc */; };
 		D647CBB61C0844B2008DC67E /* descriptor.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB31C0844B2008DC67E /* descriptor.pb.cc */; };
 		D647CBB71C0844B2008DC67E /* descriptor.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB31C0844B2008DC67E /* descriptor.pb.cc */; };
-		D647CBB81C0844B2008DC67E /* descriptor.proto in Resources */ = {isa = PBXBuildFile; fileRef = D647CAB51C0844B2008DC67E /* descriptor.proto */; };
-		D647CBB91C0844B2008DC67E /* descriptor.proto in Resources */ = {isa = PBXBuildFile; fileRef = D647CAB51C0844B2008DC67E /* descriptor.proto */; };
 		D647CBBA1C0844B2008DC67E /* descriptor_database.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB61C0844B2008DC67E /* descriptor_database.cc */; };
 		D647CBBB1C0844B2008DC67E /* descriptor_database.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CAB61C0844B2008DC67E /* descriptor_database.cc */; };
 		D647CBC01C0844B2008DC67E /* dynamic_message.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CABA1C0844B2008DC67E /* dynamic_message.cc */; };
@@ -145,6 +142,20 @@
 		D647CC7F1C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D647CC801C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
+		D6C85BDC1D3F3912004AFC12 /* check_box_active_disable.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD61D3F3912004AFC12 /* check_box_active_disable.png */; };
+		D6C85BDD1D3F3912004AFC12 /* check_box_active_press.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD71D3F3912004AFC12 /* check_box_active_press.png */; };
+		D6C85BDE1D3F3912004AFC12 /* check_box_active.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD81D3F3912004AFC12 /* check_box_active.png */; };
+		D6C85BDF1D3F3912004AFC12 /* check_box_normal_disable.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD91D3F3912004AFC12 /* check_box_normal_disable.png */; };
+		D6C85BE01D3F3912004AFC12 /* check_box_normal_press.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BDA1D3F3912004AFC12 /* check_box_normal_press.png */; };
+		D6C85BE11D3F3912004AFC12 /* check_box_normal.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BDB1D3F3912004AFC12 /* check_box_normal.png */; };
+		D6C85BE21D3F3AB5004AFC12 /* check_box_active_disable.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD61D3F3912004AFC12 /* check_box_active_disable.png */; };
+		D6C85BE31D3F3AB5004AFC12 /* check_box_active_press.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD71D3F3912004AFC12 /* check_box_active_press.png */; };
+		D6C85BE41D3F3AB5004AFC12 /* check_box_active.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD81D3F3912004AFC12 /* check_box_active.png */; };
+		D6C85BE51D3F3AB5004AFC12 /* check_box_normal_disable.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD91D3F3912004AFC12 /* check_box_normal_disable.png */; };
+		D6C85BE61D3F3AB5004AFC12 /* check_box_normal_press.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BDA1D3F3912004AFC12 /* check_box_normal_press.png */; };
+		D6C85BE71D3F3AB5004AFC12 /* check_box_normal.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BDB1D3F3912004AFC12 /* check_box_normal.png */; };
+		D6C85BEC1D3F6CD8004AFC12 /* edit_back.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BEB1D3F6CD8004AFC12 /* edit_back.png */; };
+		D6C85BED1D3F6DCF004AFC12 /* edit_back.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BEB1D3F6CD8004AFC12 /* edit_back.png */; };
 		D6D171BA1D1CFDD5009A0E4C /* funapi_session.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */; };
 		D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6DF6AA51D0E47C100656A79 /* md5.cc */; };
 		D6DF6ABD1D0EA11F00656A79 /* md5.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6DF6AA51D0E47C100656A79 /* md5.cc */; };
@@ -362,6 +373,13 @@
 		D6B05CF41C0BEB27008B3A80 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		D6B05CF51C0BEB27008B3A80 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/ios/libssl.a; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		D6C85BD61D3F3912004AFC12 /* check_box_active_disable.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = check_box_active_disable.png; sourceTree = "<group>"; };
+		D6C85BD71D3F3912004AFC12 /* check_box_active_press.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = check_box_active_press.png; sourceTree = "<group>"; };
+		D6C85BD81D3F3912004AFC12 /* check_box_active.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = check_box_active.png; sourceTree = "<group>"; };
+		D6C85BD91D3F3912004AFC12 /* check_box_normal_disable.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = check_box_normal_disable.png; sourceTree = "<group>"; };
+		D6C85BDA1D3F3912004AFC12 /* check_box_normal_press.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = check_box_normal_press.png; sourceTree = "<group>"; };
+		D6C85BDB1D3F3912004AFC12 /* check_box_normal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = check_box_normal.png; sourceTree = "<group>"; };
+		D6C85BEB1D3F6CD8004AFC12 /* edit_back.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = edit_back.png; sourceTree = "<group>"; };
 		D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_session.cc; sourceTree = "<group>"; };
 		D6D171B91D1CFDD5009A0E4C /* funapi_session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_session.h; sourceTree = "<group>"; };
 		D6D171BB1D1CFE29009A0E4C /* funapi_version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = funapi_version.h; sourceTree = "<group>"; };
@@ -495,6 +513,13 @@
 		46880B7519C43A67006E1F66 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D6C85BEB1D3F6CD8004AFC12 /* edit_back.png */,
+				D6C85BD61D3F3912004AFC12 /* check_box_active_disable.png */,
+				D6C85BD71D3F3912004AFC12 /* check_box_active_press.png */,
+				D6C85BD81D3F3912004AFC12 /* check_box_active.png */,
+				D6C85BD91D3F3912004AFC12 /* check_box_normal_disable.png */,
+				D6C85BDA1D3F3912004AFC12 /* check_box_normal_press.png */,
+				D6C85BDB1D3F3912004AFC12 /* check_box_normal.png */,
 				D6EC2BA21C06990000F9FF88 /* arial.ttf */,
 				D6EF18491C0599CF00DB4A80 /* button.png */,
 				D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */,
@@ -849,26 +874,31 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D6C85BDD1D3F3912004AFC12 /* check_box_active_press.png in Resources */,
 				D6EC2BA31C069BB600F9FF88 /* arial.ttf in Resources */,
 				5087E78117EB970100C73F5D /* Icon-120.png in Resources */,
+				D6C85BE01D3F3912004AFC12 /* check_box_normal_press.png in Resources */,
 				D6EF184B1C0599CF00DB4A80 /* button.png in Resources */,
 				5087E78617EB970100C73F5D /* Icon-76.png in Resources */,
 				5087E77F17EB970100C73F5D /* Default@2x.png in Resources */,
 				50EF629917ECD46A001EB2F8 /* Icon-100.png in Resources */,
 				5087E78317EB970100C73F5D /* Icon-152.png in Resources */,
+				D6C85BDF1D3F3912004AFC12 /* check_box_normal_disable.png in Resources */,
 				5087E77D17EB970100C73F5D /* Default-568h@2x.png in Resources */,
 				5087E78517EB970100C73F5D /* Icon-72.png in Resources */,
 				D6EF184C1C0599CF00DB4A80 /* buttonHighlighted.png in Resources */,
 				521A8E6519F0C34300D177D7 /* Default-736h@3x.png in Resources */,
-				D60AC1ED1D2CD5EB0043697C /* build_date.txt in Resources */,
 				50EF62A317ECD613001EB2F8 /* Icon-50.png in Resources */,
+				D6C85BEC1D3F6CD8004AFC12 /* edit_back.png in Resources */,
+				D6C85BDE1D3F3912004AFC12 /* check_box_active.png in Resources */,
 				5087E78017EB970100C73F5D /* Icon-114.png in Resources */,
 				50EF62A217ECD613001EB2F8 /* Icon-29.png in Resources */,
 				50EF629617ECD46A001EB2F8 /* Icon-40.png in Resources */,
-				D647CBB81C0844B2008DC67E /* descriptor.proto in Resources */,
 				5087E78217EB970100C73F5D /* Icon-144.png in Resources */,
 				50EF629817ECD46A001EB2F8 /* Icon-80.png in Resources */,
+				D6C85BDC1D3F3912004AFC12 /* check_box_active_disable.png in Resources */,
 				5087E78417EB970100C73F5D /* Icon-57.png in Resources */,
+				D6C85BE11D3F3912004AFC12 /* check_box_normal.png in Resources */,
 				5087E77E17EB970100C73F5D /* Default.png in Resources */,
 				521A8E6419F0C34300D177D7 /* Default-667h@2x.png in Resources */,
 				50EF629717ECD46A001EB2F8 /* Icon-58.png in Resources */,
@@ -879,8 +909,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D6C85BED1D3F6DCF004AFC12 /* edit_back.png in Resources */,
+				D6C85BE21D3F3AB5004AFC12 /* check_box_active_disable.png in Resources */,
+				D6C85BE31D3F3AB5004AFC12 /* check_box_active_press.png in Resources */,
+				D6C85BE41D3F3AB5004AFC12 /* check_box_active.png in Resources */,
+				D6C85BE51D3F3AB5004AFC12 /* check_box_normal_disable.png in Resources */,
+				D6C85BE61D3F3AB5004AFC12 /* check_box_normal_press.png in Resources */,
+				D6C85BE71D3F3AB5004AFC12 /* check_box_normal.png in Resources */,
 				D6EC2BA41C069F9F00F9FF88 /* arial.ttf in Resources */,
-				D647CBB91C0844B2008DC67E /* descriptor.proto in Resources */,
 				D6EC2BA51C069F9F00F9FF88 /* button.png in Resources */,
 				D6EC2BA61C069F9F00F9FF88 /* buttonHighlighted.png in Resources */,
 				503AE0F817EB97AB00D1A890 /* Icon.icns in Resources */,

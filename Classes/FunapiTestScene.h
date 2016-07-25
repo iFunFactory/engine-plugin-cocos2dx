@@ -10,6 +10,14 @@ namespace fun {
   enum class TransportProtocol;
 }
 
+namespace cocos2d {
+  namespace ui {
+    class EditBox;
+    class CheckBox;
+    class Button;
+  }
+}
+
 class FunapiTest : public cocos2d::Layer
 {
 public:
@@ -45,23 +53,43 @@ public:
 private:
   void Connect(const fun::TransportProtocol protocol);
   void TestFunapi(bool bStart);
+  void UpdateUI();
 
   std::shared_ptr<fun::FunapiSession> session_ = nullptr;
 
   // Please change this address for test.
-  const std::string kServerIp = "127.0.0.1";
-  const std::string kDownloadServerIp = "127.0.0.1";
-  const int kDownloadServerPort = 8020;
-
-  // member variables.
+  std::string kServerIp = "127.0.0.1";
   bool with_protobuf_ = false;
   bool with_session_reliability_ = false;
 
-  const std::string kMulticastTestChannel = "multicast";
   std::shared_ptr<fun::FunapiMulticast> multicast_ = nullptr;
+  const std::string kMulticastTestChannel = "multicast";
+
+  // Please change this address for test.
+  const std::string kDownloadServerIp = "127.0.0.1";
+  const int kDownloadServerPort = 8020;
 
   std::shared_ptr<fun::FunapiHttpDownloader> downloader_ = nullptr;
   fun::DownloadResult code_ = fun::DownloadResult::NONE;
+
+  // UI controls
+  cocos2d::ui::EditBox* editbox_sernvername_;
+  cocos2d::ui::CheckBox* checkbox_protobuf_;
+  cocos2d::ui::CheckBox* checkbox_reliability_;
+  cocos2d::ui::Button* button_send_a_message_;
+  cocos2d::ui::Button* button_disconnect_;
+  cocos2d::ui::Button* button_connect_http_;
+  cocos2d::ui::Button* button_connect_udp_;
+  cocos2d::ui::Button* button_connect_tcp_;
+  cocos2d::ui::Button* button_multicast_leave_all_channels_;
+  cocos2d::ui::Button* button_multicast_request_list_;
+  cocos2d::ui::Button* button_multicast_leave_;
+  cocos2d::ui::Button* button_multicast_send_;
+  cocos2d::ui::Button* button_multicast_join_;
+  cocos2d::ui::Button* button_multicast_create_;
+  cocos2d::ui::Button* button_download_;
+  cocos2d::ui::Button* button_test_stop_;
+  cocos2d::ui::Button* button_test_start_;
 };
 
 #endif // __FUNAPI_TEST_SCENE_H__
