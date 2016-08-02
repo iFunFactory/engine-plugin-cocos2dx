@@ -628,7 +628,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
       }
     });
 
-    session_->AddTransportEventCallback([](const std::shared_ptr<fun::FunapiSession> &session,
+    session_->AddTransportEventCallback([this](const std::shared_ptr<fun::FunapiSession> &session,
                                            const fun::TransportProtocol protocol,
                                            const fun::TransportEventType type,
                                            const std::shared_ptr<fun::FunapiError> &error) {
@@ -640,9 +640,11 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
       }
       else if (type == fun::TransportEventType::kConnectionFailed) {
         fun::DebugUtils::Log("Transport Connection Failed(%d)", (int)protocol);
+        session_ = nullptr;
       }
       else if (type == fun::TransportEventType::kConnectionTimedOut) {
         fun::DebugUtils::Log("Transport Connection Timedout called");
+        session_ = nullptr;
       }
       else if (type == fun::TransportEventType::kDisconnected) {
         fun::DebugUtils::Log("Transport Disconnected called (%d)", (int)protocol);
@@ -775,7 +777,7 @@ void FunapiTest::CreateMulticast()
       */
     });
 
-    multicast_->AddTransportEventCallback([](const std::shared_ptr<fun::FunapiMulticast>& multicast,
+    multicast_->AddTransportEventCallback([this](const std::shared_ptr<fun::FunapiMulticast>& multicast,
                                              const fun::TransportEventType type,
                                              const std::shared_ptr<fun::FunapiError> &error) {
       if (type == fun::TransportEventType::kStarted) {
@@ -786,9 +788,11 @@ void FunapiTest::CreateMulticast()
       }
       else if (type == fun::TransportEventType::kConnectionFailed) {
         fun::DebugUtils::Log("Transport Connection Failed");
+        multicast_ = nullptr;
       }
       else if (type == fun::TransportEventType::kConnectionTimedOut) {
         fun::DebugUtils::Log("Transport Connection Timedout called");
+        multicast_ = nullptr;
       }
       else if (type == fun::TransportEventType::kDisconnected) {
         fun::DebugUtils::Log("Transport Disconnected called");
