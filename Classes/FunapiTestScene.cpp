@@ -9,6 +9,7 @@
 #include "funapi/management/maintenance_message.pb.h"
 #include "funapi/service/multicast_message.pb.h"
 #include "funapi/funapi_utils.h"
+#include "funapi/funapi_tasks.h"
 
 #include "json/writer.h"
 #include "json/stringbuffer.h"
@@ -367,6 +368,7 @@ bool FunapiTest::init()
 
   layer_multicast->setContentSize(Size(visibleSize.width, y));
 
+  /*
   // layer
   // download
   auto layer_download = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
@@ -400,6 +402,7 @@ bool FunapiTest::init()
   layer_download->setContentSize(Size(visibleSize.width, y));
 
   button_download_->setEnabled(false);
+  */
 
   /*
   // layer
@@ -456,7 +459,7 @@ bool FunapiTest::init()
   layers.push_back(layer_setting);
   layers.push_back(layer_funapi_session);
   layers.push_back(layer_multicast);
-  layers.push_back(layer_download);
+  // layers.push_back(layer_download);
   // layers.push_back(layer_test);
 
   y = 0;
@@ -497,23 +500,7 @@ void FunapiTest::update(float delta)
 {
   // fun::DebugUtils::Log("delta = %f", delta);
 
-  if (session_) {
-    session_->Update();
-  }
-
-  if (multicast_) {
-    multicast_->Update();
-  }
-
-  if (downloader_)
-  {
-    downloader_->Update();
-
-    if (code_ != fun::DownloadResult::NONE) {
-      code_ = fun::DownloadResult::NONE;
-      downloader_ = nullptr;
-    }
-  }
+  fun::FunapiTasks::UpdateAll();
 
   {
     static time_t last_time = 0;

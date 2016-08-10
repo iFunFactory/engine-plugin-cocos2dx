@@ -19,6 +19,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/funapi/funapi_encryption.cc \
                    ../../Classes/funapi/funapi_downloader.cc \
                    ../../Classes/funapi/funapi_session.cc \
+                   ../../Classes/funapi/funapi_tasks.cc \
                    ../../Classes/funapi/md5/md5.cc \
                    ../../Classes/funapi/management/maintenance_message.pb.cc \
                    ../../Classes/funapi/network/fun_message.pb.cc \

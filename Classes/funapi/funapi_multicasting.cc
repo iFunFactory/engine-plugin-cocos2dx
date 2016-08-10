@@ -1262,7 +1262,6 @@ bool FunapiMulticast::RequestChannelList() {
 
 
 void FunapiMulticast::Update() {
-  auto self = shared_from_this();
   impl_->Update();
 }
 

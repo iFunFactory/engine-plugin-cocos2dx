@@ -10,6 +10,7 @@
 #include "funapi_transport.h"
 #include "funapi_network.h"
 #include "funapi_encryption.h"
+#include "funapi_tasks.h"
 #include "network/fun_message.pb.h"
 
 namespace fun {
@@ -110,8 +111,7 @@ class FunapiNetworkThread : public std::enable_shared_from_this<FunapiNetworkThr
   std::map<std::shared_ptr<FunapiTransportImpl>, std::shared_ptr<FunapiTransportHandlers>> transport_handlers_;
   std::mutex mutex_;
   std::condition_variable_any condition_;
-  std::thread thread_;
-  bool run_ = false;
+  std::shared_ptr<FunapiThread> thread_;
 };
 
 
@@ -126,8 +126,10 @@ FunapiNetworkThread::~FunapiNetworkThread() {
 
 
 void FunapiNetworkThread::Initialize() {
-  run_ = true;
-  thread_ = std::thread([this]{ Thread(); });
+  thread_ = FunapiThread::create("_socket", [this](){
+    Thread();
+    return true;
+  });
 }
 
 
@@ -137,24 +139,21 @@ void FunapiNetworkThread::Finalize() {
 
 
 void FunapiNetworkThread::JoinThread() {
-  run_ = false;
+  thread_->Set([](){ return true; });
   condition_.notify_all();
-  if (thread_.joinable())
-    thread_.join();
+  thread_->Join();
 }
 
 
 void FunapiNetworkThread::Thread() {
-  while (run_) {
-    {
-      std::unique_lock<std::mutex> lock(mutex_);
-      if (transport_handlers_.empty()) {
-        condition_.wait(mutex_);
-      }
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (transport_handlers_.empty()) {
+      condition_.wait(mutex_);
     }
-
-    Update();
   }
+
+  Update();
 }
 
 

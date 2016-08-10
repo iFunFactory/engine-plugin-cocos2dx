@@ -6,6 +6,7 @@
 
 #include "funapi_plugin.h"
 #include "funapi_utils.h"
+#include "funapi_tasks.h"
 #include "funapi_downloader.h"
 #include "network/CCDownloader.h"
 #include "md5/md5.h"
@@ -121,8 +122,7 @@ class FunapiHttpDownloaderImpl : public std::enable_shared_from_this<FunapiHttpD
 
   std::mutex result_mutex_;
 
-  std::queue<std::function<void()>> tasks_queue_;
-  std::mutex tasks_queue_mutex_;
+  std::shared_ptr<FunapiTasks> tasks_;
 
   void PushTaskQueue(const std::function<void()> &task);
 
@@ -143,6 +143,7 @@ class FunapiHttpDownloaderImpl : public std::enable_shared_from_this<FunapiHttpD
 
 
 FunapiHttpDownloaderImpl::FunapiHttpDownloaderImpl() {
+  tasks_ = FunapiTasks::create();
 }
 
 
@@ -488,28 +489,13 @@ void FunapiHttpDownloaderImpl::CheckDownloadFileInfoResult() {
 
 
 void FunapiHttpDownloaderImpl::Update() {
-  std::function<void()> task = nullptr;
-  while (true) {
-    {
-      std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
-      if (tasks_queue_.empty()) {
-        break;
-      }
-      else {
-        task = std::move(tasks_queue_.front());
-        tasks_queue_.pop();
-      }
-    }
-
-    task();
-  }
+  tasks_->Update();
 }
 
 
 void FunapiHttpDownloaderImpl::PushTaskQueue(const std::function<void()> &task)
 {
-  std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
-  tasks_queue_.push(task);
+  tasks_->Push([task]() { task(); return true; });
 }
 
 

@@ -183,6 +183,9 @@
     <ClCompile Include="..\Classes\funapi\funapi_session.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_tasks.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -405,6 +408,9 @@
       <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_version.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_tasks.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>

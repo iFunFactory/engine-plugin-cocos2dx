@@ -7,6 +7,7 @@
 #include "network/ping_message.pb.h"
 #include "funapi_plugin.h"
 #include "funapi_utils.h"
+#include "funapi_tasks.h"
 #include "funapi_session.h"
 
 namespace fun {
@@ -131,8 +132,7 @@ class FunapiSessionImpl : public std::enable_shared_from_this<FunapiSessionImpl>
   time_t epoch_ = 0;
   const time_t funapi_session_timeout_ = 3600;
 
-  std::queue<std::function<bool()>> tasks_queue_;
-  std::mutex tasks_queue_mutex_;
+  std::shared_ptr<FunapiTasks> tasks_;
 
   std::vector<TransportProtocol> connect_protocols_;
 
@@ -189,6 +189,8 @@ void FunapiSessionImpl::Initialize() {
     [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnServerPingMessage(p, s, v); };
   message_handlers_[kClientPingMessageType] =
     [this](const TransportProtocol &p, const std::string&s, const std::vector<uint8_t>&v) { OnClientPingMessage(p, s, v); };
+
+  tasks_ = FunapiTasks::create();
 
   // Now ready.
   initialized_ = true;
@@ -560,23 +562,7 @@ void FunapiSessionImpl::OnClientPingMessage(
 
 
 void FunapiSessionImpl::Update() {
-  std::function<bool()> task = nullptr;
-  while (true) {
-    {
-      std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
-      if (tasks_queue_.empty()) {
-        break;
-      }
-      else {
-        task = std::move(tasks_queue_.front());
-        tasks_queue_.pop();
-      }
-    }
-
-    if (task() == false) {
-      break;
-    }
-  }
+  tasks_->Update();
 }
 
 
@@ -658,8 +644,7 @@ void FunapiSessionImpl::SetSessionId(const std::string &session_id) {
 
 void FunapiSessionImpl::PushTaskQueue(const std::function<bool()> &task)
 {
-  std::unique_lock<std::mutex> lock(tasks_queue_mutex_);
-  tasks_queue_.push(task);
+  tasks_->Push(task);
 }
 
 
@@ -1005,7 +990,6 @@ bool FunapiSession::IsConnected(const TransportProtocol protocol) const {
 
 
 void FunapiSession::Update() {
-  auto self = shared_from_this();
   impl_->Update();
 }
 

@@ -166,6 +166,8 @@
 		D6EC2BA61C069F9F00F9FF88 /* buttonHighlighted.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */; };
 		D6EF184B1C0599CF00DB4A80 /* button.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF18491C0599CF00DB4A80 /* button.png */; };
 		D6EF184C1C0599CF00DB4A80 /* buttonHighlighted.png in Resources */ = {isa = PBXBuildFile; fileRef = D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */; };
+		D6F9927C1D5861A7006FA172 /* funapi_tasks.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6F9927A1D5861A7006FA172 /* funapi_tasks.cc */; };
+		D6F9927D1D5861BD006FA172 /* funapi_tasks.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6F9927A1D5861A7006FA172 /* funapi_tasks.cc */; };
 		D6FF499D1D20B48900E5019D /* funapi_session.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */; };
 		ED545A7C1B68A1F400C3958E /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED545A7B1B68A1F400C3958E /* libiconv.dylib */; };
 		ED545A7E1B68A1FA00C3958E /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED545A7D1B68A1FA00C3958E /* libiconv.dylib */; };
@@ -387,6 +389,8 @@
 		D6EC2BA21C06990000F9FF88 /* arial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = arial.ttf; sourceTree = "<group>"; };
 		D6EF18491C0599CF00DB4A80 /* button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button.png; sourceTree = "<group>"; };
 		D6EF184A1C0599CF00DB4A80 /* buttonHighlighted.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = buttonHighlighted.png; sourceTree = "<group>"; };
+		D6F9927A1D5861A7006FA172 /* funapi_tasks.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_tasks.cc; sourceTree = "<group>"; };
+		D6F9927B1D5861A7006FA172 /* funapi_tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_tasks.h; sourceTree = "<group>"; };
 		ED545A7B1B68A1F400C3958E /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk/usr/lib/libiconv.dylib; sourceTree = DEVELOPER_DIR; };
 		ED545A7D1B68A1FA00C3958E /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -758,6 +762,8 @@
 				D6183A7F1D1274B100512F35 /* management */,
 				D63FB5A21D0A523F000A40CB /* md5 */,
 				D6D171BB1D1CFE29009A0E4C /* funapi_version.h */,
+				D6F9927A1D5861A7006FA172 /* funapi_tasks.cc */,
+				D6F9927B1D5861A7006FA172 /* funapi_tasks.h */,
 				D6D171B81D1CFDD5009A0E4C /* funapi_session.cc */,
 				D6D171B91D1CFDD5009A0E4C /* funapi_session.h */,
 				D62C04C21D000659000B627F /* funapi_downloader.cc */,
@@ -1002,6 +1008,7 @@
 				D647CC121C0844B2008DC67E /* strutil.cc in Sources */,
 				D647CBB61C0844B2008DC67E /* descriptor.pb.cc in Sources */,
 				D647CBC01C0844B2008DC67E /* dynamic_message.cc in Sources */,
+				D6F9927C1D5861A7006FA172 /* funapi_tasks.cc in Sources */,
 				D647CC3C1C0844B2008DC67E /* text_format.cc in Sources */,
 				D62C04C41D000659000B627F /* funapi_downloader.cc in Sources */,
 				D647CBD01C0844B2008DC67E /* coded_stream.cc in Sources */,
@@ -1060,6 +1067,7 @@
 				D647CBB51C0844B2008DC67E /* descriptor.cc in Sources */,
 				D647CBD11C0844B2008DC67E /* coded_stream.cc in Sources */,
 				503AE10517EB98FF00D1A890 /* main.cpp in Sources */,
+				D6F9927D1D5861BD006FA172 /* funapi_tasks.cc in Sources */,
 				D647CC0F1C0844B2008DC67E /* structurally_valid.cc in Sources */,
 				46880B8B19C43A87006E1F66 /* FunapiTestScene.cpp in Sources */,
 				D647CBDD1C0844B2008DC67E /* strtod.cc in Sources */,
