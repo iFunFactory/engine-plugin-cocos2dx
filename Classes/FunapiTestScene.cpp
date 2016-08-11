@@ -740,10 +740,18 @@ void FunapiTest::CreateMulticast()
 
     fun::DebugUtils::Log("sender = %s", sender.c_str());
 
-    fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
-    uint16_t port = with_protobuf_ ? 8022 : 8012;
+    if (session_) {
+      if (session_->IsConnected(fun::TransportProtocol::kTcp)) {
+        multicast_ = fun::FunapiMulticast::create(sender.c_str(), session_);
+      }
+    }
 
-    multicast_ = fun::FunapiMulticast::create(sender.c_str(), kServerIp.c_str(), port, encoding);
+    if (!multicast_) {
+      fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
+      uint16_t port = with_protobuf_ ? 8022 : 8012;
+
+      multicast_ = fun::FunapiMulticast::create(sender.c_str(), kServerIp.c_str(), port, encoding);
+    }
 
     multicast_->AddJoinedCallback([](const std::shared_ptr<fun::FunapiMulticast>& multicast,
                                      const std::string &channel_id, const std::string &sender) {
@@ -803,9 +811,9 @@ void FunapiTest::CreateMulticast()
         fun::DebugUtils::Log("Transport Disconnected called");
       }
     });
-
-    multicast_->Connect();
   }
+
+  multicast_->Connect();
 }
 
 void FunapiTest::JoinMulticastChannel()

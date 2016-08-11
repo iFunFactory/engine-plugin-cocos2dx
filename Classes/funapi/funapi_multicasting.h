@@ -81,14 +81,18 @@ public:
                              const std::shared_ptr<FunapiError>&)>TransportEventHandler;
 
   FunapiMulticast() = delete;
-  FunapiMulticast(const char* sender, const char* hostname_or_ip, uint16_t port, FunEncoding encoding, bool reliability);
+  FunapiMulticast(const char* sender, const char* hostname_or_ip, const uint16_t port, const FunEncoding encoding, const bool reliability);
+  FunapiMulticast(const char* sender, const std::shared_ptr<FunapiSession> &session);
   ~FunapiMulticast();
 
   static std::shared_ptr<FunapiMulticast> create(const char* sender,
                                                  const char* hostname_or_ip,
-                                                 uint16_t port,
-                                                 FunEncoding encoding,
-                                                 bool reliability = false);
+                                                 const uint16_t port,
+                                                 const FunEncoding encoding,
+                                                 const bool reliability = false);
+
+  static std::shared_ptr<FunapiMulticast> create(const char* sender,
+                                                 const std::shared_ptr<FunapiSession> &session);
 
   void AddJoinedCallback(const ChannelNotify &handler);
   void AddLeftCallback(const ChannelNotify &handler);
