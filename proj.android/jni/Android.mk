@@ -13,7 +13,6 @@ LOCAL_MODULE_FILENAME := libcocos2dcpp
 LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/AppDelegate.cpp \
                    ../../Classes/FunapiTestScene.cpp \
-                   ../../Classes/funapi/funapi_network.cc \
                    ../../Classes/funapi/funapi_transport.cc \
                    ../../Classes/funapi/funapi_multicasting.cc \
                    ../../Classes/funapi/funapi_encryption.cc \

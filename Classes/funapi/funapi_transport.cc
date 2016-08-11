@@ -8,7 +8,6 @@
 #include "funapi_version.h"
 #include "funapi_utils.h"
 #include "funapi_transport.h"
-#include "funapi_network.h"
 #include "funapi_encryption.h"
 #include "funapi_tasks.h"
 #include "network/fun_message.pb.h"

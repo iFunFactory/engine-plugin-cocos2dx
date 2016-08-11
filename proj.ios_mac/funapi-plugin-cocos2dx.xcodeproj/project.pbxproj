@@ -137,8 +137,6 @@
 		D647CC611C0844B2008DC67E /* wire_format.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CB421C0844B2008DC67E /* wire_format.cc */; };
 		D647CC621C0844B2008DC67E /* wire_format_lite.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CB441C0844B2008DC67E /* wire_format_lite.cc */; };
 		D647CC631C0844B2008DC67E /* wire_format_lite.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CB441C0844B2008DC67E /* wire_format_lite.cc */; };
-		D647CC7D1C085860008DC67E /* funapi_network.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC691C085860008DC67E /* funapi_network.cc */; };
-		D647CC7E1C085860008DC67E /* funapi_network.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC691C085860008DC67E /* funapi_network.cc */; };
 		D647CC7F1C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D647CC801C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
@@ -364,8 +362,6 @@
 		D647CB451C0844B2008DC67E /* wire_format_lite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wire_format_lite.h; sourceTree = "<group>"; };
 		D647CB461C0844B2008DC67E /* wire_format_lite_inl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wire_format_lite_inl.h; sourceTree = "<group>"; };
 		D647CC671C084C24008DC67E /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
-		D647CC691C085860008DC67E /* funapi_network.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_network.cc; sourceTree = "<group>"; };
-		D647CC6A1C085860008DC67E /* funapi_network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_network.h; sourceTree = "<group>"; };
 		D647CC6B1C085860008DC67E /* funapi_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_plugin.h; sourceTree = "<group>"; };
 		D647CC6C1C085860008DC67E /* funapi_transport.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = funapi_transport.cc; sourceTree = "<group>"; };
 		D647CC6D1C085860008DC67E /* funapi_transport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_transport.h; sourceTree = "<group>"; };
@@ -772,8 +768,6 @@
 				D62541471C9920DA008B9237 /* funapi_encryption.h */,
 				D631CC421C58028600C07031 /* funapi_multicasting.cc */,
 				D631CC431C58028600C07031 /* funapi_multicasting.h */,
-				D647CC691C085860008DC67E /* funapi_network.cc */,
-				D647CC6A1C085860008DC67E /* funapi_network.h */,
 				D647CC6C1C085860008DC67E /* funapi_transport.cc */,
 				D647CC6D1C085860008DC67E /* funapi_transport.h */,
 				D647CC6E1C085860008DC67E /* funapi_utils.h */,
@@ -979,7 +973,6 @@
 				D6183A951D127A9600512F35 /* test_messages.pb.cc in Sources */,
 				D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */,
 				D647CBE21C0844B2008DC67E /* zero_copy_stream.cc in Sources */,
-				D647CC7D1C085860008DC67E /* funapi_network.cc in Sources */,
 				D6D171BA1D1CFDD5009A0E4C /* funapi_session.cc in Sources */,
 				D647CBEC1C0844B2008DC67E /* message.cc in Sources */,
 				D647CBE41C0844B2008DC67E /* zero_copy_stream_impl.cc in Sources */,
@@ -1047,7 +1040,6 @@
 				D6247EAD1CAD18D500D82AFA /* funapi_encryption.cc in Sources */,
 				D62C04C51D000666000B627F /* funapi_downloader.cc in Sources */,
 				D647CBBB1C0844B2008DC67E /* descriptor_database.cc in Sources */,
-				D647CC7E1C085860008DC67E /* funapi_network.cc in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				D6183A901D12767100512F35 /* ping_message.pb.cc in Sources */,
 				D6FF499D1D20B48900E5019D /* funapi_session.cc in Sources */,

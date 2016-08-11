@@ -48,9 +48,6 @@
     <ClCompile Include="..\Classes\FunapiTestScene.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_network.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\funapi\funapi_transport.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
@@ -196,9 +193,6 @@
     </ClInclude>
     <ClInclude Include="..\Classes\FunapiTestScene.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\funapi_network.h">
-      <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h">
       <Filter>src\funapi</Filter>

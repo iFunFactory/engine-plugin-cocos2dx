@@ -11,44 +11,6 @@
 
 namespace fun {
 
-/*** DEPRECATED: The FunapiMulticastClient class should no longer be used.  FunapiMulticast is the replacement for FunapiMulticastClient ***/
-class FunapiNetwork;
-class FunapiMulticastClientImpl;
-class FunapiMulticastClient : public std::enable_shared_from_this<FunapiMulticastClient> {
- public:
-  typedef std::function<void(const std::string &, const std::string &)> ChannelNotify;
-  typedef std::function<void(const std::string &, const std::string &, const std::vector<uint8_t> &)> ChannelMessage;
-  typedef std::function<void(const int)> ErrorNotify;
-  typedef std::function<void(const std::map<std::string, int> &)> ChannelListNotify;
-
-  FunapiMulticastClient(std::shared_ptr<FunapiNetwork> network, FunEncoding encoding);
-  ~FunapiMulticastClient();
-
-  void SetSender(const std::string &sender);
-  void SetEncoding(const FunEncoding encodig);
-
-  void AddJoinedCallback(const ChannelNotify &handler);
-  void AddLeftCallback(const ChannelNotify &handler);
-  void AddErrorCallback(const ErrorNotify &handler);
-  void AddChannelListCallback(const ChannelListNotify &handler);
-
-  bool IsConnected() const;
-  bool IsInChannel(const std::string &channel_id) const;
-
-  bool JoinChannel(const std::string &channel_id, const ChannelMessage &handler);
-  bool LeaveChannel(const std::string &channel_id);
-  bool LeaveAllChannels();
-
-  bool SendToChannel(FunMessage &msg);
-  bool SendToChannel(std::string &json_string);
-
-  bool RequestChannelList();
-
- private:
-  std::shared_ptr<FunapiMulticastClientImpl> impl_;
-};
-
-
 class FunapiMulticastImpl;
 class FunapiMulticast : public std::enable_shared_from_this<FunapiMulticast> {
 public:
