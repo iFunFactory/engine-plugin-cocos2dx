@@ -39,6 +39,7 @@ typedef std::function<void(void*, const int)> AsyncWebResponseCallback;
 
 enum class TransportState : int {
   kDisconnected = 0,
+  kDisconnecting,
   kConnecting,
   kConnected
 };

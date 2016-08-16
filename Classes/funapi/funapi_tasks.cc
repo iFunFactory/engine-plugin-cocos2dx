@@ -31,7 +31,7 @@ class FunapiTasksImpl : public std::enable_shared_from_this<FunapiTasksImpl> {
   std::queue<std::function<bool()>> queue_;
   std::mutex queue_mutex_;
 
-  std::function<bool()> function_ = [](){ return true; };
+  std::function<bool()> function_ = nullptr;
   std::mutex function_mutex_;
 
   static std::vector<std::weak_ptr<FunapiTasksImpl>> v_tasks_;
@@ -57,7 +57,9 @@ void FunapiTasksImpl::Update() {
     std::unique_lock<std::mutex> lock(function_mutex_);
     task = function_;
   }
-  if (task() == false) return;
+  if (task) {
+    if (task() == false) return;
+  }
 
   while (true) {
     {

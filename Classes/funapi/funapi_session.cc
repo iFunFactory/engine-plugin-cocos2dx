@@ -259,9 +259,9 @@ void FunapiSessionImpl::Connect(const std::weak_ptr<FunapiSession>& session, con
 
     AttachTransport(transport);
 
-    PushTaskQueue([this](){
+    tasks_->Set([this]()->bool {
       Start();
-      return false;
+      return true;
     });
   }
 }
@@ -286,6 +286,8 @@ void FunapiSessionImpl::Start() {
   started_ = true;
   last_received_ = epoch_ = time(NULL);
 
+  tasks_->Set(nullptr);
+
   if (GetSessionId().empty()) {
     connect_protocols_.clear();
 
@@ -304,7 +306,9 @@ void FunapiSessionImpl::Start() {
   else {
     for (auto protocol : v_protocols_) {
       if (auto transport = GetTransport(protocol)) {
-        transport->Start();
+        if (!transport->IsStarted()) {
+          transport->Start();
+        }
       }
     }
   }
@@ -573,31 +577,32 @@ void FunapiSessionImpl::AttachTransport(const std::shared_ptr<FunapiTransport> &
     // DebugUtils::Log(" You should call DetachTransport first.");
   }
   else {
-    transport->SetReceivedHandler([this](const TransportProtocol protocol, const FunEncoding encoding, const HeaderFields &header, const std::vector<uint8_t> &body){ OnTransportReceived(protocol, encoding, header, body);
+    auto self = shared_from_this();
+    transport->SetReceivedHandler([this, self](const TransportProtocol protocol, const FunEncoding encoding, const HeaderFields &header, const std::vector<uint8_t> &body){ OnTransportReceived(protocol, encoding, header, body);
     });
-    transport->SetIsReliableSessionHandler([this]() {
+    transport->SetIsReliableSessionHandler([this, self]() {
       return IsReliableSession();
     });
-    transport->SetSendAckHandler([this](const TransportProtocol protocol, const uint32_t seq) {
+    transport->SetSendAckHandler([this, self](const TransportProtocol protocol, const uint32_t seq) {
       SendAck(protocol, seq);
     });
 
-    transport->AddStartedCallback([this](const TransportProtocol protocol){
+    transport->AddStartedCallback([this, self](const TransportProtocol protocol){
       if (GetSessionId().empty()) {
         SendEmptyMessage(protocol);
       }
 
       OnTransportStarted(protocol);
     });
-    transport->AddClosedCallback([this](const TransportProtocol protocol){
+    transport->AddClosedCallback([this, self](const TransportProtocol protocol){
       OnTransportClosed(protocol);
     });
-    transport->AddConnectFailedCallback([this](const TransportProtocol protocol){ OnTransportConnectFailed(protocol); });
-    transport->AddConnectTimeoutCallback([this](const TransportProtocol protocol){ OnTransportConnectTimeout(protocol); });
-    transport->AddDisconnectedCallback([this](const TransportProtocol protocol){ OnTransportDisconnected(protocol); });
+    transport->AddConnectFailedCallback([this, self](const TransportProtocol protocol){ OnTransportConnectFailed(protocol); });
+    transport->AddConnectTimeoutCallback([this, self](const TransportProtocol protocol){ OnTransportConnectTimeout(protocol); });
+    transport->AddDisconnectedCallback([this, self](const TransportProtocol protocol){ OnTransportDisconnected(protocol); });
 
     if (transport->GetProtocol() == TransportProtocol::kTcp) {
-      transport->SetSendClientPingMessageHandler([this](const TransportProtocol protocol)->bool{ return SendClientPingMessage(protocol); });
+      transport->SetSendClientPingMessageHandler([this, self](const TransportProtocol protocol)->bool{ return SendClientPingMessage(protocol); });
     }
 
     {
@@ -644,7 +649,8 @@ void FunapiSessionImpl::SetSessionId(const std::string &session_id) {
 
 void FunapiSessionImpl::PushTaskQueue(const std::function<bool()> &task)
 {
-  tasks_->Push(task);
+  auto self = shared_from_this();
+  tasks_->Push([self, task]()->bool{ return task(); });
 }
 
 
