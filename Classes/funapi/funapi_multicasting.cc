@@ -278,7 +278,7 @@ bool FunapiMulticastImpl::JoinChannel(const std::string &channel_id) {
     msg.Accept(writer);
     std::string json_string = buffer.GetString();
 
-    session_->SendMessage(kMulticastMsgType, json_string);
+    session_->SendMessage(kMulticastMsgType, json_string, TransportProtocol::kTcp);
   }
 
   if (encoding_ == FunEncoding::kProtobuf) {
@@ -290,7 +290,7 @@ bool FunapiMulticastImpl::JoinChannel(const std::string &channel_id) {
     mcast_msg->set_join(true);
     mcast_msg->set_sender(sender_.c_str());
 
-    session_->SendMessage(msg);
+    session_->SendMessage(msg, TransportProtocol::kTcp);
   }
 
   return true;
@@ -346,7 +346,7 @@ bool FunapiMulticastImpl::SendToChannel(const std::string &channel_id, FunMessag
 
   msg.set_msgtype(kMulticastMsgType);
 
-  session_->SendMessage(msg);
+  session_->SendMessage(msg, TransportProtocol::kTcp);
 
   return true;
 }
@@ -381,7 +381,7 @@ bool FunapiMulticastImpl::SendToChannel(const std::string &channel_id, std::stri
   msg.Accept(writer);
   std::string send_json_string = buffer.GetString();
 
-  session_->SendMessage(kMulticastMsgType, send_json_string);
+  session_->SendMessage(kMulticastMsgType, send_json_string, TransportProtocol::kTcp);
 
   return true;
 }
@@ -407,7 +407,7 @@ void FunapiMulticastImpl::SendLeaveMessage(const std::string &channel_id) {
     msg.Accept(writer);
     std::string json_string = buffer.GetString();
 
-    session_->SendMessage(kMulticastMsgType, json_string);
+    session_->SendMessage(kMulticastMsgType, json_string, TransportProtocol::kTcp);
   }
 
   if (encoding_ == FunEncoding::kProtobuf) {
@@ -419,7 +419,7 @@ void FunapiMulticastImpl::SendLeaveMessage(const std::string &channel_id) {
     mcast_msg->set_leave(true);
     mcast_msg->set_sender(sender_.c_str());
 
-    session_->SendMessage(msg);
+    session_->SendMessage(msg, TransportProtocol::kTcp);
   }
 }
 
@@ -553,7 +553,7 @@ bool FunapiMulticastImpl::RequestChannelList() {
     msg.Accept(writer);
     std::string json_string = buffer.GetString();
 
-    session_->SendMessage(kMulticastMsgType, json_string);
+    session_->SendMessage(kMulticastMsgType, json_string, TransportProtocol::kTcp);
   }
 
   if (encoding_ == FunEncoding::kProtobuf) {
@@ -563,7 +563,7 @@ bool FunapiMulticastImpl::RequestChannelList() {
     FunMulticastMessage *mcast_msg = msg.MutableExtension(multicast);
     mcast_msg->set_sender(sender_.c_str());
 
-    session_->SendMessage(msg);
+    session_->SendMessage(msg, TransportProtocol::kTcp);
   }
 
   return true;
