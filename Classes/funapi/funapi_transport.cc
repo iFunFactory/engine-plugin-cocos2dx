@@ -2505,29 +2505,13 @@ void FunapiHttpTransportImpl::SetSequenceNumberValidation(const bool validation)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// FunapiTcpTransport implementation.
-
-void FunapiTransport::SetDisableNagle(const bool disable_nagle) {
-}
-
-
-void FunapiTransport::SetAutoReconnect(const bool disable_nagle) {
-}
-
-
-void FunapiTransport::SetEnablePing(const bool disable_nagle) {
-}
-
+// FunapiTransport implementation.
 
 void FunapiTransport::SetSendClientPingMessageHandler(std::function<bool(const TransportProtocol protocol)> handler) {
 }
 
 
 void FunapiTransport::SetSendAckHandler(std::function<void(const TransportProtocol protocol, const uint32_t seq)> handler) {
-}
-
-
-void FunapiTransport::SetSequenceNumberValidation(const bool validation) {
 }
 
 
