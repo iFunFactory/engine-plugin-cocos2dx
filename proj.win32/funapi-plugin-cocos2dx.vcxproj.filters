@@ -183,6 +183,9 @@
     <ClCompile Include="..\Classes\funapi\funapi_tasks.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\service\redirect_message.pb.cc">
+      <Filter>src\funapi\service</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -406,6 +409,9 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_tasks.h">
       <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\service\redirect_message.pb.h">
+      <Filter>src\funapi\service</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

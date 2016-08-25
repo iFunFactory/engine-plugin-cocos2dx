@@ -593,6 +593,59 @@ void FunapiTest::SendEchoMessage()
   }
 }
 
+void FunapiTest::SendRedirectTestMessage()
+{
+  if (session_ == nullptr)
+  {
+    fun::DebugUtils::Log("You should connect first.");
+  }
+  else {
+    fun::FunEncoding encoding = session_->GetEncoding(session_->GetDefaultProtocol());
+    if (encoding == fun::FunEncoding::kNone)
+    {
+      fun::DebugUtils::Log("You should attach transport first.");
+      return;
+    }
+
+    std::stringstream ss_temp;
+    std::random_device rd;
+    std::default_random_engine re(rd());
+    std::uniform_int_distribution<int> dist(1,0xffff);
+    ss_temp << "name" << dist(re);
+    std::string name = ss_temp.str();
+
+    if (encoding == fun::FunEncoding::kProtobuf)
+    {
+      /*
+      FunMessage msg;
+
+      msg.set_msgtype("cs_hello");
+      Hello *hello = msg.MutableExtension(cs_hello);
+      // hello->set_name("hello-name");
+      hello->set_name(name.c_str());
+
+      session_->SendMessage(msg);
+      */
+    }
+
+    if (encoding == fun::FunEncoding::kJson)
+    {
+      rapidjson::Document msg;
+      msg.SetObject();
+      rapidjson::Value message_node(name.c_str(), msg.GetAllocator());
+      msg.AddMember("name", message_node, msg.GetAllocator());
+
+      // Convert JSON document to string
+      rapidjson::StringBuffer buffer;
+      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+      msg.Accept(writer);
+      std::string json_string = buffer.GetString();
+
+      session_->SendMessage("hello", json_string);
+    }
+  }
+}
+
 void FunapiTest::Connect(const fun::TransportProtocol protocol)
 {
   if (!session_) {
@@ -603,7 +656,8 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
     session_->AddSessionEventCallback([this](const std::shared_ptr<fun::FunapiSession> &session,
                                              const fun::TransportProtocol protocol,
                                              const fun::SessionEventType type,
-                                             const std::string &session_id) {
+                                             const std::string &session_id,
+                                             const std::shared_ptr<fun::FunapiError> &error) {
       if (type == fun::SessionEventType::kOpened) {
         OnSessionInitiated(session_id);
       }
@@ -665,9 +719,6 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
       if (message.msgtype().compare("_maintenance") == 0) {
         fun::DebugUtils::Log("msg '%s' arrived.", message.msgtype().c_str());
 
-        PbufEchoMessage echo = message.GetExtension(pbuf_echo);
-        fun::DebugUtils::Log("proto: %s", echo.msg().c_str());
-
         MaintenanceMessage maintenance = message.GetExtension(pbuf_maintenance);
         std::string date_start = maintenance.date_start();
         std::string date_end = maintenance.date_end();
@@ -676,6 +727,19 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
         fun::DebugUtils::Log("Maintenance message:\nstart: %s\nend: %s\nmessage: %s", date_start.c_str(), date_end.c_str(), message.c_str());
       }
     });
+
+    /*
+    session_->SetTransportOptionCallback([](const fun::TransportProtocol protocol,
+                                            const std::string &flavor) -> std::shared_ptr<fun::FunapiTransportOption> {
+      if (protocol == fun::TransportProtocol::kTcp) {
+        auto option = fun::FunapiTcpTransportOption::create();
+        option->SetDisableNagle(true);
+        return option;
+      }
+
+      return nullptr;
+    });
+    */
   }
 
   // connect
@@ -778,7 +842,8 @@ void FunapiTest::CreateMulticast()
 
     multicast_->AddSessionEventCallback([](const std::shared_ptr<fun::FunapiMulticast>& multicast,
                                            const fun::SessionEventType type,
-                                           const std::string &session_id) {
+                                           const std::string &session_id,
+                                           const std::shared_ptr<fun::FunapiError> &error) {
       /*
       if (type == fun::SessionEventType::kOpened) {
       }
@@ -1052,9 +1117,10 @@ void test_funapi_session(const int index, std::string server_ip,
 
   // add callback
   session->AddSessionEventCallback([index, &send_message](const std::shared_ptr<fun::FunapiSession> &s,
-                                           const fun::TransportProtocol protocol,
-                                           const fun::SessionEventType type,
-                                           const std::string &session_id) {
+                                                          const fun::TransportProtocol protocol,
+                                                          const fun::SessionEventType type,
+                                                          const std::string &session_id,
+                                                          const std::shared_ptr<fun::FunapiError> &error) {
     if (type == fun::SessionEventType::kOpened) {
       // // // //
       // send

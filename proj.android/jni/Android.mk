@@ -24,6 +24,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/funapi/network/fun_message.pb.cc \
                    ../../Classes/funapi/network/ping_message.pb.cc \
                    ../../Classes/funapi/service/multicast_message.pb.cc \
+                   ../../Classes/funapi/service/redirect_message.pb.cc \
                    ../../Classes/test_messages.pb.cc \
                    ../../Classes/google/protobuf/descriptor.cc \
                    ../../Classes/google/protobuf/descriptor.pb.cc \

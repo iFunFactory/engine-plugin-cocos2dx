@@ -157,6 +157,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\funapi\network\fun_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\network\ping_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\service\multicast_message.pb.cc" />
+    <ClCompile Include="..\Classes\funapi\service\redirect_message.pb.cc" />
     <ClCompile Include="..\Classes\google\protobuf\descriptor.cc" />
     <ClCompile Include="..\Classes\google\protobuf\descriptor.pb.cc" />
     <ClCompile Include="..\Classes\google\protobuf\descriptor_database.cc" />
@@ -211,6 +212,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\network\fun_message.pb.h" />
     <ClInclude Include="..\Classes\funapi\network\ping_message.pb.h" />
     <ClInclude Include="..\Classes\funapi\service\multicast_message.pb.h" />
+    <ClInclude Include="..\Classes\funapi\service\redirect_message.pb.h" />
     <ClInclude Include="..\Classes\google\config.h" />
     <ClInclude Include="..\Classes\google\protobuf\descriptor.h" />
     <ClInclude Include="..\Classes\google\protobuf\descriptor.pb.h" />

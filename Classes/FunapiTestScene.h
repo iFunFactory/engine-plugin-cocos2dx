@@ -53,6 +53,7 @@ public:
 private:
   void Connect(const fun::TransportProtocol protocol);
   void TestFunapi(bool bStart);
+  void SendRedirectTestMessage();
   void UpdateUI();
 
   std::shared_ptr<fun::FunapiSession> session_ = nullptr;

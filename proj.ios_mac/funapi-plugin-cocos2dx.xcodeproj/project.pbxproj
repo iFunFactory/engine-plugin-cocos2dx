@@ -64,10 +64,9 @@
 		D6183A901D12767100512F35 /* ping_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A871D1274FC00512F35 /* ping_message.pb.cc */; };
 		D6183A911D12767400512F35 /* fun_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A851D1274FC00512F35 /* fun_message.pb.cc */; };
 		D6183A921D12767800512F35 /* multicast_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A8B1D12750600512F35 /* multicast_message.pb.cc */; };
-		D6183A951D127A9600512F35 /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A931D127A9600512F35 /* test_messages.pb.cc */; };
-		D6183A961D127AF200512F35 /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6183A931D127A9600512F35 /* test_messages.pb.cc */; };
 		D6247EAD1CAD18D500D82AFA /* funapi_encryption.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62541461C9920DA008B9237 /* funapi_encryption.cc */; };
 		D62541481C9920DA008B9237 /* funapi_encryption.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62541461C9920DA008B9237 /* funapi_encryption.cc */; };
+		D62B67C41D6D70810081D9C6 /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62B67C21D6D70810081D9C6 /* test_messages.pb.cc */; };
 		D62C04C41D000659000B627F /* funapi_downloader.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62C04C21D000659000B627F /* funapi_downloader.cc */; };
 		D62C04C51D000666000B627F /* funapi_downloader.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62C04C21D000659000B627F /* funapi_downloader.cc */; };
 		D631CC441C58028600C07031 /* funapi_multicasting.cc in Sources */ = {isa = PBXBuildFile; fileRef = D631CC421C58028600C07031 /* funapi_multicasting.cc */; };
@@ -139,6 +138,9 @@
 		D647CC631C0844B2008DC67E /* wire_format_lite.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CB441C0844B2008DC67E /* wire_format_lite.cc */; };
 		D647CC7F1C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
 		D647CC801C085860008DC67E /* funapi_transport.cc in Sources */ = {isa = PBXBuildFile; fileRef = D647CC6C1C085860008DC67E /* funapi_transport.cc */; };
+		D6715D9C1D6EC6B9006F1EA2 /* redirect_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */; };
+		D6715D9D1D6EC6FC006F1EA2 /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62B67C21D6D70810081D9C6 /* test_messages.pb.cc */; };
+		D6A5E08E1D65979000E39210 /* redirect_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
 		D6C85BDC1D3F3912004AFC12 /* check_box_active_disable.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD61D3F3912004AFC12 /* check_box_active_disable.png */; };
 		D6C85BDD1D3F3912004AFC12 /* check_box_active_press.png in Resources */ = {isa = PBXBuildFile; fileRef = D6C85BD71D3F3912004AFC12 /* check_box_active_press.png */; };
@@ -264,10 +266,10 @@
 		D6183A881D1274FC00512F35 /* ping_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ping_message.pb.h; path = network/ping_message.pb.h; sourceTree = "<group>"; };
 		D6183A8B1D12750600512F35 /* multicast_message.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = multicast_message.pb.cc; path = service/multicast_message.pb.cc; sourceTree = "<group>"; };
 		D6183A8C1D12750600512F35 /* multicast_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = multicast_message.pb.h; path = service/multicast_message.pb.h; sourceTree = "<group>"; };
-		D6183A931D127A9600512F35 /* test_messages.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_messages.pb.cc; sourceTree = "<group>"; };
-		D6183A941D127A9600512F35 /* test_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_messages.pb.h; sourceTree = "<group>"; };
 		D62541461C9920DA008B9237 /* funapi_encryption.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_encryption.cc; sourceTree = "<group>"; };
 		D62541471C9920DA008B9237 /* funapi_encryption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_encryption.h; sourceTree = "<group>"; };
+		D62B67C21D6D70810081D9C6 /* test_messages.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_messages.pb.cc; sourceTree = "<group>"; };
+		D62B67C31D6D70810081D9C6 /* test_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_messages.pb.h; sourceTree = "<group>"; };
 		D62C04C21D000659000B627F /* funapi_downloader.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_downloader.cc; sourceTree = "<group>"; };
 		D62C04C31D000659000B627F /* funapi_downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_downloader.h; sourceTree = "<group>"; };
 		D631CC421C58028600C07031 /* funapi_multicasting.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_multicasting.cc; sourceTree = "<group>"; };
@@ -367,6 +369,8 @@
 		D647CC6D1C085860008DC67E /* funapi_transport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_transport.h; sourceTree = "<group>"; };
 		D647CC6E1C085860008DC67E /* funapi_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_utils.h; sourceTree = "<group>"; };
 		D68295D21C3FB8770054DF7F /* funapi_build_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_build_config.h; sourceTree = "<group>"; };
+		D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = redirect_message.pb.cc; path = service/redirect_message.pb.cc; sourceTree = "<group>"; };
+		D6A5E08D1D65979000E39210 /* redirect_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = redirect_message.pb.h; path = service/redirect_message.pb.h; sourceTree = "<group>"; };
 		D6B05CF31C0BEB27008B3A80 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../cocos2d/external/curl/prebuilt/ios/libcrypto.a; sourceTree = "<group>"; };
 		D6B05CF41C0BEB27008B3A80 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		D6B05CF51C0BEB27008B3A80 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/ios/libssl.a; sourceTree = "<group>"; };
@@ -537,8 +541,8 @@
 				46880B8519C43A87006E1F66 /* AppDelegate.h */,
 				46880B8619C43A87006E1F66 /* FunapiTestScene.cpp */,
 				46880B8719C43A87006E1F66 /* FunapiTestScene.h */,
-				D6183A931D127A9600512F35 /* test_messages.pb.cc */,
-				D6183A941D127A9600512F35 /* test_messages.pb.h */,
+				D62B67C21D6D70810081D9C6 /* test_messages.pb.cc */,
+				D62B67C31D6D70810081D9C6 /* test_messages.pb.h */,
 			);
 			name = Classes;
 			path = ../Classes;
@@ -614,6 +618,8 @@
 		D6183A811D1274C500512F35 /* service */ = {
 			isa = PBXGroup;
 			children = (
+				D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */,
+				D6A5E08D1D65979000E39210 /* redirect_message.pb.h */,
 				D6183A8B1D12750600512F35 /* multicast_message.pb.cc */,
 				D6183A8C1D12750600512F35 /* multicast_message.pb.h */,
 			);
@@ -970,8 +976,8 @@
 				D647CBFE1C0844B2008DC67E /* atomicops_internals_x86_gcc.cc in Sources */,
 				D631CC441C58028600C07031 /* funapi_multicasting.cc in Sources */,
 				D647CBBA1C0844B2008DC67E /* descriptor_database.cc in Sources */,
-				D6183A951D127A9600512F35 /* test_messages.pb.cc in Sources */,
 				D6DF6AA61D0E47C100656A79 /* md5.cc in Sources */,
+				D6A5E08E1D65979000E39210 /* redirect_message.pb.cc in Sources */,
 				D647CBE21C0844B2008DC67E /* zero_copy_stream.cc in Sources */,
 				D6D171BA1D1CFDD5009A0E4C /* funapi_session.cc in Sources */,
 				D647CBEC1C0844B2008DC67E /* message.cc in Sources */,
@@ -982,6 +988,7 @@
 				D647CBDE1C0844B2008DC67E /* tokenizer.cc in Sources */,
 				D647CBF61C0844B2008DC67E /* repeated_field.cc in Sources */,
 				D647CBC61C0844B2008DC67E /* extension_set_heavy.cc in Sources */,
+				D62B67C41D6D70810081D9C6 /* test_messages.pb.cc in Sources */,
 				D647CC621C0844B2008DC67E /* wire_format_lite.cc in Sources */,
 				D6183A8D1D12750600512F35 /* multicast_message.pb.cc in Sources */,
 				D6183A8A1D1274FC00512F35 /* ping_message.pb.cc in Sources */,
@@ -1021,18 +1028,19 @@
 				D647CC031C0844B2008DC67E /* common.cc in Sources */,
 				D647CBCB1C0844B2008DC67E /* generated_message_reflection.cc in Sources */,
 				D6DF6ABD1D0EA11F00656A79 /* md5.cc in Sources */,
-				D6183A961D127AF200512F35 /* test_messages.pb.cc in Sources */,
 				D6E925761C60876700E16775 /* funapi_multicasting.cc in Sources */,
 				D647CBFF1C0844B2008DC67E /* atomicops_internals_x86_gcc.cc in Sources */,
 				D647CBF31C0844B2008DC67E /* reflection_ops.cc in Sources */,
 				D647CBC11C0844B2008DC67E /* dynamic_message.cc in Sources */,
 				D647CBED1C0844B2008DC67E /* message.cc in Sources */,
 				D647CBEF1C0844B2008DC67E /* message_lite.cc in Sources */,
+				D6715D9D1D6EC6FC006F1EA2 /* test_messages.pb.cc in Sources */,
 				D647CBE31C0844B2008DC67E /* zero_copy_stream.cc in Sources */,
 				D647CBC51C0844B2008DC67E /* extension_set.cc in Sources */,
 				D647CBB71C0844B2008DC67E /* descriptor.pb.cc in Sources */,
 				D647CBFD1C0844B2008DC67E /* service.cc in Sources */,
 				D647CC131C0844B2008DC67E /* strutil.cc in Sources */,
+				D6715D9C1D6EC6B9006F1EA2 /* redirect_message.pb.cc in Sources */,
 				D647CC611C0844B2008DC67E /* wire_format.cc in Sources */,
 				D647CC011C0844B2008DC67E /* atomicops_internals_x86_msvc.cc in Sources */,
 				D6183A911D12767400512F35 /* fun_message.pb.cc in Sources */,
