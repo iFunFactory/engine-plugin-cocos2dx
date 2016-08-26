@@ -143,7 +143,7 @@ class FunapiHttpDownloaderImpl : public std::enable_shared_from_this<FunapiHttpD
 
 
 FunapiHttpDownloaderImpl::FunapiHttpDownloaderImpl() {
-  tasks_ = FunapiTasks::create();
+  tasks_ = FunapiTasks::Create();
 }
 
 

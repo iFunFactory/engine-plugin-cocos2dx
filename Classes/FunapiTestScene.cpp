@@ -650,7 +650,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
 {
   if (!session_) {
     // create
-    session_ = fun::FunapiSession::create(kServerIp.c_str(), with_session_reliability_);
+    session_ = fun::FunapiSession::Create(kServerIp.c_str(), with_session_reliability_);
 
     // add callback
     session_->AddSessionEventCallback([this](const std::shared_ptr<fun::FunapiSession> &session,
@@ -806,7 +806,7 @@ void FunapiTest::CreateMulticast()
 
     if (session_) {
       if (session_->IsConnected(fun::TransportProtocol::kTcp)) {
-        multicast_ = fun::FunapiMulticast::create(sender.c_str(), session_);
+        multicast_ = fun::FunapiMulticast::Create(sender.c_str(), session_);
       }
     }
 
@@ -814,7 +814,7 @@ void FunapiTest::CreateMulticast()
       fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
       uint16_t port = with_protobuf_ ? 8022 : 8012;
 
-      multicast_ = fun::FunapiMulticast::create(sender.c_str(), kServerIp.c_str(), port, encoding);
+      multicast_ = fun::FunapiMulticast::Create(sender.c_str(), kServerIp.c_str(), port, encoding);
     }
 
     multicast_->AddJoinedCallback([](const std::shared_ptr<fun::FunapiMulticast>& multicast,
@@ -1112,7 +1112,7 @@ void test_funapi_session(const int index, std::string server_ip,
     }
   };
 
-  auto session = fun::FunapiSession::create(server_ip.c_str(), use_session_reliability);
+  auto session = fun::FunapiSession::Create(server_ip.c_str(), use_session_reliability);
   bool is_ok = true;
 
   // add callback
@@ -1196,7 +1196,7 @@ void test_funapi_session(const int index, std::string server_ip,
     }
   });
 
-  auto option = fun::FunapiTcpTransportOption::create();
+  auto option = fun::FunapiTcpTransportOption::Create();
   option->SetEnablePing(true);
   option->SetDisableNagle(true);
   session->Connect(fun::TransportProtocol::kTcp, server_port, encoding, option);
