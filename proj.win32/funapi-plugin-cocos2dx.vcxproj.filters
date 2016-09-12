@@ -186,6 +186,15 @@
     <ClCompile Include="..\Classes\funapi\service\redirect_message.pb.cc">
       <Filter>src\funapi\service</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_announcement.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_http.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_utils.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -412,6 +421,12 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\service\redirect_message.pb.h">
       <Filter>src\funapi\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_announcement.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_http.h">
+      <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -9,36 +9,70 @@
 
 namespace fun {
 
-enum class DownloadResult {
-  NONE,
-  SUCCESS,
-  FAILED
-};
-
-
+class FunapiDownloadFileInfo;
 class FunapiHttpDownloaderImpl;
 class FunapiHttpDownloader : public std::enable_shared_from_this<FunapiHttpDownloader> {
  public:
-  typedef std::function<void(const std::string&)> VerifyEventHandler;
-  typedef std::function<void(int, uint64_t)> ReadyEventHandler;
-  typedef std::function<void(const std::string&, uint64_t, uint64_t, int)> UpdateEventHandler;
-  typedef std::function<void(DownloadResult code)> FinishEventHandler;
+  enum class ResultCode : int {
+    kNone,
+    kSucceed,
+    kFailed,
+  };
 
-  FunapiHttpDownloader();
+  typedef std::function<void(const std::shared_ptr<FunapiHttpDownloader>&,
+                             const std::vector<std::shared_ptr<FunapiDownloadFileInfo>>&)> ReadyHandler;
+
+  typedef std::function<void(const std::shared_ptr<FunapiHttpDownloader>&,
+                             const std::vector<std::shared_ptr<FunapiDownloadFileInfo>>&,
+                             const int index,
+                             const int max_index,
+                             const uint64_t received_bytes,
+                             const uint64_t expected_bytes)> ProgressHandler;
+
+  typedef std::function<void(const std::shared_ptr<FunapiHttpDownloader>&,
+                             const std::vector<std::shared_ptr<FunapiDownloadFileInfo>>&,
+                             const ResultCode)> CompletionHandler;
+
+  FunapiHttpDownloader() = delete;
+  FunapiHttpDownloader(const std::string &url, const std::string &path);
   ~FunapiHttpDownloader();
 
-  void AddVerifyCallback(const VerifyEventHandler &handler);
-  void AddReadyCallback(const ReadyEventHandler &handler);
-  void AddUpdateCallback(const UpdateEventHandler &handler);
-  void AddFinishedCallback(const FinishEventHandler &handler);
+  static std::shared_ptr<FunapiHttpDownloader> Create(const std::string &url, const std::string &path);
 
-  void GetDownloadList(const std::string &download_url, const std::string &target_path);
-  void StartDownload();
+  void AddReadyCallback(const ReadyHandler &handler);
+  void AddProgressCallback(const ProgressHandler &handler);
+  void AddCompletionCallback(const CompletionHandler &handler);
 
+  void Start();
   void Update();
 
  private:
   std::shared_ptr<FunapiHttpDownloaderImpl> impl_;
+};
+
+
+class FunapiDownloadFileInfoImpl;
+class FunapiDownloadFileInfo : public std::enable_shared_from_this<FunapiDownloadFileInfo> {
+ public:
+  FunapiDownloadFileInfo() = delete;
+  FunapiDownloadFileInfo(const std::string &url,
+                         const std::string &path,
+                         const uint64_t size,
+                         const std::string &hash,
+                         const std::string &hash_front);
+  ~FunapiDownloadFileInfo();
+
+  const std::string& GetUrl();
+  const std::string& GetPath();
+  uint64_t GetSize();
+  const std::string& GetHash();
+  const std::string& GetHashFront();
+
+  const FunapiHttpDownloader::ResultCode GetResultCode();
+  void SetResultCode(FunapiHttpDownloader::ResultCode r);
+
+ private:
+  std::shared_ptr<FunapiDownloadFileInfoImpl> impl_;
 };
 
 }  // namespace fun

@@ -19,6 +19,9 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/funapi/funapi_downloader.cc \
                    ../../Classes/funapi/funapi_session.cc \
                    ../../Classes/funapi/funapi_tasks.cc \
+                   ../../Classes/funapi/funapi_announcement.cc \
+                   ../../Classes/funapi/funapi_http.cc \
+                   ../../Classes/funapi/funapi_utils.cc \
                    ../../Classes/funapi/md5/md5.cc \
                    ../../Classes/funapi/management/maintenance_message.pb.cc \
                    ../../Classes/funapi/network/fun_message.pb.cc \
@@ -74,7 +77,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../Classes \
 # _COCOS_HEADER_ANDROID_BEGIN
 # _COCOS_HEADER_ANDROID_END
 
-
 LOCAL_STATIC_LIBRARIES := cocos2dx_static
 
 # _COCOS_LIB_ANDROID_BEGIN
@@ -87,4 +89,4 @@ $(call import-module,.)
 # _COCOS_LIB_IMPORT_ANDROID_BEGIN
 # _COCOS_LIB_IMPORT_ANDROID_END
 
-# $(call import-module,curl/prebuilt/android)
+$(call import-module,curl/prebuilt/android)

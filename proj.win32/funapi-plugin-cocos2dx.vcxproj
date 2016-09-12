@@ -146,12 +146,15 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   <ItemGroup>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
     <ClCompile Include="..\Classes\FunapiTestScene.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_announcement.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_downloader.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_encryption.cc" />
+    <ClCompile Include="..\Classes\funapi\funapi_http.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_session.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_tasks.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_transport.cc" />
+    <ClCompile Include="..\Classes\funapi\funapi_utils.cc" />
     <ClCompile Include="..\Classes\funapi\management\maintenance_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\md5\md5.cc" />
     <ClCompile Include="..\Classes\funapi\network\fun_message.pb.cc" />
@@ -197,9 +200,11 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="..\Classes\FunapiTestScene.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_announcement.h" />
     <ClInclude Include="..\Classes\funapi\funapi_build_config.h" />
     <ClInclude Include="..\Classes\funapi\funapi_downloader.h" />
     <ClInclude Include="..\Classes\funapi\funapi_encryption.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_http.h" />
     <ClInclude Include="..\Classes\funapi\funapi_multicasting.h" />
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
     <ClInclude Include="..\Classes\funapi\funapi_session.h" />

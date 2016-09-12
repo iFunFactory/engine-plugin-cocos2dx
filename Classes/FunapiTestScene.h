@@ -2,11 +2,13 @@
 #define __FUNAPI_TEST_SCENE_H__
 
 #include "cocos2d.h"
-#include "funapi/funapi_downloader.h"
 
 namespace fun {
   class FunapiSession;
   class FunapiMulticast;
+  class FunapiHttpDownloader;
+  class FunapiHttp;
+  class FunapiAnnouncement;
   enum class TransportProtocol;
 }
 
@@ -42,6 +44,7 @@ public:
   void LeaveMulticastAllChannels();
 
   void DownloaderTest();
+  void RequestAnnouncements();
 
   // callback
   void OnSessionInitiated(const std::string &session_id);
@@ -69,9 +72,12 @@ private:
   // Please change this address for test.
   const std::string kDownloadServerIp = "127.0.0.1";
   const int kDownloadServerPort = 8020;
-
   std::shared_ptr<fun::FunapiHttpDownloader> downloader_ = nullptr;
-  fun::DownloadResult code_ = fun::DownloadResult::NONE;
+
+  // Please change this address for test.
+  const std::string kAnnouncementServerIp = "127.0.0.1";
+  const int kAnnouncementServerPort = 8080;
+  std::shared_ptr<fun::FunapiAnnouncement> announcement_ = nullptr;
 
   // UI controls
   cocos2d::ui::EditBox* editbox_sernvername_;
@@ -89,6 +95,7 @@ private:
   cocos2d::ui::Button* button_multicast_join_;
   cocos2d::ui::Button* button_multicast_create_;
   cocos2d::ui::Button* button_download_;
+  cocos2d::ui::Button* button_announcement_;
   cocos2d::ui::Button* button_test_stop_;
   cocos2d::ui::Button* button_test_start_;
 };

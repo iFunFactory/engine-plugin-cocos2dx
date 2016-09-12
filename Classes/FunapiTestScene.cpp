@@ -4,12 +4,14 @@
 #include "funapi/funapi_session.h"
 #include "funapi/funapi_multicasting.h"
 #include "funapi/funapi_downloader.h"
+#include "funapi/funapi_announcement.h"
 
 #include "test_messages.pb.h"
 #include "funapi/management/maintenance_message.pb.h"
 #include "funapi/service/multicast_message.pb.h"
 #include "funapi/funapi_utils.h"
 #include "funapi/funapi_tasks.h"
+#include "funapi/funapi_http.h"
 
 #include "json/writer.h"
 #include "json/stringbuffer.h"
@@ -368,7 +370,6 @@ bool FunapiTest::init()
 
   layer_multicast->setContentSize(Size(visibleSize.width, y));
 
-  /*
   // layer
   // download
   auto layer_download = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
@@ -391,8 +392,9 @@ bool FunapiTest::init()
 
   y += button_height + (button_height * 0.5);
 
-  std::string label_string_download = "[Download] - " + kDownloadServerIp;
-  auto label_download = Label::createWithTTF(label_string_download.c_str(), "arial.ttf", 10);
+  std::stringstream ss_download;
+  ss_download << "[Download] - " << kDownloadServerIp << ":" << kDownloadServerPort; // static_cast<int>(i);
+  auto label_download = Label::createWithTTF(ss_download.str().c_str(), "arial.ttf", 10);
   label_download->setAnchorPoint(Vec2(0.5, 0.5));
   label_download->setPosition(Vec2(center_x, y));
   layer_download->addChild(label_download, 1);
@@ -401,8 +403,38 @@ bool FunapiTest::init()
 
   layer_download->setContentSize(Size(visibleSize.width, y));
 
-  button_download_->setEnabled(false);
-  */
+  // layer
+  // announcement
+  auto layer_announcement = LayerColor::create(Color4B(0, 0, 0, 255), visibleSize.width, visibleSize.height/2.0);
+  layer_announcement->setAnchorPoint(Vec2(0.0,0.0));
+
+  y = gap_height;
+
+  button_announcement_ = Button::create("button.png", "buttonHighlighted.png");
+  button_announcement_->setScale9Enabled(true);
+  button_announcement_->setContentSize(Size(button_width, button_height));
+  button_announcement_->setPressedActionEnabled(true);
+  button_announcement_->setAnchorPoint(Vec2(0.5, 0.0));
+  button_announcement_->setPosition(Vec2(center_x, y));
+  button_announcement_->setTitleText("Announcement");
+  button_announcement_->addClickEventListener([this](Ref* sender) {
+    fun::DebugUtils::Log("(Button)Announcement");
+    RequestAnnouncements();
+  });
+  layer_announcement->addChild(button_announcement_);
+
+  y += button_height + (button_height * 0.5);
+
+  std::stringstream ss_announcement;
+  ss_announcement << "[Announcement] - " << kAnnouncementServerIp << ":" << kAnnouncementServerPort;
+  auto label_announcement = Label::createWithTTF(ss_announcement.str().c_str(), "arial.ttf", 10);
+  label_announcement->setAnchorPoint(Vec2(0.5, 0.5));
+  label_announcement->setPosition(Vec2(center_x, y));
+  layer_announcement->addChild(label_announcement, 1);
+
+  y += (button_height * 0.5);
+
+  layer_announcement->setContentSize(Size(visibleSize.width, y));
 
   /*
   // layer
@@ -459,7 +491,8 @@ bool FunapiTest::init()
   layers.push_back(layer_setting);
   layers.push_back(layer_funapi_session);
   layers.push_back(layer_multicast);
-  // layers.push_back(layer_download);
+  layers.push_back(layer_download);
+  layers.push_back(layer_announcement);
   // layers.push_back(layer_test);
 
   y = 0;
@@ -732,7 +765,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
     session_->SetTransportOptionCallback([](const fun::TransportProtocol protocol,
                                             const std::string &flavor) -> std::shared_ptr<fun::FunapiTransportOption> {
       if (protocol == fun::TransportProtocol::kTcp) {
-        auto option = fun::FunapiTcpTransportOption::create();
+        auto option = fun::FunapiTcpTransportOption::Create();
         option->SetDisableNagle(true);
         return option;
       }
@@ -749,30 +782,25 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
   if (protocol == fun::TransportProtocol::kTcp) {
     port = with_protobuf_ ? 8022 : 8012;
 
-    /*
-     auto option = fun::FunapiTcpTransportOption::create();
-     option->SetDisableNagle(true);
-     option->SetEnablePing(true);
-     session_->Connect(protocol, port, encoding, option);
-     */
+    // auto option = fun::FunapiTcpTransportOption::Create();
+    // option->SetDisableNagle(true);
+    // option->SetEnablePing(true);
+    // session_->Connect(protocol, port, encoding, option);
   }
   else if (protocol == fun::TransportProtocol::kUdp) {
     port = with_protobuf_ ? 8023 : 8013;
 
-    /*
-     auto option = fun::FunapiUdpTransportOption::create();
-     session_->Connect(protocol, port, encoding, option);
-     */
+    // auto option = fun::FunapiUdpTransportOption::Create();
+    // session_->Connect(protocol, port, encoding, option);
   }
   else if (protocol == fun::TransportProtocol::kHttp) {
     port = with_protobuf_ ? 8028 : 8018;
 
-    /*
-     auto option = fun::FunapiHttpTransportOption::create();
-     option->SetSequenceNumberValidation(true);
-     option->SetUseHttps(false);
-     session_->Connect(protocol, port, encoding, option);
-     */
+    // auto option = fun::FunapiHttpTransportOption::Create();
+    // option->SetSequenceNumberValidation(true);
+    // option->SetUseHttps(true);
+    // option->SetCACertFilePath(cocos2d::FileUtils::getInstance()->fullPathForFilename("cacert.pem"));
+    // session_->Connect(protocol, port, encoding, option);
   }
 
   session_->Connect(protocol, port, encoding);
@@ -984,30 +1012,75 @@ void FunapiTest::LeaveMulticastAllChannels()
 void FunapiTest::DownloaderTest()
 {
   if (!downloader_) {
-    downloader_ = std::make_shared<fun::FunapiHttpDownloader>();
-
-    downloader_->AddVerifyCallback([this](const std::string &path) {
-      fun::DebugUtils::Log("Check file - %s", path.c_str());
-    });
-    downloader_->AddReadyCallback([this](int total_count, uint64_t total_size) {
-      downloader_->StartDownload();
-    });
-    downloader_->AddUpdateCallback([this](const std::string &path, uint64_t bytes_received, uint64_t total_bytes, int percentage) {
-      fun::DebugUtils::Log("Downloading - path:%s / received:%llu / total:%llu / %d", path.c_str(), bytes_received, total_bytes, percentage);
-    });
-    downloader_->AddFinishedCallback([this](fun::DownloadResult code) {
-      fun::DebugUtils::Log("Downloader Finished - %d", code);
-      code_ = code;
-    });
-
     std::stringstream ss_temp;
     ss_temp << "http://" << kDownloadServerIp << ":" << kDownloadServerPort;
     std::string download_url = ss_temp.str();
 
-    std::string target_path = fun::FunapiUtil::GetWritablePath();
+    downloader_ = fun::FunapiHttpDownloader::Create(download_url, cocos2d::FileUtils::getInstance()->getWritablePath());
 
-    downloader_->GetDownloadList(download_url, target_path);
+    downloader_->AddReadyCallback([](const std::shared_ptr<fun::FunapiHttpDownloader>&downloader,
+                                     const std::vector<std::shared_ptr<fun::FunapiDownloadFileInfo>>&info) {
+      /*
+      fun::DebugUtils::Log("ready download");
+      for (auto i : info) {
+        std::stringstream ss_temp;
+        ss_temp << i->GetUrl() << std::endl;
+        fun::DebugUtils::Log("%s", ss_temp.str().c_str());
+      }
+      */
+    });
+
+    downloader_->AddProgressCallback([](const std::shared_ptr<fun::FunapiHttpDownloader> &downloader,
+                                        const std::vector<std::shared_ptr<fun::FunapiDownloadFileInfo>>&info,
+                                        const int index,
+                                        const int max_index,
+                                        const uint64_t received_bytes,
+                                        const uint64_t expected_bytes) {
+      auto i = info[index];
+
+      std::stringstream ss_temp;
+      ss_temp << index << "/" << max_index << " " << received_bytes << "/" << expected_bytes << " " << i->GetUrl() << std::endl;
+      fun::DebugUtils::Log("%s", ss_temp.str().c_str());
+    });
+
+    downloader_->AddCompletionCallback([this](const std::shared_ptr<fun::FunapiHttpDownloader>&downloader,
+                                       const std::vector<std::shared_ptr<fun::FunapiDownloadFileInfo>>&info,
+                                       const fun::FunapiHttpDownloader::ResultCode result_code) {
+      if (result_code == fun::FunapiHttpDownloader::ResultCode::kSucceed) {
+        for (auto i : info) {
+          fun::DebugUtils::Log("file_path=%s", i->GetPath().c_str());
+        }
+      }
+
+      downloader_ = nullptr;
+    });
+
+    downloader_->Start();
   }
+}
+
+void FunapiTest::RequestAnnouncements()
+{
+  if (announcement_ == nullptr) {
+    std::stringstream ss_url;
+    ss_url << "http://" << kAnnouncementServerIp << ":" << kAnnouncementServerPort;
+
+    announcement_ = fun::FunapiAnnouncement::Create(ss_url.str(), cocos2d::FileUtils::getInstance()->getWritablePath());
+
+    announcement_->AddCompletionCallback([this](const std::shared_ptr<fun::FunapiAnnouncement> &announcement,
+                                                const std::vector<std::shared_ptr<fun::FunapiAnnouncementInfo>>&info,
+                                                const fun::FunapiAnnouncement::ResultCode result){
+      if (result == fun::FunapiAnnouncement::ResultCode::kSucceed) {
+        for (auto i : info) {
+          fun::DebugUtils::Log("date=%s message=%s subject=%s file_path=%s", i->GetDate().c_str(), i->GetMessageText().c_str(), i->GetSubject().c_str(), i->GetFilePath().c_str());
+        }
+      }
+
+      announcement_ = nullptr;
+    });
+  }
+
+  announcement_->RequestList(5);
 }
 
 static bool g_bTestRunning = false;
