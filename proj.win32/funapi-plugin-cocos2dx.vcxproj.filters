@@ -428,6 +428,9 @@
     <ClInclude Include="..\Classes\funapi\funapi_http.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_encryption_legacy.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc">

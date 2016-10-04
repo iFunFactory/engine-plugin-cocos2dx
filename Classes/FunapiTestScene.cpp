@@ -11,7 +11,7 @@
 #include "funapi/service/multicast_message.pb.h"
 #include "funapi/funapi_utils.h"
 #include "funapi/funapi_tasks.h"
-#include "funapi/funapi_http.h"
+#include "funapi/funapi_encryption.h"
 
 #include "json/writer.h"
 #include "json/stringbuffer.h"
@@ -785,6 +785,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
     // auto option = fun::FunapiTcpTransportOption::Create();
     // option->SetDisableNagle(true);
     // option->SetEnablePing(true);
+    // option->SetEncryptionType(fun::EncryptionType::kChacha20Encryption, "0b8504a9c1108584f4f0a631ead8dd548c0101287b91736566e13ead3f008f5d");
     // session_->Connect(protocol, port, encoding, option);
   }
   else if (protocol == fun::TransportProtocol::kUdp) {

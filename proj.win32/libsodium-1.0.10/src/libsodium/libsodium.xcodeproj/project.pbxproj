@@ -1,0 +1,170 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		D6903B711D9102E800DE657D /* crypto_aead */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_aead; sourceTree = "<group>"; };
+		D6903B721D9102E800DE657D /* crypto_auth */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_auth; sourceTree = "<group>"; };
+		D6903B731D9102E800DE657D /* crypto_box */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_box; sourceTree = "<group>"; };
+		D6903B741D9102E800DE657D /* crypto_core */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_core; sourceTree = "<group>"; };
+		D6903B751D9102E800DE657D /* crypto_generichash */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_generichash; sourceTree = "<group>"; };
+		D6903B761D9102E800DE657D /* crypto_hash */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_hash; sourceTree = "<group>"; };
+		D6903B771D9102E800DE657D /* crypto_onetimeauth */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_onetimeauth; sourceTree = "<group>"; };
+		D6903B781D9102E800DE657D /* crypto_pwhash */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_pwhash; sourceTree = "<group>"; };
+		D6903B791D9102E800DE657D /* crypto_scalarmult */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_scalarmult; sourceTree = "<group>"; };
+		D6903B7A1D9102E800DE657D /* crypto_secretbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_secretbox; sourceTree = "<group>"; };
+		D6903B7B1D9102E800DE657D /* crypto_shorthash */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_shorthash; sourceTree = "<group>"; };
+		D6903B7C1D9102E800DE657D /* crypto_sign */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_sign; sourceTree = "<group>"; };
+		D6903B7D1D9102E800DE657D /* crypto_stream */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_stream; sourceTree = "<group>"; };
+		D6903B7E1D9102E800DE657D /* crypto_verify */ = {isa = PBXFileReference; lastKnownFileType = folder; path = crypto_verify; sourceTree = "<group>"; };
+		D6903B7F1D9102E800DE657D /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
+		D6903B801D9102E800DE657D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		D6903B811D9102E800DE657D /* randombytes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = randombytes; sourceTree = "<group>"; };
+		D6903B821D9102E800DE657D /* sodium */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sodium; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		D6903B6B1D9102E800DE657D = {
+			isa = PBXGroup;
+			children = (
+				D6903B711D9102E800DE657D /* crypto_aead */,
+				D6903B721D9102E800DE657D /* crypto_auth */,
+				D6903B731D9102E800DE657D /* crypto_box */,
+				D6903B741D9102E800DE657D /* crypto_core */,
+				D6903B751D9102E800DE657D /* crypto_generichash */,
+				D6903B761D9102E800DE657D /* crypto_hash */,
+				D6903B771D9102E800DE657D /* crypto_onetimeauth */,
+				D6903B781D9102E800DE657D /* crypto_pwhash */,
+				D6903B791D9102E800DE657D /* crypto_scalarmult */,
+				D6903B7A1D9102E800DE657D /* crypto_secretbox */,
+				D6903B7B1D9102E800DE657D /* crypto_shorthash */,
+				D6903B7C1D9102E800DE657D /* crypto_sign */,
+				D6903B7D1D9102E800DE657D /* crypto_stream */,
+				D6903B7E1D9102E800DE657D /* crypto_verify */,
+				D6903B7F1D9102E800DE657D /* include */,
+				D6903B801D9102E800DE657D /* Makefile.am */,
+				D6903B811D9102E800DE657D /* randombytes */,
+				D6903B821D9102E800DE657D /* sodium */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		D6903B701D9102E800DE657D /* libsodium */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = D6903B831D9102E800DE657D /* Build configuration list for PBXLegacyTarget "libsodium" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "/Users/junhyun/Downloads/libsodium-1.0.10/src/libsodium";
+			dependencies = (
+			);
+			name = libsodium;
+			passBuildSettingsInEnvironment = 1;
+			productName = libsodium;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		D6903B6C1D9102E800DE657D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = D6903B6F1D9102E800DE657D /* Build configuration list for PBXProject "libsodium" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = D6903B6B1D9102E800DE657D;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D6903B701D9102E800DE657D /* libsodium */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		D6903B6D1D9102E800DE657D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx10.6;
+			};
+			name = Debug;
+		};
+		D6903B6E1D9102E800DE657D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				SDKROOT = macosx10.6;
+			};
+			name = Release;
+		};
+		D6903B841D9102E800DE657D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = libsodium;
+			};
+			name = Debug;
+		};
+		D6903B851D9102E800DE657D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = libsodium;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D6903B6F1D9102E800DE657D /* Build configuration list for PBXProject "libsodium" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6903B6D1D9102E800DE657D /* Debug */,
+				D6903B6E1D9102E800DE657D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D6903B831D9102E800DE657D /* Build configuration list for PBXLegacyTarget "libsodium" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6903B841D9102E800DE657D /* Debug */,
+				D6903B851D9102E800DE657D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D6903B6C1D9102E800DE657D /* Project object */;
+}
