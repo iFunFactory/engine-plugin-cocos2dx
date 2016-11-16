@@ -195,6 +195,9 @@
     <ClCompile Include="..\Classes\funapi\funapi_utils.cc">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_socket.cc">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -429,6 +432,9 @@
       <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_encryption_legacy.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_socket.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>

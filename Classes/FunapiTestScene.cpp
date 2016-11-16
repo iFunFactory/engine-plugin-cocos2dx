@@ -99,13 +99,13 @@ bool FunapiTest::init()
 
   static LambdaEditBoxDelegate session_ip_editbox_delegate([this](EditBox *editBox, const std::string &text) {
     // fun::DebugUtils::Log("changed");
-    kServerIp = text;
+    kServer = text;
   },[](EditBox *editBox) {
     // callback (return)
   });
 
   editbox_sernvername_ = ui::EditBox::create(Size(visibleSize.width, button_height*0.7), "edit_back.png");
-  editbox_sernvername_->setText(kServerIp.c_str());
+  editbox_sernvername_->setText(kServer.c_str());
   editbox_sernvername_->setAnchorPoint(Vec2(0.5, 0.0));
   editbox_sernvername_->setPosition(Vec2(center_x,y));
   editbox_sernvername_->setInputMode(ui::EditBox::InputMode::URL);
@@ -393,7 +393,7 @@ bool FunapiTest::init()
   y += button_height + (button_height * 0.5);
 
   std::stringstream ss_download;
-  ss_download << "[Download] - " << kDownloadServerIp << ":" << kDownloadServerPort; // static_cast<int>(i);
+  ss_download << "[Download] - " << kDownloadServer << ":" << kDownloadServerPort;
   auto label_download = Label::createWithTTF(ss_download.str().c_str(), "arial.ttf", 10);
   label_download->setAnchorPoint(Vec2(0.5, 0.5));
   label_download->setPosition(Vec2(center_x, y));
@@ -426,7 +426,7 @@ bool FunapiTest::init()
   y += button_height + (button_height * 0.5);
 
   std::stringstream ss_announcement;
-  ss_announcement << "[Announcement] - " << kAnnouncementServerIp << ":" << kAnnouncementServerPort;
+  ss_announcement << "[Announcement] - " << kAnnouncementServer << ":" << kAnnouncementServerPort;
   auto label_announcement = Label::createWithTTF(ss_announcement.str().c_str(), "arial.ttf", 10);
   label_announcement->setAnchorPoint(Vec2(0.5, 0.5));
   label_announcement->setPosition(Vec2(center_x, y));
@@ -683,7 +683,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
 {
   if (!session_) {
     // create
-    session_ = fun::FunapiSession::Create(kServerIp.c_str(), with_session_reliability_);
+    session_ = fun::FunapiSession::Create(kServer.c_str(), with_session_reliability_);
 
     // add callback
     session_->AddSessionEventCallback([this](const std::shared_ptr<fun::FunapiSession> &session,
@@ -713,7 +713,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
         fun::DebugUtils::Log("Transport Stopped called.");
       }
       else if (type == fun::TransportEventType::kConnectionFailed) {
-        fun::DebugUtils::Log("Transport Connection Failed(%d)", (int)protocol);
+        fun::DebugUtils::Log("Transport Connection Failed (%s)", fun::TransportProtocolToString(protocol).c_str());
         session_ = nullptr;
       }
       else if (type == fun::TransportEventType::kConnectionTimedOut) {
@@ -721,7 +721,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
         session_ = nullptr;
       }
       else if (type == fun::TransportEventType::kDisconnected) {
-        fun::DebugUtils::Log("Transport Disconnected called (%d)", (int)protocol);
+        fun::DebugUtils::Log("Transport Disconnected called (%s)", fun::TransportProtocolToString(protocol).c_str());
       }
     });
 
@@ -843,7 +843,7 @@ void FunapiTest::CreateMulticast()
       fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
       uint16_t port = with_protobuf_ ? 8022 : 8012;
 
-      multicast_ = fun::FunapiMulticast::Create(sender.c_str(), kServerIp.c_str(), port, encoding);
+      multicast_ = fun::FunapiMulticast::Create(sender.c_str(), kServer.c_str(), port, encoding, with_session_reliability_);
     }
 
     multicast_->AddJoinedCallback([](const std::shared_ptr<fun::FunapiMulticast>& multicast,
@@ -1014,7 +1014,7 @@ void FunapiTest::DownloaderTest()
 {
   if (!downloader_) {
     std::stringstream ss_temp;
-    ss_temp << "http://" << kDownloadServerIp << ":" << kDownloadServerPort;
+    ss_temp << "http://" << kDownloadServer << ":" << kDownloadServerPort;
     std::string download_url = ss_temp.str();
 
     downloader_ = fun::FunapiHttpDownloader::Create(download_url, cocos2d::FileUtils::getInstance()->getWritablePath());
@@ -1064,7 +1064,7 @@ void FunapiTest::RequestAnnouncements()
 {
   if (announcement_ == nullptr) {
     std::stringstream ss_url;
-    ss_url << "http://" << kAnnouncementServerIp << ":" << kAnnouncementServerPort;
+    ss_url << "http://" << kAnnouncementServer << ":" << kAnnouncementServerPort;
 
     announcement_ = fun::FunapiAnnouncement::Create(ss_url.str(), cocos2d::FileUtils::getInstance()->getWritablePath());
 
@@ -1149,7 +1149,7 @@ void FunapiTest::UpdateUI()
   }
 }
 
-// test function
+
 void test_funapi_session(const int index, std::string server_ip,
                           const int server_port,
                           fun::TransportProtocol protocol,
@@ -1331,7 +1331,7 @@ void FunapiTest::TestFunapi(bool bStart)
     g_bTestRunning = true;
     for (int i = 0; i < kMaxThread; ++i) {
       temp_thread[i] = std::thread([this, i, server_port, protocol, encoding](){
-        test_funapi_session(i, kServerIp, server_port, protocol, encoding, with_session_reliability_);
+        test_funapi_session(i, kServer, server_port, protocol, encoding, with_session_reliability_);
       });
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

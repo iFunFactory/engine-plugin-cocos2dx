@@ -155,6 +155,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\funapi\funapi_http.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_session.cc" />
+    <ClCompile Include="..\Classes\funapi\funapi_socket.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_tasks.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_transport.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_utils.cc" />
@@ -212,6 +213,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\funapi_multicasting.h" />
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
     <ClInclude Include="..\Classes\funapi\funapi_session.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_socket.h" />
     <ClInclude Include="..\Classes\funapi\funapi_tasks.h" />
     <ClInclude Include="..\Classes\funapi\funapi_transport.h" />
     <ClInclude Include="..\Classes\funapi\funapi_utils.h" />
