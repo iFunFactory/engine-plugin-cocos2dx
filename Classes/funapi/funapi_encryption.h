@@ -7,9 +7,15 @@
 #ifndef SRC_FUNAPI_ENCRYPTION_H_
 #define SRC_FUNAPI_ENCRYPTION_H_
 
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <map>
+#include <string>
+
 namespace fun {
 
-enum class EncryptionType : int {
+enum class FUNAPI_API EncryptionType : int {
   kNoneEncryption = 0,
   kDefaultEncryption = 100,
   kDummyEncryption,
@@ -20,7 +26,7 @@ enum class EncryptionType : int {
 };
 
 class FunapiEncryptionImpl;
-class FunapiEncryption : public std::enable_shared_from_this<FunapiEncryption> {
+class FUNAPI_API FunapiEncryption : public std::enable_shared_from_this<FunapiEncryption> {
  public:
   typedef std::map<std::string, std::string> HeaderFields;
 

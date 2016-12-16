@@ -37,6 +37,10 @@
 
 #ifndef HAVE_OPENSSL
 
+#if _MSC_VER
+#pragma warning(disable : 4244)
+#endif
+
 #include <string.h>
 
 #include "md5.h"

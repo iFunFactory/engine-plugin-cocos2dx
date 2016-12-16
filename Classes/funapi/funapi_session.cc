@@ -12,8 +12,8 @@
 #include "funapi_socket.h"
 #include "funapi_encryption.h"
 #include "funapi_version.h"
-#include "network/ping_message.pb.h"
-#include "service/redirect_message.pb.h"
+#include "funapi/network/ping_message.pb.h"
+#include "funapi/service/redirect_message.pb.h"
 
 namespace fun {
 

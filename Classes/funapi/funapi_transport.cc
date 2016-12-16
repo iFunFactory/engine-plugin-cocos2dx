@@ -11,7 +11,7 @@
 #include "funapi_encryption.h"
 #include "funapi_tasks.h"
 #include "funapi_http.h"
-#include "network/fun_message.pb.h"
+#include "funapi/network/fun_message.pb.h"
 
 namespace fun {
 

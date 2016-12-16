@@ -7,11 +7,17 @@
 #ifndef SRC_FUNAPI_DOWNLOADER_H_
 #define SRC_FUNAPI_DOWNLOADER_H_
 
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <functional>
+#include <vector>
+
 namespace fun {
 
 class FunapiDownloadFileInfo;
 class FunapiHttpDownloaderImpl;
-class FunapiHttpDownloader : public std::enable_shared_from_this<FunapiHttpDownloader> {
+class FUNAPI_API FunapiHttpDownloader : public std::enable_shared_from_this<FunapiHttpDownloader> {
  public:
   enum class ResultCode : int {
     kNone,
@@ -52,7 +58,7 @@ class FunapiHttpDownloader : public std::enable_shared_from_this<FunapiHttpDownl
 
 
 class FunapiDownloadFileInfoImpl;
-class FunapiDownloadFileInfo : public std::enable_shared_from_this<FunapiDownloadFileInfo> {
+class FUNAPI_API FunapiDownloadFileInfo : public std::enable_shared_from_this<FunapiDownloadFileInfo> {
  public:
   FunapiDownloadFileInfo() = delete;
   FunapiDownloadFileInfo(const std::string &url,

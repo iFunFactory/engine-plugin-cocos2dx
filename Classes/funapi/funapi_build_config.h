@@ -18,6 +18,7 @@
 #endif
 
 #ifdef FUNAPI_COCOS2D
+#define FUNAPI_API
 #include "cocos2d.h"
   #if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
   #define FUNAPI_PLATFORM_WINDOWS

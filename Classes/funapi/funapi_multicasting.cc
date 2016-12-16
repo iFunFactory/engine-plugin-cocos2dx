@@ -8,8 +8,6 @@
 #include "funapi_utils.h"
 #include "funapi_session.h"
 #include "funapi_multicasting.h"
-#include "network/fun_message.pb.h"
-#include "service/multicast_message.pb.h"
 
 namespace fun {
 

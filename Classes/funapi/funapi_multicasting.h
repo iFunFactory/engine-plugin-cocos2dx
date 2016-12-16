@@ -7,14 +7,22 @@
 #ifndef SRC_FUNAPI_MULTICASTING_H_
 #define SRC_FUNAPI_MULTICASTING_H_
 
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <functional>
+#include <vector>
+#include <map>
+
 #include "funapi_session.h"
+#include "funapi/service/multicast_message.pb.h"
 
 class FunMessage;
 
 namespace fun {
 
 class FunapiMulticastImpl;
-class FunapiMulticast : public std::enable_shared_from_this<FunapiMulticast> {
+class FUNAPI_API FunapiMulticast : public std::enable_shared_from_this<FunapiMulticast> {
 public:
   typedef std::function<void(const std::shared_ptr<FunapiMulticast>&,
                              const std::string &,

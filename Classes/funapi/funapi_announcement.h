@@ -7,10 +7,16 @@
 #ifndef SRC_FUNAPI_ANNOUNCEMENT_H_
 #define SRC_FUNAPI_ANNOUNCEMENT_H_
 
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <functional>
+#include <vector>
+
 namespace fun {
 
 class FunapiAnnouncementInfoImpl;
-class FunapiAnnouncementInfo : public std::enable_shared_from_this<FunapiAnnouncementInfo> {
+class FUNAPI_API FunapiAnnouncementInfo : public std::enable_shared_from_this<FunapiAnnouncementInfo> {
  public:
   FunapiAnnouncementInfo() = delete;
   FunapiAnnouncementInfo(const std::string &date,
@@ -36,7 +42,7 @@ class FunapiAnnouncementInfo : public std::enable_shared_from_this<FunapiAnnounc
 
 
 class FunapiAnnouncementImpl;
-class FunapiAnnouncement : public std::enable_shared_from_this<FunapiAnnouncement> {
+class FUNAPI_API FunapiAnnouncement : public std::enable_shared_from_this<FunapiAnnouncement> {
  public:
   enum class ResultCode : int {
     kSucceed,

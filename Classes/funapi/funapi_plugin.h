@@ -10,10 +10,7 @@
 #include "funapi_build_config.h"
 
 #ifdef FUNAPI_UE4
-#include "Engine.h"
-#include "UnrealString.h"
-#include "Json.h"
-#include "Http.h"
+#include "FunapiPrivatePCH.h"
 #endif
 
 #ifdef FUNAPI_UE4_PLATFORM_WINDOWS
@@ -52,6 +49,7 @@
 #include <random>
 #include <unordered_set>
 #include <unordered_map>
+#include <assert.h>
 
 #ifdef FUNAPI_COCOS2D
 #include "json/stringbuffer.h"
@@ -68,10 +66,6 @@
 
 #ifdef FUNAPI_UE4_PLATFORM_WINDOWS
 #include "HideWindowsPlatformTypes.h"
-#endif
-
-#ifdef FUNAPI_UE4
-DECLARE_LOG_CATEGORY_EXTERN(LogFunapi, Log, All);
 #endif
 
 #endif  // SRC_FUNAPI_PLUGIN_H_

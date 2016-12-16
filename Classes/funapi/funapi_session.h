@@ -7,13 +7,23 @@
 #ifndef SRC_FUNAPI_SESSION_H_
 #define SRC_FUNAPI_SESSION_H_
 
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <functional>
+#include <vector>
+#include <string>
+
 #include "funapi_transport.h"
+#include "funapi/network/ping_message.pb.h"
+#include "funapi/service/redirect_message.pb.h"
+#include "funapi/management/maintenance_message.pb.h"
 
 class FunMessage;
 
 namespace fun {
 
-enum class SessionEventType : int {
+enum class FUNAPI_API SessionEventType : int {
   kOpened,
   kClosed,
   kChanged,
@@ -22,7 +32,7 @@ enum class SessionEventType : int {
   kRedirectFailed,
 };
 
-enum class TransportEventType : int {
+enum class FUNAPI_API TransportEventType : int {
   kStarted,
   kStopped,
   kConnectionFailed,
@@ -32,7 +42,7 @@ enum class TransportEventType : int {
 
 
 class FunapiSessionImpl;
-class FunapiSession : public std::enable_shared_from_this<FunapiSession> {
+class FUNAPI_API FunapiSession : public std::enable_shared_from_this<FunapiSession> {
  public:
   typedef std::function<void(const std::shared_ptr<FunapiSession>&,
                              const TransportProtocol,

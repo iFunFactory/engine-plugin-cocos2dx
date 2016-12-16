@@ -7,7 +7,12 @@
 #ifndef SRC_FUNAPI_TRANSPORT_H_
 #define SRC_FUNAPI_TRANSPORT_H_
 
-#include "funapi_plugin.h"
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <functional>
+#include <string>
+#include <assert.h>
 
 namespace fun {
 
@@ -35,7 +40,7 @@ static const char* kPingTimestampField = "timestamp";
 static const char* kCookieRequestHeaderField = "Cookie";
 static const char* kCookieResponseHeaderField = "SET-COOKIE";
 
-enum class TransportState : int {
+enum class FUNAPI_API TransportState : int {
   kDisconnected = 0,
   kDisconnecting,
   kConnecting,
@@ -43,7 +48,7 @@ enum class TransportState : int {
 };
 
 // Funapi transport protocol
-enum class TransportProtocol : int
+enum class FUNAPI_API TransportProtocol : int
 {
   kTcp = 0,
   kUdp,
@@ -52,7 +57,7 @@ enum class TransportProtocol : int
 };
 
 
-inline std::string TransportProtocolToString(TransportProtocol protocol) {
+inline FUNAPI_API std::string TransportProtocolToString(TransportProtocol protocol) {
   std::string ret("");
 
   switch (protocol) {
@@ -81,18 +86,18 @@ inline std::string TransportProtocolToString(TransportProtocol protocol) {
 
 
 // Message encoding type
-enum class FunEncoding
+enum class FUNAPI_API FunEncoding
 {
   kNone,
   kJson,
   kProtobuf
 };
 
-enum class EncryptionType : int;
+enum class FUNAPI_API EncryptionType : int;
 
 
 class FunapiErrorImpl;
-class FunapiError : public std::enable_shared_from_this<FunapiError> {
+class FUNAPI_API FunapiError : public std::enable_shared_from_this<FunapiError> {
  public:
   enum class ErrorCode : int {
     kNone,
@@ -114,7 +119,7 @@ class FunapiError : public std::enable_shared_from_this<FunapiError> {
 };
 
 
-class FunapiTransportOption : public std::enable_shared_from_this<FunapiTransportOption> {
+class FUNAPI_API FunapiTransportOption : public std::enable_shared_from_this<FunapiTransportOption> {
  public:
   FunapiTransportOption() = default;
   virtual ~FunapiTransportOption() = default;
@@ -125,7 +130,7 @@ class FunapiTransportOption : public std::enable_shared_from_this<FunapiTranspor
 
 
 class FunapiTcpTransportOptionImpl;
-class FunapiTcpTransportOption : public FunapiTransportOption {
+class FUNAPI_API FunapiTcpTransportOption : public FunapiTransportOption {
  public:
   FunapiTcpTransportOption();
   virtual ~FunapiTcpTransportOption() = default;
@@ -159,7 +164,7 @@ class FunapiTcpTransportOption : public FunapiTransportOption {
 
 
 class FunapiUdpTransportOptionImpl;
-class FunapiUdpTransportOption : public FunapiTransportOption {
+class FUNAPI_API FunapiUdpTransportOption : public FunapiTransportOption {
  public:
   FunapiUdpTransportOption();
   virtual ~FunapiUdpTransportOption() = default;
@@ -175,7 +180,7 @@ class FunapiUdpTransportOption : public FunapiTransportOption {
 
 
 class FunapiHttpTransportOptionImpl;
-class FunapiHttpTransportOption : public FunapiTransportOption {
+class FUNAPI_API FunapiHttpTransportOption : public FunapiTransportOption {
  public:
   FunapiHttpTransportOption();
   virtual ~FunapiHttpTransportOption() = default;

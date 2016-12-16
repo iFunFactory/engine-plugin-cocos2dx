@@ -7,10 +7,16 @@
 #ifndef SRC_FUNAPI_TASKS_H_
 #define SRC_FUNAPI_TASKS_H_
 
+#include "funapi_build_config.h"
+
+#include <memory>
+#include <functional>
+#include <string>
+
 namespace fun {
 
 class FunapiTasksImpl;
-class FunapiTasks : public std::enable_shared_from_this<FunapiTasks> {
+class FUNAPI_API FunapiTasks : public std::enable_shared_from_this<FunapiTasks> {
  public:
   typedef std::function<bool()> TaskHandler;
 
@@ -30,7 +36,7 @@ class FunapiTasks : public std::enable_shared_from_this<FunapiTasks> {
 
 
 class FunapiThreadImpl;
-class FunapiThread : public std::enable_shared_from_this<FunapiThread> {
+class FUNAPI_API FunapiThread : public std::enable_shared_from_this<FunapiThread> {
  public:
   typedef FunapiTasks::TaskHandler TaskHandler;
 
