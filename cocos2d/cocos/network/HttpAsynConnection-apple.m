@@ -141,7 +141,7 @@
 }
 
 /**
- * This delegate method is called if the connection cannot be established to the server.
+ * This delegate method is called if the connection cannot be established to the server.  
  * The error object will have a description of the error
  **/
 - (void)connection:(NSURLConnection *)connection 
@@ -194,12 +194,12 @@
     {
         CFRelease(cert);
     }
-    if (certArrayRef)
+    if (certArrayRef) 
     {
         CFRelease(certArrayRef);
     }
     //Did our custom trust chain evaluate successfully?
-    return trustResult = kSecTrustResultUnspecified || trustResult == kSecTrustResultProceed;    
+    return trustResult == kSecTrustResultUnspecified || trustResult == kSecTrustResultProceed;    
 }
 
 - (void) connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge

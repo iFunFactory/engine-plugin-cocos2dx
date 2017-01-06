@@ -147,6 +147,7 @@
 		D665509D1D73F87D00A1D1B6 /* funapi_http.cc in Sources */ = {isa = PBXBuildFile; fileRef = D665509B1D73F87D00A1D1B6 /* funapi_http.cc */; };
 		D6715D9C1D6EC6B9006F1EA2 /* redirect_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */; };
 		D6715D9D1D6EC6FC006F1EA2 /* test_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D62B67C21D6D70810081D9C6 /* test_messages.pb.cc */; };
+		D6A50E0B1E1E38AA00BBD57D /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6A50E0A1E1E38AA00BBD57D /* CoreText.framework */; };
 		D6A5E08E1D65979000E39210 /* redirect_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
 		D6C0F1481D7EAF8B001FBE63 /* funapi_utils.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6C0F1471D7EAF8B001FBE63 /* funapi_utils.cc */; };
@@ -215,6 +216,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = A07A4C241783777C0073F6A7;
 			remoteInfo = "cocos2dx iOS";
+		};
+		D6A50E0D1E1E38AA00BBD57D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AC6FAE5180E9839004C840B /* cocos2d_libs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 507B40FD1C31BDD30067B53E;
+			remoteInfo = "libcocos2d tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -450,6 +458,7 @@
 		D66550A21D73F97C00A1D1B6 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/mac/libcurl.a; sourceTree = "<group>"; };
 		D66550A31D73F97C00A1D1B6 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../cocos2d/external/curl/prebuilt/mac/libssl.a; sourceTree = "<group>"; };
 		D68295D21C3FB8770054DF7F /* funapi_build_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_build_config.h; sourceTree = "<group>"; };
+		D6A50E0A1E1E38AA00BBD57D /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.2.sdk/System/Library/Frameworks/CoreText.framework; sourceTree = DEVELOPER_DIR; };
 		D6A5E08C1D65979000E39210 /* redirect_message.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = redirect_message.pb.cc; path = service/redirect_message.pb.cc; sourceTree = "<group>"; };
 		D6A5E08D1D65979000E39210 /* redirect_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = redirect_message.pb.h; path = service/redirect_message.pb.h; sourceTree = "<group>"; };
 		D6B05CF31C0BEB27008B3A80 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../cocos2d/external/curl/prebuilt/ios/libcrypto.a; sourceTree = "<group>"; };
@@ -486,6 +495,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D6A50E0B1E1E38AA00BBD57D /* CoreText.framework in Frameworks */,
 				ED545A7C1B68A1F400C3958E /* libiconv.dylib in Frameworks */,
 				52B47A471A53D09C004E4C60 /* Security.framework in Frameworks */,
 				1AC6FB30180E99EB004C840B /* libcocos2d iOS.a in Frameworks */,
@@ -556,6 +566,7 @@
 			children = (
 				1AC6FAF9180E9839004C840B /* libcocos2d Mac.a */,
 				1AC6FB07180E9839004C840B /* libcocos2d iOS.a */,
+				D6A50E0E1E1E38AA00BBD57D /* libcocos2d tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -577,6 +588,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D6A50E0A1E1E38AA00BBD57D /* CoreText.framework */,
 				D6CD8A2C1DC99B7D00BD03C0 /* libsodium.a */,
 				D66550A11D73F97C00A1D1B6 /* libcrypto.a */,
 				D66550A21D73F97C00A1D1B6 /* libcurl.a */,
@@ -1069,6 +1081,13 @@
 			fileType = archive.ar;
 			path = "libcocos2d iOS.a";
 			remoteRef = 1AC6FB06180E9839004C840B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D6A50E0E1E1E38AA00BBD57D /* libcocos2d tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcocos2d tvOS.a";
+			remoteRef = D6A50E0D1E1E38AA00BBD57D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

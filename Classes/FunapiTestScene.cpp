@@ -98,10 +98,8 @@ bool FunapiTest::init()
   float y = gap_height;
 
   static LambdaEditBoxDelegate session_ip_editbox_delegate([this](EditBox *editBox, const std::string &text) {
-    // fun::DebugUtils::Log("changed");
-    kServer = text;
-  },[](EditBox *editBox) {
-    // callback (return)
+  },[this](EditBox *editBox) {
+    kServer = editBox->getText();
   });
 
   editbox_sernvername_ = ui::EditBox::create(Size(visibleSize.width, button_height*0.7), "edit_back.png");
@@ -777,7 +775,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
 
   // connect
   fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
-  uint16_t port;
+  uint16_t port = 0;
 
   if (protocol == fun::TransportProtocol::kTcp) {
     port = with_protobuf_ ? 8022 : 8012;

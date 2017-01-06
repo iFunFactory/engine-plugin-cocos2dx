@@ -39,7 +39,8 @@ NS_CC_BEGIN
 class DrawNode;
 class LayerColor;
 class LayerGradient;
-
+class StencilStateManager;
+struct CC_DLL ResourceData;
 
 namespace ui {
     
@@ -458,6 +459,8 @@ public:
      */
     virtual void setCameraMask(unsigned short mask, bool applyChildren = true) override;
 
+    ResourceData getRenderFile();
+
 CC_CONSTRUCTOR_ACCESS:
     //override "init" method of widget.
     virtual bool init() override;
@@ -486,12 +489,6 @@ protected:
     virtual const Vector<Node*>& getLayoutElements()const override;
     
     //clipping
-    void onBeforeVisitStencil();
-    void onAfterDrawStencil();
-    void onAfterVisitStencil();
-    /**draw fullscreen quad to clear stencil bits
-     */
-    void drawFullScreenQuadClearStencil();
     
     void onBeforeVisitScissor();
     void onAfterVisitScissor();
@@ -507,7 +504,7 @@ protected:
     /**
      * When the layout get focused, it the layout pass the focus to its child, it will use this method to determine which child 
      * will get the focus.  The current algorithm to determine which child will get focus is nearest-distance-priority algorithm
-     *@param dir next focused widget direction
+     *@param direction The next focused widget direction
      *@return The index of child widget in the container
      */
      int findNearestChildWidgetIndex(FocusDirection direction, Widget* baseWidget);
@@ -515,7 +512,7 @@ protected:
     /**
      * When the layout get focused, it the layout pass the focus to its child, it will use this method to determine which child
      * will get the focus.  The current algorithm to determine which child will get focus is farthest-distance-priority algorithm
-     *@param dir next focused widget direction
+     *@param direction The next focused widget direction
      *@return The index of child widget in the container
      */
     int findFarthestChildWidgetIndex(FocusDirection direction, Widget* baseWidget);
@@ -562,7 +559,7 @@ protected:
     
     /**
      * this method is called internally by nextFocusedWidget. When the dir is Right/Down, then this method will be called
-     *@param dir  the direction.
+     *@param direction  the direction.
      *@param current  the current focused widget
      *@return the next focused widget
      */
@@ -570,7 +567,7 @@ protected:
     
     /**
      * this method is called internally by nextFocusedWidget. When the dir is Left/Up, then this method will be called
-     *@param dir  the direction.
+     *@param direction  the direction.
      *@param current  the current focused widget
      *@return the next focused widget
      */
@@ -635,23 +632,8 @@ protected:
     bool _clippingRectDirty;
     
     //clipping
+    StencilStateManager *_stencileStateManager;
 
-    GLboolean _currentStencilEnabled;
-    GLuint _currentStencilWriteMask;
-    GLenum _currentStencilFunc;
-    GLint _currentStencilRef;
-    GLuint _currentStencilValueMask;
-    GLenum _currentStencilFail;
-    GLenum _currentStencilPassDepthFail;
-    GLenum _currentStencilPassDepthPass;
-    GLboolean _currentDepthWriteMask;
-    
-    GLboolean _currentAlphaTestEnabled;
-    GLenum _currentAlphaTestFunc;
-    GLclampf _currentAlphaTestRef;
- 
-    
-    GLint _mask_layer_le;
     GroupCommand _groupCommand;
     CustomCommand _beforeVisitCmdStencil;
     CustomCommand _afterDrawStencilCmd;

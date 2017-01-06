@@ -261,7 +261,7 @@ public:
      * @param pos The tile coordinate.
      * @param gid The tile gid.
      */
-    void setupTileSprite(Sprite* sprite, Vec2 pos, int gid);
+    void setupTileSprite(Sprite* sprite, const Vec2& pos, int gid);
 
     //
     // Override
@@ -276,7 +276,7 @@ protected:
     void updateTiles(const Rect& culledRect);
     Vec2 calculateLayerOffset(const Vec2& offset);
 
-    /* The layer recognizes some special properties, like cc_vertez */
+    /* The layer recognizes some special properties, like cc_vertexz */
     void parseInternalProperties();
     
     Mat4 tileToNodeTransform();

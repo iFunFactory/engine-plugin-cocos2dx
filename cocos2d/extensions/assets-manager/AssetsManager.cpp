@@ -63,6 +63,7 @@ AssetsManager::AssetsManager(const char* packageUrl/* =nullptr */, const char* v
 , _isDownloading(false)
 , _shouldDeleteDelegateWhenExit(false)
 {
+    checkStoragePath();
     // convert downloader error code to AssetsManager::ErrorCode
     _downloader->onTaskError = [this](const DownloadTask& task,
                                       int errorCode,
@@ -145,7 +146,7 @@ AssetsManager::AssetsManager(const char* packageUrl/* =nullptr */, const char* v
         
         // start download;
         const string outFileName = _storagePath + TEMP_PACKAGE_FILE_NAME;
-        _downloader->createDownloadFileTask(_packageUrl, _storagePath);
+        _downloader->createDownloadFileTask(_packageUrl, outFileName);
     };
     
     // after download package, do uncompress operation
@@ -253,14 +254,14 @@ void AssetsManager::downloadAndUncompress()
 void AssetsManager::update()
 {
     // all operation in checkUpdate, nothing need to do
-    // keep this function for compatiblity
+    // keep this function for compatibility
 }
 
 bool AssetsManager::uncompress()
 {
     // Open the zip file
     string outFileName = _storagePath + TEMP_PACKAGE_FILE_NAME;
-    unzFile zipfile = unzOpen(outFileName.c_str());
+    unzFile zipfile = unzOpen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str());
     if (! zipfile)
     {
         CCLOG("can not open downloaded zip file %s", outFileName.c_str());
@@ -308,8 +309,8 @@ bool AssetsManager::uncompress()
         const size_t filenameLength = strlen(fileName);
         if (fileName[filenameLength-1] == '/')
         {
-            // Entry is a direcotry, so create it.
-            // If the directory exists, it will failed scilently.
+            // Entry is a directory, so create it.
+            // If the directory exists, it will failed silently.
             if (!FileUtils::getInstance()->createDirectory(fullPath))
             {
                 CCLOG("can not create directory %s", fullPath.c_str());

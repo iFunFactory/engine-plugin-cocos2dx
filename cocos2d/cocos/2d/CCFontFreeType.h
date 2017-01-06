@@ -28,7 +28,7 @@
 
 /// @cond DO_NOT_SHOW
 
-#include "CCFont.h"
+#include "2d/CCFont.h"
 
 #include <string>
 #include <ft2build.h>
@@ -71,9 +71,13 @@ public:
     unsigned char* getGlyphBitmap(unsigned short theChar, long &outWidth, long &outHeight, Rect &outRect,int &xAdvance);
     
     int getFontAscender() const;
+    const char* getFontFamily() const;
 
     virtual FontAtlas* createFontAtlas() override;
     virtual int getFontMaxHeight() const override { return _lineHeight; }
+
+    static void releaseFont(const std::string &fontName);
+
 private:
     static const char* _glyphASCII;
     static const char* _glyphNEHE;

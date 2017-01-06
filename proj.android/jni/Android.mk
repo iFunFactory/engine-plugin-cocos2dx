@@ -84,7 +84,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../Classes \
 # _COCOS_HEADER_ANDROID_BEGIN
 # _COCOS_HEADER_ANDROID_END
 
-LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium
+LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium cocos_curl_static
 
 # _COCOS_LIB_ANDROID_BEGIN
 # _COCOS_LIB_ANDROID_END
