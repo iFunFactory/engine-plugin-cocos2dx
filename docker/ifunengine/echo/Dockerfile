@@ -23,7 +23,7 @@ RUN test-source/setup_build_environment --type=makefile
 WORKDIR /home/test/test-build/debug
 RUN make
 
-#ADD ifunfactory-account.ilf /etc/ifunfactory/account.ilf
+#ADD account.ilf /etc/ifunfactory/account.ilf
 ADD MANIFEST.json /home/test/test-source/src/
 
 CMD /home/test/test-build/debug/test-local
