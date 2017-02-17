@@ -831,15 +831,9 @@ void FunapiTest::CreateMulticast()
 
     fun::DebugUtils::Log("sender = %s", sender.c_str());
 
-    if (session_) {
-      if (session_->IsConnected(fun::TransportProtocol::kTcp)) {
-        multicast_ = fun::FunapiMulticast::Create(sender.c_str(), session_);
-      }
-    }
-
     if (!multicast_) {
       fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
-      uint16_t port = with_protobuf_ ? 8022 : 8012;
+      uint16_t port = with_protobuf_ ? 8122 : 8112;
 
       multicast_ = fun::FunapiMulticast::Create(sender.c_str(), kServer.c_str(), port, encoding, with_session_reliability_);
     }
@@ -890,6 +884,7 @@ void FunapiTest::CreateMulticast()
       }
       else if (type == fun::TransportEventType::kStopped) {
         fun::DebugUtils::Log("Transport Stopped called.");
+        multicast_ = nullptr;
       }
       else if (type == fun::TransportEventType::kConnectionFailed) {
         fun::DebugUtils::Log("Transport Connection Failed");
@@ -901,7 +896,35 @@ void FunapiTest::CreateMulticast()
       }
       else if (type == fun::TransportEventType::kDisconnected) {
         fun::DebugUtils::Log("Transport Disconnected called");
+        multicast_ = nullptr;
       }
+    });
+
+    // add callback
+    multicast_->AddJsonChannelMessageCallback
+    (kMulticastTestChannel,
+     [this]
+     (const std::shared_ptr<fun::FunapiMulticast>& funapi_multicast,
+      const std::string &channel_id,
+      const std::string &sender,
+      const std::string &json_string)
+    {
+      fun::DebugUtils::Log("channel_id=%s, sender=%s, body=%s", channel_id.c_str(), sender.c_str(), json_string.c_str());
+    });
+
+    multicast_->AddProtobufChannelMessageCallback
+    (kMulticastTestChannel,
+     [this]
+     (const std::shared_ptr<fun::FunapiMulticast> &funapi_multicast,
+      const std::string &channel_id,
+      const std::string &sender,
+      const FunMessage& message)
+    {
+      FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+      FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+      std::string text = chat_msg.text();
+
+      fun::DebugUtils::Log("channel_id=%s, sender=%s, message=%s", channel_id.c_str(), sender.c_str(), text.c_str());
     });
   }
 
@@ -913,30 +936,6 @@ void FunapiTest::JoinMulticastChannel()
   fun::DebugUtils::Log("(Button)JoinMulticastChannel");
   if (multicast_) {
     if (!multicast_->IsInChannel(kMulticastTestChannel)) {
-      // add callback
-      multicast_->AddJsonChannelMessageCallback(kMulticastTestChannel,
-                                                [this](const std::shared_ptr<fun::FunapiMulticast>& funapi_multicast,
-                                                       const std::string &channel_id,
-                                                       const std::string &sender,
-                                                       const std::string &json_string)
-      {
-        fun::DebugUtils::Log("channel_id=%s, sender=%s, body=%s", channel_id.c_str(), sender.c_str(), json_string.c_str());
-      });
-
-      multicast_->AddProtobufChannelMessageCallback(kMulticastTestChannel,
-                                                    [this](const std::shared_ptr<fun::FunapiMulticast> &funapi_multicast,
-                                                           const std::string &channel_id,
-                                                           const std::string &sender,
-                                                           const FunMessage& message)
-      {
-        FunMulticastMessage mcast_msg = message.GetExtension(multicast);
-        FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
-        std::string text = chat_msg.text();
-
-        fun::DebugUtils::Log("channel_id=%s, sender=%s, message=%s", channel_id.c_str(), sender.c_str(), text.c_str());
-      });
-
-      // join
       multicast_->JoinChannel(kMulticastTestChannel);
     }
   }
@@ -968,9 +967,6 @@ void FunapiTest::SendMulticastMessage()
         FunMessage msg;
 
         FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
-        mcast_msg->set_channel(kMulticastTestChannel.c_str());
-        mcast_msg->set_bounce(true);
-
         FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
         chat_msg->set_text("multicast test message");
 
