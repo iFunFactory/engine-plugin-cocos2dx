@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2016 iFunFactory Inc. All Rights Reserved.
+// Copyright (C) 2013-2017 iFunFactory Inc. All Rights Reserved.
 //
 // This work is confidential and proprietary to iFunFactory Inc. and
 // must not be used, disclosed, copied, or distributed without the prior
@@ -19,12 +19,12 @@ class FunapiAnnouncementInfoImpl : public std::enable_shared_from_this<FunapiAnn
  public:
   FunapiAnnouncementInfoImpl() = delete;
   FunapiAnnouncementInfoImpl(const std::string &date,
-                   const std::string &message,
-                   const std::string &subject,
-                   const std::string &image_md5,
-                   const std::string &image_url,
-                   const std::string &link_url,
-                   const std::string &file_path);
+                             const std::string &message,
+                             const std::string &subject,
+                             const std::string &image_md5,
+                             const std::string &image_url,
+                             const std::string &link_url,
+                             const std::string &file_path);
   virtual ~FunapiAnnouncementInfoImpl();
 
   const std::string& GetDate();
@@ -171,6 +171,8 @@ class FunapiAnnouncementImpl : public std::enable_shared_from_this<FunapiAnnounc
   void RequestList(std::weak_ptr<FunapiAnnouncement> a, int max_count);
   void Update();
 
+  static std::shared_ptr<FunapiTasks> GetFunapiTasks();
+
  private:
   void OnAnnouncementInfoList(const std::string &json_string);
 
@@ -180,7 +182,6 @@ class FunapiAnnouncementImpl : public std::enable_shared_from_this<FunapiAnnounc
   bool MD5Compare(std::shared_ptr<FunapiAnnouncementInfo> info);
 
   void OnCompletion(const FunapiAnnouncement::ResultCode result);
-  void PushTaskQueue(const FunapiTasks::TaskHandler &task);
 
   std::string url_;
   std::string path_;
@@ -197,7 +198,7 @@ class FunapiAnnouncementImpl : public std::enable_shared_from_this<FunapiAnnounc
 
 FunapiAnnouncementImpl::FunapiAnnouncementImpl(const std::string &url, const std::string &path)
 : url_(url), path_(path) {
-  tasks_ = FunapiTasks::Create();
+  tasks_ = FunapiAnnouncementImpl::GetFunapiTasks();
   thread_ = FunapiThread::Get("_file");
 }
 
@@ -212,10 +213,18 @@ void FunapiAnnouncementImpl::AddCompletionCallback(const CompletionHandler &hand
 
 
 void FunapiAnnouncementImpl::OnCompletion(const FunapiAnnouncement::ResultCode result) {
-  PushTaskQueue([this, result]()->bool {
-    if (auto a = announcement_.lock()) {
-      on_completion_(a, info_list_, result);
+  std::weak_ptr<FunapiAnnouncementImpl> weak = shared_from_this();
+  tasks_->Push([weak, this, result]()->bool {
+    if (!weak.expired()) {
+      if (auto impl = weak.lock()) {
+        if (!announcement_.expired()) {
+          if (auto a = announcement_.lock()) {
+            on_completion_(a, info_list_, result);
+          }
+        }
+      }
     }
+
     return true;
   });
 }
@@ -293,27 +302,37 @@ void FunapiAnnouncementImpl::OnAnnouncementInfoList(const std::string &json_stri
 void FunapiAnnouncementImpl::RequestList(std::weak_ptr<FunapiAnnouncement> a, int max_count) {
   announcement_ = a;
 
-  thread_->Push([this, max_count]()->bool {
-    std::stringstream ss_url;
-    ss_url << url_ << "/announcements/?count=" << max_count;
+  std::weak_ptr<FunapiAnnouncementImpl> weak = shared_from_this();
+  thread_->Push([weak, this, max_count]()->bool {
+    if (!weak.expired()) {
+      if (auto impl = weak.lock()) {
+        std::stringstream ss_url;
+        ss_url << url_ << "/announcements/?count=" << max_count;
 
-    DebugUtils::Log("RequestList - url = %s", ss_url.str().c_str());
+        DebugUtils::Log("RequestList - url = %s", ss_url.str().c_str());
 
-    auto http = FunapiHttp::Create();
-    http->GetRequest(ss_url.str(), FunapiHttp::HeaderFields(), [this](const int error_code, const std::string error_string)
-    {
-      std::stringstream ss_temp;
-      ss_temp << error_code << " " << error_string;
-      printf ("%s\n", ss_temp.str().c_str());
+        auto http = FunapiHttp::Create();
+        http->
+        GetRequest(ss_url.str(),
+                   FunapiHttp::HeaderFields(),
+                   [this](const int error_code,
+                          const std::string error_string)
+        {
+          std::stringstream ss_temp;
+          ss_temp << error_code << " " << error_string;
+          DebugUtils::Log ("%s\n", ss_temp.str().c_str());
 
-      OnCompletion(FunapiAnnouncement::ResultCode::kInvalidUrl);
-    }, [this](const std::vector<std::string> &headers, const std::vector<uint8_t> &v_recv)
-    {
-      std::string temp(v_recv.begin(), v_recv.end());
-      printf ("%s\n", temp.c_str());
+          OnCompletion(FunapiAnnouncement::ResultCode::kInvalidUrl);
+        }, [this](const std::vector<std::string> &headers,
+                  const std::vector<uint8_t> &v_recv)
+        {
+          std::string temp(v_recv.begin(), v_recv.end());
+          DebugUtils::Log ("%s\n", temp.c_str());
 
-      OnAnnouncementInfoList(std::string(v_recv.begin(), v_recv.end()));
-    });
+          OnAnnouncementInfoList(std::string(v_recv.begin(), v_recv.end()));
+        });
+      }
+    }
 
     return true;
   });
@@ -341,9 +360,11 @@ void FunapiAnnouncementImpl::DownloadFiles() {
       }
     }
 
-    if (!DownloadFile(url, info->GetFilePath())) {
-      OnCompletion(fun::FunapiAnnouncement::ResultCode::kExceptionError);
-      return;
+    if (url.length() > 0 && info->GetFilePath().length() > 0) {
+      if (!DownloadFile(url, info->GetFilePath())) {
+        OnCompletion(fun::FunapiAnnouncement::ResultCode::kExceptionError);
+        return;
+      }
     }
   }
 
@@ -398,10 +419,10 @@ void FunapiAnnouncementImpl::Update() {
 }
 
 
-void FunapiAnnouncementImpl::PushTaskQueue(const FunapiTasks::TaskHandler &task) {
-  tasks_->Push(task);
+std::shared_ptr<FunapiTasks> FunapiAnnouncementImpl::GetFunapiTasks() {
+  static std::shared_ptr<FunapiTasks> tasks = FunapiTasks::Create();
+  return tasks;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // FunapiAnnouncement implementation.
@@ -434,5 +455,11 @@ void FunapiAnnouncement::Update() {
   return impl_->Update();
 }
 
+
+void FunapiAnnouncement::UpdateAll() {
+  if (auto t = FunapiAnnouncementImpl::GetFunapiTasks()) {
+    t->Update();
+  }
+}
 
 }  // namespace fun
