@@ -1,3 +1,9 @@
+// Copyright (C) 2013-2017 iFunFactory Inc. All Rights Reserved.
+//
+// This work is confidential and proprietary to iFunFactory Inc. and
+// must not be used, disclosed, copied, or distributed without the prior
+// consent of iFunFactory Inc.
+
 #ifndef __FUNAPI_TEST_SCENE_H__
 #define __FUNAPI_TEST_SCENE_H__
 
@@ -22,7 +28,7 @@ namespace cocos2d {
 
 class FunapiTest : public cocos2d::Layer
 {
-public:
+ public:
   static cocos2d::Scene* createScene();
 
   virtual bool init();
@@ -53,7 +59,7 @@ public:
   // implement the "static create()" method manually
   CREATE_FUNC(FunapiTest);
 
-private:
+ private:
   void Connect(const fun::TransportProtocol protocol);
   void TestFunapi(bool bStart);
   void SendRedirectTestMessage();

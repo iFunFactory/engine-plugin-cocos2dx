@@ -1,3 +1,9 @@
+// Copyright (C) 2013-2017 iFunFactory Inc. All Rights Reserved.
+//
+// This work is confidential and proprietary to iFunFactory Inc. and
+// must not be used, disclosed, copied, or distributed without the prior
+// consent of iFunFactory Inc.
+
 #include "FunapiTestScene.h"
 #include "ui/CocosGUI.h"
 
@@ -697,6 +703,7 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
       }
       else if (type == fun::SessionEventType::kClosed) {
         OnSessionClosed();
+        session_ = nullptr;
       }
     });
 
@@ -802,6 +809,10 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
     // session_->Connect(protocol, port, encoding, option);
   }
 
+  if (with_session_reliability_) {
+    port += 200;
+  }
+
   session_->Connect(protocol, port, encoding);
 
   session_->SetDefaultProtocol(protocol);
@@ -834,6 +845,10 @@ void FunapiTest::CreateMulticast()
     if (!multicast_) {
       fun::FunEncoding encoding = with_protobuf_ ? fun::FunEncoding::kProtobuf : fun::FunEncoding::kJson;
       uint16_t port = with_protobuf_ ? 8122 : 8112;
+
+      if (with_session_reliability_) {
+        port += 200;
+      }
 
       multicast_ = fun::FunapiMulticast::Create(sender.c_str(), kServer.c_str(), port, encoding, with_session_reliability_);
     }
@@ -1269,6 +1284,7 @@ void test_funapi_session(const int index, std::string server_ip,
   option->SetDisableNagle(true);
   session->Connect(fun::TransportProtocol::kTcp, server_port, encoding, option);
 
+  /*
   // multi transport
   if (encoding == fun::FunEncoding::kProtobuf) {
     session->Connect(fun::TransportProtocol::kUdp, 8023, encoding);
@@ -1278,6 +1294,7 @@ void test_funapi_session(const int index, std::string server_ip,
     session->Connect(fun::TransportProtocol::kUdp, 8013, encoding);
     session->Connect(fun::TransportProtocol::kHttp, 8018, encoding);
   }
+  */
 
   while (g_bTestRunning && is_ok) {
     session->Update();
@@ -1310,6 +1327,10 @@ void FunapiTest::TestFunapi(bool bStart)
     if (protocol == fun::TransportProtocol::kTcp) server_port = 8022;
     else if (protocol == fun::TransportProtocol::kUdp) server_port = 8023;
     else if (protocol == fun::TransportProtocol::kHttp) server_port = 8028;
+  }
+
+  if (with_session_reliability_) {
+    server_port += 200;
   }
 
   static std::vector<std::thread> temp_thread(kMaxThread);
