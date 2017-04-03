@@ -633,7 +633,7 @@ static const std::string g_server_ip = "127.0.0.1";
     }
   });
 
-  session->Connect(fun::TransportProtocol::kTcp, port, fun::FunEncoding::kJson);
+  session->Connect(fun::TransportProtocol::kTcp, port, encoding);
 
   while (is_working) {
     session->Update();
@@ -648,7 +648,7 @@ static const std::string g_server_ip = "127.0.0.1";
 - (void)testReliabilityProtobuf {
   int send_count = 100;
   std::string server_ip = g_server_ip;
-  fun::FunEncoding encoding = fun::FunEncoding::kJson;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
   uint16_t port = 8222;
   bool with_session_reliability = true;
 
@@ -732,7 +732,7 @@ static const std::string g_server_ip = "127.0.0.1";
     }
   });
 
-  session->Connect(fun::TransportProtocol::kTcp, port, fun::FunEncoding::kProtobuf);
+  session->Connect(fun::TransportProtocol::kTcp, port, encoding);
 
   while (is_working) {
     session->Update();
