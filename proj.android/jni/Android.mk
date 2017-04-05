@@ -18,17 +18,17 @@ LOCAL_MODULE_FILENAME := libcocos2dcpp
 LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/AppDelegate.cpp \
                    ../../Classes/FunapiTestScene.cpp \
-                   ../../Classes/funapi/funapi_transport.cc \
-                   ../../Classes/funapi/funapi_multicasting.cc \
-                   ../../Classes/funapi/funapi_encryption.cc \
-                   ../../Classes/funapi/funapi_downloader.cc \
-                   ../../Classes/funapi/funapi_session.cc \
-                   ../../Classes/funapi/funapi_tasks.cc \
-                   ../../Classes/funapi/funapi_announcement.cc \
-                   ../../Classes/funapi/funapi_http.cc \
-                   ../../Classes/funapi/funapi_utils.cc \
-                   ../../Classes/funapi/funapi_socket.cc \
-                   ../../Classes/funapi/md5/md5.cc \
+                   ../../Classes/funapi/funapi_transport.cpp \
+                   ../../Classes/funapi/funapi_multicasting.cpp \
+                   ../../Classes/funapi/funapi_encryption.cpp \
+                   ../../Classes/funapi/funapi_downloader.cpp \
+                   ../../Classes/funapi/funapi_session.cpp \
+                   ../../Classes/funapi/funapi_tasks.cpp \
+                   ../../Classes/funapi/funapi_announcement.cpp \
+                   ../../Classes/funapi/funapi_http.cpp \
+                   ../../Classes/funapi/funapi_utils.cpp \
+                   ../../Classes/funapi/funapi_socket.cpp \
+                   ../../Classes/funapi/md5/md5.cpp \
                    ../../Classes/funapi/management/maintenance_message.pb.cc \
                    ../../Classes/funapi/network/fun_message.pb.cc \
                    ../../Classes/funapi/network/ping_message.pb.cc \

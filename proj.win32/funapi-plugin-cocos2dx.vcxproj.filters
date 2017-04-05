@@ -48,9 +48,6 @@
     <ClCompile Include="..\Classes\FunapiTestScene.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_transport.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\google\protobuf\descriptor.cc">
       <Filter>src\google\protobuf</Filter>
     </ClCompile>
@@ -150,18 +147,6 @@
     <ClCompile Include="..\Classes\google\protobuf\stubs\substitute.cc">
       <Filter>src\google\protobuf\stubs</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_multicasting.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_encryption.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\md5\md5.cc">
-      <Filter>src\funapi\md5</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_downloader.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\test_messages.pb.cc">
       <Filter>src</Filter>
     </ClCompile>
@@ -177,25 +162,40 @@
     <ClCompile Include="..\Classes\funapi\service\multicast_message.pb.cc">
       <Filter>src\funapi\service</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_session.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_tasks.cc">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\funapi\service\redirect_message.pb.cc">
       <Filter>src\funapi\service</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_announcement.cc">
+    <ClCompile Include="..\Classes\funapi\md5\md5.cpp">
+      <Filter>src\funapi\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_announcement.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_http.cc">
+    <ClCompile Include="..\Classes\funapi\funapi_downloader.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_utils.cc">
+    <ClCompile Include="..\Classes\funapi\funapi_encryption.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_socket.cc">
+    <ClCompile Include="..\Classes\funapi\funapi_http.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_multicasting.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_session.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_socket.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_tasks.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_transport.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_utils.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
   </ItemGroup>
