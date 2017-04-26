@@ -32,7 +32,7 @@ Funapi plugin cocos2d-x
 
 ``Class`` 폴더의 ``funapi`` 폴더와 ``google`` 폴더를 사용할 프로젝트에 복사합니다.
 
-서드파트 라이브러리 ``libcurl`` 과 ``libsodium`` 을 프로젝트에 포함해야 합니다. 
+서드파트 라이브러리 ``libcurl``, ``libsodium``, ``libprotobuf`` 를 프로젝트에 포함해야 합니다. 
 
 #### libcurl
 
@@ -54,17 +54,19 @@ $(call import-module,curl/prebuilt/android)
 ``cocos2d/external/curl/prebuilt`` 에 있는
 ``libcrypto.a`` ``libssl.a`` ``libcurl.a`` 를 추가합니다. 
 
-#### libsodium
+#### libsodium, libprotobuf
 
 ##### iOS
 
 ``proj.ios_mac/ios/libsodium/lib`` 에 있는 ``libsodium.a`` 를 추가합니다. 
+``proj.ios_mac/ios/libprotobuf/lib`` 에 있는 ``libprotobuf.a`` 를 추가합니다. 
 
 ##### 안드로이드
 
 ``proj.android/jni/libsodium`` 을 복사합니다. 
+``proj.android/jni/protobuf`` 를 복사합니다. 
 
-**proj.android/jni** 의 ``Android.mk`` 파일에 ``libsodium`` 을 추가합니다
+**proj.android/jni** 의 ``Android.mk`` 파일에 ``libsodium``, ``libprotobuf`` 를 추가합니다
 
 ```
 include $(CLEAR_VARS)
@@ -72,16 +74,23 @@ LOCAL_MODULE := libsodium
 LOCAL_SRC_FILES := libsodium/lib/libsodium.a
 include $(PREBUILT_STATIC_LIBRARY)
 
-LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium cocos_curl_static
+include $(CLEAR_VARS)
+LOCAL_MODULE := libprotobuf
+LOCAL_SRC_FILES := libprotobuf/lib/ARMv7/libprotobuf.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf cocos_curl_static
 ```
 
 ##### win32
 
 ``proj.win32/libsodium-1.0.10`` 의 ``libsodium.sln`` 을 게임 프로젝트 솔루션 파일에 추가합니다. 
+``proj.win32/protobuf-2.6.1/vsprojects`` 의 ``libprotobuf.vcxproj`` 를 게임 프로젝트 솔루션 파일에 추가합니다. 
 
 ##### mac
 
 ``proj.ios_mac/mac/libsodium/lib`` 에 있는 ``libsodium.a`` 를 추가합니다. 
+``proj.ios_mac/mac/libprotobuf/lib`` 에 있는 ``libprotobuf.a`` 를 추가합니다. 
 
 ## 도움말
 
