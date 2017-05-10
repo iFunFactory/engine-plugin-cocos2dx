@@ -514,7 +514,7 @@ static const std::string g_server_ip = "127.0.0.1";
         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
 
         int number = atoi(chat_msg.text().c_str());
-        
+
         if (number >= send_count) {
           is_ok = true;
           is_working = false;
@@ -1220,21 +1220,21 @@ static const std::string g_server_ip = "127.0.0.1";
     });
 
     multicast->Connect();
-    
+
     v_multicast.push_back(multicast);
   }
-  
+
   while (is_working) {
     fun::FunapiTasks::UpdateAll();
     std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
   }
-  
+
   XCTAssert(is_ok);
 }
 
 - (void)testTemp_DedicatedManager {
   int user_count = 2;
-  std::string server_ip = "10.10.1.7";
+  std::string server_ip = g_server_ip;
 
   bool is_ok = true;
   bool is_working = true;
@@ -1319,6 +1319,111 @@ static const std::string g_server_ip = "127.0.0.1";
     session->Connect(fun::TransportProtocol::kTcp, 8012, fun::FunEncoding::kJson);
 
     v_sessions.push_back(session);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_DedicatedManager_Delay {
+  int user_count = 2;
+  std::string server_ip = g_server_ip;
+
+  bool is_ok = true;
+  bool is_working = true;
+  std::vector<std::shared_ptr<fun::FunapiSession>> v_sessions;
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto session = fun::FunapiSession::Create(server_ip.c_str(), false);
+
+    session->
+    AddSessionEventCallback
+    ([user_name]
+     (const std::shared_ptr<fun::FunapiSession> &s,
+      const fun::TransportProtocol protocol,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         rapidjson::Document msg;
+         msg.SetObject();
+         rapidjson::Value message_node(user_name.c_str(), msg.GetAllocator());
+         msg.AddMember("name", message_node, msg.GetAllocator());
+
+         // Convert JSON document to string
+         rapidjson::StringBuffer buffer;
+         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+         msg.Accept(writer);
+         std::string json_string = buffer.GetString();
+
+         s->SendMessage("login", json_string);
+       }
+     });
+
+    session->
+    AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiSession> &s,
+      const fun::TransportProtocol protocol,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+       }
+
+       XCTAssert(type != fun::TransportEventType::kConnectionFailed);
+       XCTAssert(type != fun::TransportEventType::kConnectionTimedOut);
+     });
+
+    session->
+    AddJsonRecvCallback
+    ([self, &is_working, &is_ok, user_count]
+     (const std::shared_ptr<fun::FunapiSession> &s,
+      const fun::TransportProtocol protocol,
+      const std::string &msg_type,
+      const std::string &json_string)
+     {
+       if (msg_type.compare("_sc_dedicated_server") == 0)
+       {
+         static int recv_count = 0;
+
+         printf("json_string = '%s'\n", json_string.c_str());
+
+         ++recv_count;
+         if (recv_count == user_count) {
+           std::this_thread::sleep_for(std::chrono::seconds(5));
+           is_working = false;
+           is_ok = true;
+         }
+       }
+     });
+
+    session->Connect(fun::TransportProtocol::kTcp, 8012, fun::FunEncoding::kJson);
+
+    v_sessions.push_back(session);
+
+    int temp_seconds = 0;
+    while (is_working) {
+      fun::FunapiTasks::UpdateAll();
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      ++temp_seconds;
+      if (temp_seconds > 20) break;
+    }
   }
 
   while (is_working) {
