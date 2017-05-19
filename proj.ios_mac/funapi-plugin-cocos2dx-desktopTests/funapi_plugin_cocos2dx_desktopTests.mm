@@ -10,6 +10,7 @@
 #include "funapi_session.h"
 #include "funapi_multicasting.h"
 #include "funapi_tasks.h"
+#include "funapi_encryption.h"
 
 #include "json/document.h"
 #include "json/writer.h"
@@ -1059,6 +1060,83 @@ static const std::string g_server_ip = "127.0.0.1";
     std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
   }
 
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_RedirectJson {
+  std::string send_string = "user1";
+  std::string server_ip = g_server_ip;
+
+  auto session = fun::FunapiSession::Create(server_ip.c_str(), false);
+  bool is_ok = true;
+  bool is_working = true;
+
+  session->AddSessionEventCallback
+  ([&send_string, &is_ok, &is_working]
+   (const std::shared_ptr<fun::FunapiSession> &s,
+    const fun::TransportProtocol protocol,
+    const fun::SessionEventType type,
+    const std::string &session_id,
+    const std::shared_ptr<fun::FunapiError> &error)
+  {
+    if (type == fun::SessionEventType::kOpened) {
+     rapidjson::Document msg;
+     msg.SetObject();
+     rapidjson::Value message_node(send_string.c_str(), msg.GetAllocator());
+     msg.AddMember("message", message_node, msg.GetAllocator());
+
+     // Convert JSON document to string
+     rapidjson::StringBuffer buffer;
+     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+     msg.Accept(writer);
+     std::string json_string = buffer.GetString();
+
+     s->SendMessage("echo", json_string);
+    }
+
+    if (type == fun::SessionEventType::kRedirectSucceeded) {
+      is_ok = true;
+      is_working = false;
+    }
+  });
+
+  session->AddTransportEventCallback
+  ([self, &is_ok, &is_working]
+   (const std::shared_ptr<fun::FunapiSession> &s,
+    const fun::TransportProtocol protocol,
+    const fun::TransportEventType type,
+    const std::shared_ptr<fun::FunapiError> &error)
+  {
+    if (type == fun::TransportEventType::kConnectionFailed) {
+      is_ok = false;
+      is_working = false;
+    }
+    else if (type == fun::TransportEventType::kConnectionTimedOut) {
+      is_ok = false;
+      is_working = false;
+    }
+
+    XCTAssert(type != fun::TransportEventType::kConnectionFailed);
+    XCTAssert(type != fun::TransportEventType::kConnectionTimedOut);
+  });
+
+  session->AddJsonRecvCallback
+  ([self, &is_working, &is_ok, &send_string]
+   (const std::shared_ptr<fun::FunapiSession> &s,
+    const fun::TransportProtocol protocol,
+    const std::string &msg_type, const std::string &json_string)
+  {
+  });
+
+  session->Connect(fun::TransportProtocol::kTcp, 8412, fun::FunEncoding::kJson);
+  
+  while (is_working) {
+    session->Update();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  session->Close();
+  
   XCTAssert(is_ok);
 }
 
