@@ -30,7 +30,7 @@ Funapi plugin cocos2d-x
 
 ### 내 프로젝트에 적용
 
-``Class`` 폴더의 ``funapi`` 폴더와 ``google`` 폴더를 사용할 프로젝트에 복사합니다.
+``Class`` 폴더의 ``funapi`` 폴더를 사용할 프로젝트에 복사합니다.
 
 서드파트 라이브러리 ``libcurl``, ``libsodium``, ``libprotobuf`` 를 프로젝트에 포함해야 합니다. 
 
@@ -40,10 +40,10 @@ cocos2d-x 최신버전에서는 iOS 와 안드로이드 프로젝트에서 ``lib
 
 ##### 안드로이드
 
-**proj.android/jni** 의 ``Android.mk`` 파일에 ``libcurl`` 을 추가합니다
+**proj.android-studio/app/jni** 의 ``Android.mk`` 파일에 ``libcurl`` 을 추가합니다
 
 ```
-LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium cocos_curl_static
+LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf cocos_curl_static
 
 $(call import-module,curl/prebuilt/android)
 ```

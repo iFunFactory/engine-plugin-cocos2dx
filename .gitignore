@@ -13,6 +13,13 @@ proj.ios_mac/funapi-plugin-cocos2dx.xcodeproj/project.xcworkspace/xcuserdata/
 cocos2d/build/cocos2d_libs.xcodeproj/xcuserdata/
 
 cocos2d/cocos/platform/android/java/local.properties
-
-
 cocos2d/cocos/platform/android/java/.d
+
+cocos2d/build/build/
+proj.ios_mac/build/
+
+cocos2d/cocos/platform/android/libcocos2dx/build
+proj.android-studio/.idea
+
+.DS_Store
+
