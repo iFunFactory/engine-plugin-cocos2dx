@@ -1200,6 +1200,175 @@ static const std::string g_server_ip = "127.0.0.1";
      (const std::shared_ptr<fun::FunapiMulticast>& m,
       const std::string &channel_id,
       const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id, const std::string &sender)
+     {
+     });
+
+    multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel);
+       }
+     });
+
+    multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    multicast->AddJsonChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const std::string &json_string)
+     {
+       if (sender == user_name) {
+         rapidjson::Document msg_recv;
+         msg_recv.Parse<0>(json_string.c_str());
+
+         XCTAssert(msg_recv.HasMember("message"));
+
+         std::string recv_string = msg_recv["message"].GetString();
+         int number = atoi(recv_string.c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    multicast->Connect();
+
+    v_multicast.push_back(multicast);
+  }
+  
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastProtobufWithToken_Users {
+  int user_count = 10;
+  int send_count = 50;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  uint16_t port = 8022;
+  bool with_session_reliability = false;
+  std::string multicast_test_channel = "test";
+  std::string multicast_token = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    std::stringstream ss;
+    ss << number;
+
+    FunMessage msg;
+    FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
+    FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
+    chat_msg->set_text(ss.str());
+
+    m->SendToChannel(channel_id, msg, true);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    if (i%2 == 0) port = 8022;
+    else port = 9022;
+
+    if (i%3 == 0) {
+      multicast_test_channel = "test";
+      multicast_token = "test";
+    }
+    else {
+      multicast_test_channel = "test1";
+      multicast_token = "test1";
+    }
+
+    auto funapi_multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    funapi_multicast->AddJoinedCallback
+    ([user_name, multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
     {
       // send
       if (channel_id == multicast_test_channel) {
@@ -1209,13 +1378,13 @@ static const std::string g_server_ip = "127.0.0.1";
       }
     });
 
-    multicast->AddLeftCallback
+    funapi_multicast->AddLeftCallback
     ([](const std::shared_ptr<fun::FunapiMulticast>& m,
         const std::string &channel_id, const std::string &sender)
     {
     });
 
-    multicast->AddErrorCallback
+    funapi_multicast->AddErrorCallback
     ([self, &is_working, &is_ok]
      (const std::shared_ptr<fun::FunapiMulticast>& m,
       int error)
@@ -1231,19 +1400,19 @@ static const std::string g_server_ip = "127.0.0.1";
       XCTAssert(is_ok);
     });
 
-    multicast->AddSessionEventCallback
-    ([self, &is_ok, &is_working, multicast_test_channel]
+    funapi_multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, multicast_test_channel, multicast_token]
      (const std::shared_ptr<fun::FunapiMulticast>& m,
       const fun::SessionEventType type,
       const std::string &session_id,
       const std::shared_ptr<fun::FunapiError> &error)
     {
       if (type == fun::SessionEventType::kOpened) {
-       m->JoinChannel(multicast_test_channel);
+       m->JoinChannel(multicast_test_channel, multicast_token);
       }
     });
 
-    multicast->AddTransportEventCallback
+    funapi_multicast->AddTransportEventCallback
     ([self, &is_ok, &is_working]
      (const std::shared_ptr<fun::FunapiMulticast>& multicast,
       const fun::TransportEventType type,
@@ -1270,36 +1439,33 @@ static const std::string g_server_ip = "127.0.0.1";
       }
     });
 
-    multicast->AddJsonChannelMessageCallback
+    funapi_multicast->AddProtobufChannelMessageCallback
     (multicast_test_channel,
-     [self, &is_ok, &is_working, multicast_test_channel, user_name, &send_function, &send_count]
-     (const std::shared_ptr<fun::FunapiMulticast>& m,
+     [self, &is_ok, &is_working, &multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast> &m,
       const std::string &channel_id,
       const std::string &sender,
-      const std::string &json_string)
-    {
-      if (sender == user_name) {
-        rapidjson::Document msg_recv;
-        msg_recv.Parse<0>(json_string.c_str());
+      const FunMessage& message)
+     {
+       if (sender == user_name) {
+         FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
 
-        XCTAssert(msg_recv.HasMember("message"));
+         int number = atoi(chat_msg.text().c_str());
 
-        std::string recv_string = msg_recv["message"].GetString();
-        int number = atoi(recv_string.c_str());
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
 
-        if (number >= send_count) {
-          is_ok = true;
-          is_working = false;
-        }
-        else {
-          send_function(m, channel_id, number+1);
-        }
-      }
-    });
+    funapi_multicast->Connect();
 
-    multicast->Connect();
-
-    v_multicast.push_back(multicast);
+    v_multicast.push_back(funapi_multicast);
   }
 
   while (is_working) {
@@ -1307,6 +1473,172 @@ static const std::string g_server_ip = "127.0.0.1";
     std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
   }
 
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastProtobufWithToken_Users2 {
+  int user_count = 2;
+  int send_count = 10;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  uint16_t port = 8022;
+  bool with_session_reliability = false;
+  std::string multicast_test_channel = "test";
+  std::string multicast_token = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    std::stringstream ss;
+    ss << number;
+
+    FunMessage msg;
+    FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
+    FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
+    chat_msg->set_text(ss.str());
+
+    m->SendToChannel(channel_id, msg, true);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    if (i%2 == 0) port = 8022;
+    else port = 9022;
+
+//    if (i%3 == 0) {
+//      multicast_test_channel = "test";
+//      multicast_token = "test";
+//    }
+//    else {
+//      multicast_test_channel = "test1";
+//      multicast_token = "test1";
+//    }
+
+    auto funapi_multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    funapi_multicast->AddJoinedCallback
+    ([user_name, multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    funapi_multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id, const std::string &sender)
+     {
+     });
+
+    funapi_multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    funapi_multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, multicast_test_channel, multicast_token]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, multicast_token);
+       }
+     });
+
+    funapi_multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    funapi_multicast->AddProtobufChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, &multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast> &m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const FunMessage& message)
+     {
+       if (sender == user_name) {
+         FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+
+         int number = atoi(chat_msg.text().c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    funapi_multicast->Connect();
+
+    v_multicast.push_back(funapi_multicast);
+  }
+  
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
   XCTAssert(is_ok);
 }
 
@@ -1509,6 +1841,1122 @@ static const std::string g_server_ip = "127.0.0.1";
     std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
   }
 
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastJsonWithToken_1 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kJson;
+  // uint16_t port = 8112;
+  uint16_t port = 8012;
+  bool with_session_reliability = false;
+  // std::string multicast_test_channel = "multicast";
+  std::string multicast_test_channel = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    rapidjson::Document msg;
+    msg.SetObject();
+
+    std::stringstream ss;
+    ss << number;
+
+    std::string temp_messsage = ss.str();
+    rapidjson::Value message_node(temp_messsage.c_str(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef("message"), message_node, msg.GetAllocator());
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    m->SendToChannel(channel_id, json_string);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    multicast->AddJoinedCallback
+    ([user_name, multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id,
+        const std::string &sender)
+     {
+     });
+
+    multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+       // EC_INVALID_TOKEN
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "test");
+       }
+     });
+
+    multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    multicast->AddJsonChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const std::string &json_string)
+     {
+       if (sender == user_name) {
+         rapidjson::Document msg_recv;
+         msg_recv.Parse<0>(json_string.c_str());
+
+         XCTAssert(msg_recv.HasMember("message"));
+
+         std::string recv_string = msg_recv["message"].GetString();
+         int number = atoi(recv_string.c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    multicast->Connect();
+
+    v_multicast.push_back(multicast);
+  }
+  
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastJsonWithToken_2 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kJson;
+  // uint16_t port = 8112;
+  uint16_t port = 8012;
+  bool with_session_reliability = false;
+  // std::string multicast_test_channel = "multicast";
+  std::string multicast_test_channel = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    rapidjson::Document msg;
+    msg.SetObject();
+
+    std::stringstream ss;
+    ss << number;
+
+    std::string temp_messsage = ss.str();
+    rapidjson::Value message_node(temp_messsage.c_str(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef("message"), message_node, msg.GetAllocator());
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    m->SendToChannel(channel_id, json_string);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    multicast->AddJoinedCallback
+    ([user_name, multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id,
+        const std::string &sender)
+     {
+     });
+
+    multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+       // EC_INVALID_TOKEN
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "wrong");
+       }
+     });
+
+    multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    multicast->AddJsonChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const std::string &json_string)
+     {
+       if (sender == user_name) {
+         rapidjson::Document msg_recv;
+         msg_recv.Parse<0>(json_string.c_str());
+
+         XCTAssert(msg_recv.HasMember("message"));
+
+         std::string recv_string = msg_recv["message"].GetString();
+         int number = atoi(recv_string.c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    multicast->Connect();
+
+    v_multicast.push_back(multicast);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastJsonWithToken_3 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kJson;
+  // uint16_t port = 8112;
+  uint16_t port = 8012;
+  bool with_session_reliability = false;
+  // std::string multicast_test_channel = "multicast";
+  std::string multicast_test_channel = "error";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    rapidjson::Document msg;
+    msg.SetObject();
+
+    std::stringstream ss;
+    ss << number;
+
+    std::string temp_messsage = ss.str();
+    rapidjson::Value message_node(temp_messsage.c_str(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef("message"), message_node, msg.GetAllocator());
+
+    // Convert JSON document to string
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    msg.Accept(writer);
+    std::string json_string = buffer.GetString();
+
+    m->SendToChannel(channel_id, json_string);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    multicast->AddJoinedCallback
+    ([user_name, multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id,
+        const std::string &sender)
+     {
+     });
+
+    multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+       // EC_INVALID_TOKEN
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "test");
+       }
+     });
+
+    multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    multicast->AddJsonChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const std::string &json_string)
+     {
+       if (sender == user_name) {
+         rapidjson::Document msg_recv;
+         msg_recv.Parse<0>(json_string.c_str());
+
+         XCTAssert(msg_recv.HasMember("message"));
+
+         std::string recv_string = msg_recv["message"].GetString();
+         int number = atoi(recv_string.c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    multicast->Connect();
+
+    v_multicast.push_back(multicast);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastProtobufWithToken_0 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  uint16_t port = 9022;
+  bool with_session_reliability = false;
+  std::string multicast_test_channel = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    std::stringstream ss;
+    ss << number;
+
+    FunMessage msg;
+    FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
+    FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
+    chat_msg->set_text(ss.str());
+
+    m->SendToChannel(channel_id, msg, true);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto funapi_multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    funapi_multicast->AddJoinedCallback
+    ([user_name, &multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    funapi_multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id, const std::string &sender)
+     {
+     });
+
+    funapi_multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    funapi_multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, &multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "test");
+       }
+     });
+
+    funapi_multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    funapi_multicast->AddProtobufChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, &multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast> &m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const FunMessage& message)
+     {
+       if (sender == user_name) {
+         FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+
+         int number = atoi(chat_msg.text().c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    funapi_multicast->Connect();
+
+    v_multicast.push_back(funapi_multicast);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastProtobufWithToken_1 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  uint16_t port = 8022;
+  bool with_session_reliability = false;
+  std::string multicast_test_channel = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    std::stringstream ss;
+    ss << number;
+
+    FunMessage msg;
+    FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
+    FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
+    chat_msg->set_text(ss.str());
+
+    m->SendToChannel(channel_id, msg, true);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto funapi_multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    funapi_multicast->AddJoinedCallback
+    ([user_name, &multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    funapi_multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id, const std::string &sender)
+     {
+     });
+
+    funapi_multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    funapi_multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, &multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "test");
+       }
+     });
+
+    funapi_multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    funapi_multicast->AddProtobufChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, &multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast> &m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const FunMessage& message)
+     {
+       if (sender == user_name) {
+         FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+
+         int number = atoi(chat_msg.text().c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    funapi_multicast->Connect();
+
+    v_multicast.push_back(funapi_multicast);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastProtobufWithToken_2 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  uint16_t port = 8022;
+  bool with_session_reliability = false;
+  std::string multicast_test_channel = "test";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    std::stringstream ss;
+    ss << number;
+
+    FunMessage msg;
+    FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
+    FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
+    chat_msg->set_text(ss.str());
+
+    m->SendToChannel(channel_id, msg, true);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto funapi_multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    funapi_multicast->AddJoinedCallback
+    ([user_name, &multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    funapi_multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id, const std::string &sender)
+     {
+     });
+
+    funapi_multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    funapi_multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, &multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "wrong");
+       }
+     });
+
+    funapi_multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    funapi_multicast->AddProtobufChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, &multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast> &m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const FunMessage& message)
+     {
+       if (sender == user_name) {
+         FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+
+         int number = atoi(chat_msg.text().c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    funapi_multicast->Connect();
+
+    v_multicast.push_back(funapi_multicast);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
+  XCTAssert(is_ok);
+}
+
+- (void)testTemp_MulticastProtobufWithToken_3 {
+  int user_count = 1;
+  int send_count = 1;
+  std::string server_ip = g_server_ip;
+  fun::FunEncoding encoding = fun::FunEncoding::kProtobuf;
+  uint16_t port = 8022;
+  bool with_session_reliability = false;
+  std::string multicast_test_channel = "error";
+
+  std::vector<std::shared_ptr<fun::FunapiMulticast>> v_multicast;
+  bool is_ok = false;
+  bool is_working = true;
+
+  auto send_function =
+  [](const std::shared_ptr<fun::FunapiMulticast>& m,
+     const std::string &channel_id,
+     int number)
+  {
+    std::stringstream ss;
+    ss << number;
+
+    FunMessage msg;
+    FunMulticastMessage* mcast_msg = msg.MutableExtension(multicast);
+    FunChatMessage *chat_msg = mcast_msg->MutableExtension(chat);
+    chat_msg->set_text(ss.str());
+
+    m->SendToChannel(channel_id, msg, true);
+  };
+
+  for (int i=0;i<user_count;++i) {
+    std::stringstream ss_sender;
+    ss_sender << "user" << i;
+    std::string user_name = ss_sender.str();
+
+    auto funapi_multicast =
+    fun::FunapiMulticast::Create(user_name.c_str(),
+                                 server_ip.c_str(),
+                                 port,
+                                 encoding,
+                                 with_session_reliability);
+
+    funapi_multicast->AddJoinedCallback
+    ([user_name, &multicast_test_channel, &send_function]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const std::string &channel_id,
+      const std::string &sender)
+     {
+       // send
+       if (channel_id == multicast_test_channel) {
+         if (sender == user_name) {
+           send_function(m, channel_id, 0);
+         }
+       }
+     });
+
+    funapi_multicast->AddLeftCallback
+    ([](const std::shared_ptr<fun::FunapiMulticast>& m,
+        const std::string &channel_id, const std::string &sender)
+     {
+     });
+
+    funapi_multicast->AddErrorCallback
+    ([self, &is_working, &is_ok]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      int error)
+     {
+       // EC_ALREADY_JOINED = 1,
+       // EC_ALREADY_LEFT,
+       // EC_FULL_MEMBER
+       // EC_CLOSED
+
+       is_ok = false;
+       is_working = false;
+
+       XCTAssert(is_ok);
+     });
+
+    funapi_multicast->AddSessionEventCallback
+    ([self, &is_ok, &is_working, &multicast_test_channel]
+     (const std::shared_ptr<fun::FunapiMulticast>& m,
+      const fun::SessionEventType type,
+      const std::string &session_id,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::SessionEventType::kOpened) {
+         m->JoinChannel(multicast_test_channel, "test");
+       }
+     });
+
+    funapi_multicast->AddTransportEventCallback
+    ([self, &is_ok, &is_working]
+     (const std::shared_ptr<fun::FunapiMulticast>& multicast,
+      const fun::TransportEventType type,
+      const std::shared_ptr<fun::FunapiError> &error)
+     {
+       if (type == fun::TransportEventType::kStarted) {
+       }
+       else if (type == fun::TransportEventType::kStopped) {
+       }
+       else if (type == fun::TransportEventType::kConnectionFailed) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kConnectionTimedOut) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+       else if (type == fun::TransportEventType::kDisconnected) {
+         is_ok = false;
+         is_working = false;
+         XCTAssert(is_ok);
+       }
+     });
+
+    funapi_multicast->AddProtobufChannelMessageCallback
+    (multicast_test_channel,
+     [self, &is_ok, &is_working, &multicast_test_channel, user_name, &send_function, &send_count]
+     (const std::shared_ptr<fun::FunapiMulticast> &m,
+      const std::string &channel_id,
+      const std::string &sender,
+      const FunMessage& message)
+     {
+       if (sender == user_name) {
+         FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+         FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+
+         int number = atoi(chat_msg.text().c_str());
+
+         if (number >= send_count) {
+           is_ok = true;
+           is_working = false;
+         }
+         else {
+           send_function(m, channel_id, number+1);
+         }
+       }
+     });
+
+    funapi_multicast->Connect();
+
+    v_multicast.push_back(funapi_multicast);
+  }
+
+  while (is_working) {
+    fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+  
   XCTAssert(is_ok);
 }
 
