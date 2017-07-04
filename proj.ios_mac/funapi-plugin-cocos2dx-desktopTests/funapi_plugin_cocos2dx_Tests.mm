@@ -7,6 +7,7 @@
 // http://stackoverflow.com/questions/15759559/variable-named-type-boolc-code-is-conflicted-with-ios-macro
 #include <ConditionalMacros.h>
 #undef TYPE_BOOL
+#include "funapi_plugin.h"
 #include "funapi_session.h"
 #include "funapi_multicasting.h"
 #include "funapi_tasks.h"

@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\funapi">
+      <UniqueIdentifier>{fe430232-7426-49a5-b546-778f2f57d916}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\funapi\md5">
+      <UniqueIdentifier>{6b2fe901-fa70-4e23-bec0-1b1427721670}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\funapi\management">
+      <UniqueIdentifier>{577d4477-f8d2-4adc-b8f3-8e0de39b8ba3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\funapi\network">
+      <UniqueIdentifier>{7ddf2c37-d9fd-4529-916d-86b1ae43ceb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\funapi\service">
+      <UniqueIdentifier>{f7193ba3-fd32-40e8-9c80-8b1a68d306fa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_announcement.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_build_config.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_downloader.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_encryption.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_encryption_legacy.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_http.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_multicasting.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_plugin.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_session.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_socket.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_tasks.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_transport.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_utils.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_version.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\md5\md5.h">
+      <Filter>Source Files\funapi\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\management\maintenance_message.pb.h">
+      <Filter>Source Files\funapi\management</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\network\fun_message.pb.h">
+      <Filter>Source Files\funapi\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\network\ping_message.pb.h">
+      <Filter>Source Files\funapi\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\service\multicast_message.pb.h">
+      <Filter>Source Files\funapi\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\service\redirect_message.pb.h">
+      <Filter>Source Files\funapi\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\test_messages.pb.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unittest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_announcement.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_downloader.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_encryption.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_http.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_multicasting.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_session.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_socket.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_tasks.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_transport.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_utils.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\md5\md5.cpp">
+      <Filter>Source Files\funapi\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\management\maintenance_message.pb.cc">
+      <Filter>Source Files\funapi\management</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\network\fun_message.pb.cc">
+      <Filter>Source Files\funapi\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\network\ping_message.pb.cc">
+      <Filter>Source Files\funapi\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\service\multicast_message.pb.cc">
+      <Filter>Source Files\funapi\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\service\redirect_message.pb.cc">
+      <Filter>Source Files\funapi\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\test_messages.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
