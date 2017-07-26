@@ -23,3 +23,7 @@ proj.android-studio/.idea
 
 .DS_Store
 
+
+proj.android-studio/app/funapi-plugin-cocos2dx.iml
+
+proj.android-studio/proj.android-studio.iml
