@@ -171,7 +171,6 @@
     <ClInclude Include="..\..\Classes\funapi\funapi_utils.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_version.h" />
     <ClInclude Include="..\..\Classes\funapi\management\maintenance_message.pb.h" />
-    <ClInclude Include="..\..\Classes\funapi\md5\md5.h" />
     <ClInclude Include="..\..\Classes\funapi\network\fun_message.pb.h" />
     <ClInclude Include="..\..\Classes\funapi\network\ping_message.pb.h" />
     <ClInclude Include="..\..\Classes\funapi\service\multicast_message.pb.h" />
@@ -192,12 +191,12 @@
     <ClCompile Include="..\..\Classes\funapi\funapi_transport.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_utils.cpp" />
     <ClCompile Include="..\..\Classes\funapi\management\maintenance_message.pb.cc" />
-    <ClCompile Include="..\..\Classes\funapi\md5\md5.cpp" />
     <ClCompile Include="..\..\Classes\funapi\network\fun_message.pb.cc" />
     <ClCompile Include="..\..\Classes\funapi\network\ping_message.pb.cc" />
     <ClCompile Include="..\..\Classes\funapi\service\multicast_message.pb.cc" />
     <ClCompile Include="..\..\Classes\funapi\service\redirect_message.pb.cc" />
     <ClCompile Include="..\..\Classes\test_messages.pb.cc" />
+    <ClCompile Include="..\..\cocos2d\external\md5\md5.c" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -205,6 +204,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="unittest.cpp" />
+    <ClCompile Include="unittest_inhouse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\cocos2d\cocos\2d\libcocos2d.vcxproj">

@@ -71,7 +71,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(EngineRoot)external\curl\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(EngineRoot)external\curl\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;COCOS2D_DEBUG=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -116,7 +116,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(EngineRoot)external\curl\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(EngineRoot)external\curl\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -160,12 +160,12 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\funapi\funapi_transport.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_utils.cpp" />
     <ClCompile Include="..\Classes\funapi\management\maintenance_message.pb.cc" />
-    <ClCompile Include="..\Classes\funapi\md5\md5.cpp" />
     <ClCompile Include="..\Classes\funapi\network\fun_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\network\ping_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\service\multicast_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\service\redirect_message.pb.cc" />
     <ClCompile Include="..\Classes\test_messages.pb.cc" />
+    <ClCompile Include="..\cocos2d\external\md5\md5.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -186,7 +186,6 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\funapi_utils.h" />
     <ClInclude Include="..\Classes\funapi\funapi_version.h" />
     <ClInclude Include="..\Classes\funapi\management\maintenance_message.pb.h" />
-    <ClInclude Include="..\Classes\funapi\md5\md5.h" />
     <ClInclude Include="..\Classes\funapi\network\fun_message.pb.h" />
     <ClInclude Include="..\Classes\funapi\network\ping_message.pb.h" />
     <ClInclude Include="..\Classes\funapi\service\multicast_message.pb.h" />

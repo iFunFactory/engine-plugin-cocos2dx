@@ -13,9 +13,6 @@
     <Filter Include="src\funapi">
       <UniqueIdentifier>{ca658ada-cf6c-4436-bef2-60b89788f551}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\funapi\md5">
-      <UniqueIdentifier>{5d9d1eb0-b519-4fb6-8ebe-f91858c99f9d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\funapi\management">
       <UniqueIdentifier>{b31bf54c-b7fc-4fb0-9b39-674c55d62de5}</UniqueIdentifier>
     </Filter>
@@ -24,6 +21,9 @@
     </Filter>
     <Filter Include="src\funapi\service">
       <UniqueIdentifier>{745aaf91-27a8-4da5-89aa-154da6a5a2b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\funapi\md5">
+      <UniqueIdentifier>{b43edf15-14d2-429b-8ebc-93179df4208c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -53,9 +53,6 @@
     </ClCompile>
     <ClCompile Include="..\Classes\funapi\service\redirect_message.pb.cc">
       <Filter>src\funapi\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\funapi\md5\md5.cpp">
-      <Filter>src\funapi\md5</Filter>
     </ClCompile>
     <ClCompile Include="..\Classes\funapi\funapi_announcement.cpp">
       <Filter>src\funapi</Filter>
@@ -87,6 +84,9 @@
     <ClCompile Include="..\Classes\funapi\funapi_utils.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\cocos2d\external\md5\md5.c">
+      <Filter>src\funapi\md5</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -115,9 +115,6 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_encryption.h">
       <Filter>src\funapi</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\md5\md5.h">
-      <Filter>src\funapi\md5</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_downloader.h">
       <Filter>src\funapi</Filter>

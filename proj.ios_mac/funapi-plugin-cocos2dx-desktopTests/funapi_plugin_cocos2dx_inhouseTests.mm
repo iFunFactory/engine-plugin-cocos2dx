@@ -12,6 +12,8 @@
 #include "funapi_multicasting.h"
 #include "funapi_tasks.h"
 #include "funapi_encryption.h"
+#include "funapi_downloader.h"
+#include "funapi/funapi_utils.h"
 
 #include "json/document.h"
 #include "json/writer.h"
@@ -19,6 +21,9 @@
 
 #include "test_messages.pb.h"
 #include "funapi/service/multicast_message.pb.h"
+
+#include <iomanip>
+#include <ctime>
 
 #import <XCTest/XCTest.h>
 
@@ -38,125 +43,6 @@ static const std::string g_server_ip = "127.0.0.1";
 - (void)tearDown {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
     [super tearDown];
-}
-
-- (void)testEchoJson_reconnect_2 {
-  std::string send_string = "Json Echo Message";
-  std::string server_ip = g_server_ip;
-
-  auto session = fun::FunapiSession::Create(server_ip.c_str(), false);
-  bool is_ok = true;
-  bool is_working = true;
-
-  session->AddSessionEventCallback
-  ([&send_string]
-   (const std::shared_ptr<fun::FunapiSession> &s,
-    const fun::TransportProtocol protocol,
-    const fun::SessionEventType type,
-    const std::string &session_id,
-    const std::shared_ptr<fun::FunapiError> &error)
-  {
-    if (type == fun::SessionEventType::kOpened) {
-      rapidjson::Document msg;
-      msg.SetObject();
-      rapidjson::Value message_node(send_string.c_str(), msg.GetAllocator());
-      msg.AddMember("message", message_node, msg.GetAllocator());
-
-      // Convert JSON document to string
-      rapidjson::StringBuffer buffer;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-      msg.Accept(writer);
-      std::string json_string = buffer.GetString();
-
-      s->SendMessage("echo", json_string);
-    }
-  });
-
-  session->AddTransportEventCallback
-  ([self, &is_ok, &is_working]
-   (const std::shared_ptr<fun::FunapiSession> &s,
-    const fun::TransportProtocol protocol,
-    const fun::TransportEventType type,
-    const std::shared_ptr<fun::FunapiError> &error)
-  {
-    if (type == fun::TransportEventType::kConnectionFailed) {
-      is_ok = false;
-      is_working = false;
-    }
-    else if (type == fun::TransportEventType::kConnectionTimedOut) {
-      is_ok = false;
-      is_working = false;
-    }
-    else if (type == fun::TransportEventType::kStopped) {
-      is_ok = true;
-      is_working = false;
-    }
-
-    XCTAssert(type != fun::TransportEventType::kConnectionFailed);
-    XCTAssert(type != fun::TransportEventType::kConnectionTimedOut);
-  });
-
-  session->AddJsonRecvCallback
-  ([self, &is_working, &is_ok, &send_string]
-   (const std::shared_ptr<fun::FunapiSession> &s,
-    const fun::TransportProtocol protocol,
-    const std::string &msg_type, const std::string &json_string)
-  {
-    if (msg_type.compare("echo") == 0) {
-      is_ok = false;
-
-      rapidjson::Document msg_recv;
-      msg_recv.Parse<0>(json_string.c_str());
-
-      XCTAssert(msg_recv.HasMember("message"));
-
-      std::string recv_string = msg_recv["message"].GetString();
-
-      XCTAssert(send_string.compare(recv_string) == 0);
-
-      is_ok = true;
-      is_working = false;
-    }
-  });
-
-  session->Connect(fun::TransportProtocol::kTcp, 8012, fun::FunEncoding::kJson);
-
-  while (is_working) {
-    session->Update();
-    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
-  }
-
-  XCTAssert(is_ok);
-
-  session->Close();
-
-  session->Connect(fun::TransportProtocol::kTcp);
-
-  {
-    rapidjson::Document msg;
-    msg.SetObject();
-    rapidjson::Value message_node(send_string.c_str(), msg.GetAllocator());
-    msg.AddMember("message", message_node, msg.GetAllocator());
-
-    // Convert JSON document to string
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    msg.Accept(writer);
-    std::string json_string = buffer.GetString();
-
-    session->SendMessage("echo", json_string);
-  }
-
-  is_working = true;
-
-  while (is_working) {
-    session->Update();
-    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
-  }
-
-  session->Close();
-
-  XCTAssert(is_ok);
 }
 
 - (void)testEncJson {
@@ -1805,9 +1691,88 @@ static const std::string g_server_ip = "127.0.0.1";
   XCTAssert(is_ok);
 }
 
+- (void)testDownloader {
+  std::string kDownloadServer = g_server_ip;
+  int kDownloadServerPort = 8020;
+  bool is_ok = true;
+  bool is_working = true;
+
+  std::stringstream ss_temp;
+  ss_temp << "http://" << kDownloadServer << ":" << kDownloadServerPort;
+  std::string download_url = ss_temp.str();
+
+  auto downloader = fun::FunapiHttpDownloader::Create(download_url, cocos2d::FileUtils::getInstance()->getWritablePath());
+
+  downloader->AddReadyCallback
+  ([]
+   (const std::shared_ptr<fun::FunapiHttpDownloader>&downloader,
+    const std::vector<std::shared_ptr<fun::FunapiDownloadFileInfo>>&info)
+  {
+    for (auto i : info) {
+      std::stringstream ss_temp;
+      ss_temp << i->GetUrl() << std::endl;
+      printf("%s", ss_temp.str().c_str());
+    }
+  });
+
+  downloader->AddProgressCallback
+  ([]
+   (const std::shared_ptr<fun::FunapiHttpDownloader> &downloader,
+    const std::vector<std::shared_ptr<fun::FunapiDownloadFileInfo>>&info,
+    const int index,
+    const int max_index,
+    const uint64_t received_bytes,
+    const uint64_t expected_bytes)
+  {
+    auto i = info[index];
+
+    std::stringstream ss_temp;
+    ss_temp << index << "/" << max_index << " " << received_bytes << "/" << expected_bytes << " " << i->GetUrl() << std::endl;
+    printf("%s", ss_temp.str().c_str());
+  });
+
+  downloader->AddCompletionCallback
+  ([self, &is_working, &is_ok]
+   (const std::shared_ptr<fun::FunapiHttpDownloader>&downloader,
+    const std::vector<std::shared_ptr<fun::FunapiDownloadFileInfo>>&info,
+    const fun::FunapiHttpDownloader::ResultCode result_code)
+  {
+    if (result_code == fun::FunapiHttpDownloader::ResultCode::kSucceed) {
+      is_ok = true;
+      for (auto i : info) {
+        printf("file_path=%s", i->GetPath().c_str());
+      }
+    }
+    else {
+      is_ok = false;
+    }
+
+    is_working = false;
+  });
+
+  downloader->Start();
+
+  while (is_working) {
+    downloader->Update();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+
+  XCTAssert(is_ok);
+}
+
 - (void)testTemp_RedirectJson {
-  std::string send_string = "user1";
   std::string server_ip = g_server_ip;
+
+  // unique string
+  std::string send_string;
+  {
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+
+    std::stringstream ss_temp;
+    ss_temp << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
+    send_string = ss_temp.str();
+  }
 
   auto session = fun::FunapiSession::Create(server_ip.c_str(), false);
   bool is_ok = true;
@@ -1870,7 +1835,7 @@ static const std::string g_server_ip = "127.0.0.1";
   {
   });
 
-  session->Connect(fun::TransportProtocol::kTcp, 8412, fun::FunEncoding::kJson);
+  session->Connect(fun::TransportProtocol::kTcp, 18412, fun::FunEncoding::kJson);
 
   while (is_working) {
     session->Update();

@@ -34,7 +34,6 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/funapi/funapi_http.cpp \
                    ../../../Classes/funapi/funapi_utils.cpp \
                    ../../../Classes/funapi/funapi_socket.cpp \
-                   ../../../Classes/funapi/md5/md5.cpp \
                    ../../../Classes/funapi/management/maintenance_message.pb.cc \
                    ../../../Classes/funapi/network/fun_message.pb.cc \
                    ../../../Classes/funapi/network/ping_message.pb.cc \
@@ -44,7 +43,6 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes \
                     $(LOCAL_PATH)/../../../Classes/funapi \
-                    $(LOCAL_PATH)/../../../Classes/funapi/md5 \
                     $(LOCAL_PATH)/../../../Classes/funapi/management \
                     $(LOCAL_PATH)/../../../Classes/funapi/network \
                     $(LOCAL_PATH)/../../../Classes/funapi/service \
@@ -66,7 +64,6 @@ LOCAL_MODULE := funapi_unittest
 LOCAL_SRC_FILES := hellocpp/unittest.cpp
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes \
                     $(LOCAL_PATH)/../../../Classes/funapi \
-                    $(LOCAL_PATH)/../../../Classes/funapi/md5 \
                     $(LOCAL_PATH)/../../../Classes/funapi/management \
                     $(LOCAL_PATH)/../../../Classes/funapi/network \
                     $(LOCAL_PATH)/../../../Classes/funapi/service \
