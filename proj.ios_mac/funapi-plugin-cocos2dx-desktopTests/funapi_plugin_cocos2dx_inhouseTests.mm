@@ -14,6 +14,7 @@
 #include "funapi_encryption.h"
 #include "funapi_downloader.h"
 #include "funapi/funapi_utils.h"
+#include "funapi_socket.h"
 
 #include "json/document.h"
 #include "json/writer.h"
@@ -1843,6 +1844,86 @@ static const std::string g_server_ip = "127.0.0.1";
   }
 
   session->Close();
+
+  XCTAssert(is_ok);
+}
+
+- (void)testFunapiTcp {
+  std::string server_ip = g_server_ip;
+  int server_port = 8012;
+
+  bool is_working = true;
+  bool is_ok = false;
+
+  int recv_count = 0;
+  std::string send_string = "";
+
+  auto test_tcp = fun::FunapiTcp::Create();
+
+  test_tcp->Connect
+  (server_ip.c_str(),
+   server_port,
+   10,
+   false,
+   [&is_working, &is_ok]
+   (const bool is_failed,
+    const bool is_timed_out,
+    const int error_code,
+    const std::string &error_string,
+    struct addrinfo *addrinfo_res)
+  {
+    if (is_failed) {
+      is_ok = false;
+      is_working = false;
+    }
+
+    if (is_timed_out) {
+      is_ok = false;
+      is_working = false;
+    }
+  },
+   [&send_string, &test_tcp]()
+  {
+    // send
+    if (send_string.length() > 0) {
+      test_tcp->Send
+      (std::vector<uint8_t>(send_string.cbegin(), send_string.cend()),
+       []
+       (const bool is_failed,
+        const int error_code,
+        const std::string &error_string,
+        const int sent_length)
+      {
+      });
+
+      send_string = "";
+    }
+  },
+   [&recv_count, &send_string, &is_working, &is_ok]
+   (const bool is_failed,
+    const int error_code,
+    const std::string &error_string,
+    const int read_length,
+    std::vector<uint8_t> &receiving)
+  {
+    // recv
+    std::string output_string(receiving.cbegin(), receiving.cend());
+    printf ("recv=\"%s\"\n", output_string.c_str());
+
+    ++recv_count;
+    if (1 == recv_count) {
+      send_string = "LEN:2\nPVER:66\nVER:1\n\n{}";
+    }
+    else if (1 < recv_count) {
+      is_ok = true;
+      is_working = false;
+    }
+  });
+
+  while (is_working) {
+    fun::FunapiSocket::Select();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
 
   XCTAssert(is_ok);
 }
