@@ -48,9 +48,9 @@ class FunapiSocketImpl : public std::enable_shared_from_this<FunapiSocketImpl> {
                   std::string &error_string);
   void CloseSocket();
 
-  void SocketSelect(const fd_set rset,
-                    const fd_set wset,
-                    const fd_set eset);
+  void SocketSelect(fd_set rset,
+                    fd_set wset,
+                    fd_set eset);
 
   virtual void OnSend() = 0;
   virtual void OnRecv() = 0;
@@ -283,9 +283,9 @@ bool FunapiSocketImpl::InitSocket(struct addrinfo *info,
 }
 
 
-void FunapiSocketImpl::SocketSelect(const fd_set rset,
-                                    const fd_set wset,
-                                    const fd_set eset) {
+void FunapiSocketImpl::SocketSelect(fd_set rset,
+                                    fd_set wset,
+                                    fd_set eset) {
   if (socket_ > 0) {
     if (FD_ISSET(socket_, &rset)) {
       OnRecv();
