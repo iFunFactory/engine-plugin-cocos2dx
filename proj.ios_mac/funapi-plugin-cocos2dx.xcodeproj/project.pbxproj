@@ -61,6 +61,12 @@
 		D44C620C132DFF330009C878 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620B132DFF330009C878 /* OpenAL.framework */; };
 		D44C620E132DFF430009C878 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620D132DFF430009C878 /* AVFoundation.framework */; };
 		D44C6210132DFF4E0009C878 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D44C620F132DFF4E0009C878 /* AudioToolbox.framework */; };
+		D60587801FD7BC5600D372B4 /* funapi_rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */; };
+		D60587841FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D60587821FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.cc */; };
+		D60587871FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D60587851FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc */; };
+		D60587881FD7C56100D372B4 /* test_dedicated_server_rpc_messages.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D60587851FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc */; };
+		D60587891FD7C56800D372B4 /* fun_dedicated_server_rpc_message.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = D60587821FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.cc */; };
+		D605878A1FD7C57500D372B4 /* funapi_rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */; };
 		D65713881FD63C4400D7E9AC /* libprotobuf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65713861FD63C4400D7E9AC /* libprotobuf.a */; };
 		D657138A1FD63C5000D7E9AC /* libsodium.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65713891FD63C5000D7E9AC /* libsodium.a */; };
 		D657139D1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */; };
@@ -70,7 +76,8 @@
 		D65713B21FD6529500D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */; };
 		D65713B31FD6529800D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
-		D6FF19891FD52B4E00796402 /* build_date.txt in Resources */ = {isa = PBXBuildFile; fileRef = D6FF19601FD52B4E00796402 /* build_date.txt */; };
+		D6EC5E642005962B0095CA5D /* funapi_websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */; };
+		D6EC5E6520059BDD0095CA5D /* funapi_websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */; };
 		D6FF198A1FD52B4E00796402 /* funapi_announcement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */; };
 		D6FF198B1FD52B4E00796402 /* funapi_downloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19641FD52B4E00796402 /* funapi_downloader.cpp */; };
 		D6FF198C1FD52B4E00796402 /* funapi_encryption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19661FD52B4E00796402 /* funapi_encryption.cpp */; };
@@ -238,6 +245,12 @@
 		D44C620B132DFF330009C878 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		D44C620D132DFF430009C878 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		D44C620F132DFF4E0009C878 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		D605877E1FD7BC5600D372B4 /* funapi_rpc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_rpc.h; sourceTree = "<group>"; };
+		D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_rpc.cpp; sourceTree = "<group>"; };
+		D60587821FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fun_dedicated_server_rpc_message.pb.cc; sourceTree = "<group>"; };
+		D60587831FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fun_dedicated_server_rpc_message.pb.h; sourceTree = "<group>"; };
+		D60587851FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_dedicated_server_rpc_messages.pb.cc; sourceTree = "<group>"; };
+		D60587861FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_dedicated_server_rpc_messages.pb.h; sourceTree = "<group>"; };
 		D65713861FD63C4400D7E9AC /* libprotobuf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprotobuf.a; path = ios/libprotobuf/lib/libprotobuf.a; sourceTree = "<group>"; };
 		D65713891FD63C5000D7E9AC /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = ios/libsodium/lib/libsodium.a; sourceTree = "<group>"; };
 		D65713901FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "funapi-plugin-cocos2dx-desktopTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -248,9 +261,10 @@
 		D65713A61FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "funapi-plugin-cocos2dx-mobileTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D65713AA1FD6526F00D7E9AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		D6EC5E612005962B0095CA5D /* funapi_websocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_websocket.h; sourceTree = "<group>"; };
+		D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_websocket.cpp; sourceTree = "<group>"; };
 		D6FF195D1FD52B4E00796402 /* FunapiTestScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FunapiTestScene.h; sourceTree = "<group>"; };
 		D6FF195E1FD52B4E00796402 /* test_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_messages.pb.h; sourceTree = "<group>"; };
-		D6FF19601FD52B4E00796402 /* build_date.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build_date.txt; sourceTree = "<group>"; };
 		D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_announcement.cpp; sourceTree = "<group>"; };
 		D6FF19621FD52B4E00796402 /* funapi_announcement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_announcement.h; sourceTree = "<group>"; };
 		D6FF19631FD52B4E00796402 /* funapi_build_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_build_config.h; sourceTree = "<group>"; };
@@ -476,6 +490,8 @@
 				46880B8519C43A87006E1F66 /* AppDelegate.h */,
 				D6FF19871FD52B4E00796402 /* FunapiTestScene.cpp */,
 				D6FF195D1FD52B4E00796402 /* FunapiTestScene.h */,
+				D60587851FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc */,
+				D60587861FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.h */,
 				D6FF19881FD52B4E00796402 /* test_messages.pb.cc */,
 				D6FF195E1FD52B4E00796402 /* test_messages.pb.h */,
 			);
@@ -530,6 +546,15 @@
 			path = ios;
 			sourceTree = SOURCE_ROOT;
 		};
+		D60587811FD7BDAB00D372B4 /* distribution */ = {
+			isa = PBXGroup;
+			children = (
+				D60587821FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.cc */,
+				D60587831FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.h */,
+			);
+			path = distribution;
+			sourceTree = "<group>";
+		};
 		D65713911FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -552,7 +577,14 @@
 		D6FF195F1FD52B4E00796402 /* funapi */ = {
 			isa = PBXGroup;
 			children = (
-				D6FF19601FD52B4E00796402 /* build_date.txt */,
+				D60587811FD7BDAB00D372B4 /* distribution */,
+				D6FF19791FD52B4E00796402 /* management */,
+				D6FF197C1FD52B4E00796402 /* network */,
+				D6FF19821FD52B4E00796402 /* service */,
+				D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */,
+				D6EC5E612005962B0095CA5D /* funapi_websocket.h */,
+				D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */,
+				D605877E1FD7BC5600D372B4 /* funapi_rpc.h */,
 				D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */,
 				D6FF19621FD52B4E00796402 /* funapi_announcement.h */,
 				D6FF19631FD52B4E00796402 /* funapi_build_config.h */,
@@ -577,9 +609,6 @@
 				D6FF19761FD52B4E00796402 /* funapi_utils.cpp */,
 				D6FF19771FD52B4E00796402 /* funapi_utils.h */,
 				D6FF19781FD52B4E00796402 /* funapi_version.h */,
-				D6FF19791FD52B4E00796402 /* management */,
-				D6FF197C1FD52B4E00796402 /* network */,
-				D6FF19821FD52B4E00796402 /* service */,
 			);
 			path = funapi;
 			sourceTree = "<group>";
@@ -774,7 +803,6 @@
 			files = (
 				5087E78117EB970100C73F5D /* Icon-120.png in Resources */,
 				D6FF19C01FD534D800796402 /* buttonHighlighted.png in Resources */,
-				D6FF19891FD52B4E00796402 /* build_date.txt in Resources */,
 				5087E78617EB970100C73F5D /* Icon-76.png in Resources */,
 				D6FF19C81FD534D800796402 /* check_box_active.png in Resources */,
 				5087E77F17EB970100C73F5D /* Default@2x.png in Resources */,
@@ -860,15 +888,19 @@
 				D6FF19961FD52B4E00796402 /* ping_message.pb.cc in Sources */,
 				503AE10017EB989F00D1A890 /* AppController.mm in Sources */,
 				D6FF19901FD52B4E00796402 /* funapi_socket.cpp in Sources */,
+				D60587871FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc in Sources */,
 				D6FF199A1FD52B4E00796402 /* test_messages.pb.cc in Sources */,
 				D6FF198D1FD52B4E00796402 /* funapi_http.cpp in Sources */,
 				D6FF198A1FD52B4E00796402 /* funapi_announcement.cpp in Sources */,
 				D6FF198F1FD52B4E00796402 /* funapi_session.cpp in Sources */,
+				D6EC5E642005962B0095CA5D /* funapi_websocket.cpp in Sources */,
+				D60587841FD7BDC800D372B4 /* fun_dedicated_server_rpc_message.pb.cc in Sources */,
 				503AE10217EB989F00D1A890 /* RootViewController.mm in Sources */,
 				D6FF19971FD52B4E00796402 /* multicast_message.pb.cc in Sources */,
 				503AE10117EB989F00D1A890 /* main.m in Sources */,
 				D6FF19911FD52B4E00796402 /* funapi_tasks.cpp in Sources */,
 				D6FF198C1FD52B4E00796402 /* funapi_encryption.cpp in Sources */,
+				D60587801FD7BC5600D372B4 /* funapi_rpc.cpp in Sources */,
 				D6FF198B1FD52B4E00796402 /* funapi_downloader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -882,12 +914,15 @@
 				D6FF19B41FD534BD00796402 /* maintenance_message.pb.cc in Sources */,
 				D6FF19B31FD534B800796402 /* fun_message.pb.cc in Sources */,
 				D6FF19A61FD5322400796402 /* funapi_multicasting.cpp in Sources */,
+				D6EC5E6520059BDD0095CA5D /* funapi_websocket.cpp in Sources */,
+				D60587891FD7C56800D372B4 /* fun_dedicated_server_rpc_message.pb.cc in Sources */,
 				D6FF19AB1FD5323600796402 /* funapi_utils.cpp in Sources */,
 				D6FF19A01FD5320900796402 /* FunapiTestScene.cpp in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				D6FF19B21FD534B400796402 /* ping_message.pb.cc in Sources */,
 				D6FF19A81FD5322C00796402 /* funapi_socket.cpp in Sources */,
 				D6FF19A51FD5322100796402 /* funapi_http.cpp in Sources */,
+				D60587881FD7C56100D372B4 /* test_dedicated_server_rpc_messages.pb.cc in Sources */,
 				D6FF19B01FD534A300796402 /* multicast_message.pb.cc in Sources */,
 				D6FF19A21FD5321300796402 /* funapi_announcement.cpp in Sources */,
 				D6FF19A71FD5322800796402 /* funapi_session.cpp in Sources */,
@@ -895,6 +930,7 @@
 				503AE10517EB98FF00D1A890 /* main.cpp in Sources */,
 				D6FF19A91FD5323000796402 /* funapi_tasks.cpp in Sources */,
 				D6FF19A41FD5321C00796402 /* funapi_encryption.cpp in Sources */,
+				D605878A1FD7C57500D372B4 /* funapi_rpc.cpp in Sources */,
 				D6FF19A31FD5321800796402 /* funapi_downloader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -969,6 +1005,8 @@
 					"$(PROJECT_DIR)/mac/libprotobuf/include",
 					"$(PROJECT_DIR)/mac/libsodium/include",
 					"$(PROJECT_DIR)/../cocos2d/external/curl/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1012,6 +1050,8 @@
 					"$(PROJECT_DIR)/mac/libprotobuf/include",
 					"$(PROJECT_DIR)/mac/libsodium/include",
 					"$(PROJECT_DIR)/../cocos2d/external/curl/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1054,6 +1094,8 @@
 					"$(PROJECT_DIR)/../Classes",
 					"$(PROJECT_DIR)/mac/libprotobuf/include",
 					"$(PROJECT_DIR)/mac/libsodium/include",
+					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
 				);
 				INFOPLIST_FILE = mac/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
@@ -1090,6 +1132,8 @@
 					"$(PROJECT_DIR)/../Classes",
 					"$(PROJECT_DIR)/mac/libprotobuf/include",
 					"$(PROJECT_DIR)/mac/libsodium/include",
+					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
 				);
 				INFOPLIST_FILE = mac/Info.plist;
 				LIBRARY_SEARCH_PATHS = (

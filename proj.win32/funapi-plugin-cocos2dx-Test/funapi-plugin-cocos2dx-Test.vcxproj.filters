@@ -28,6 +28,9 @@
     <Filter Include="Source Files\funapi\md5">
       <UniqueIdentifier>{7c2c3d79-8f8f-4e7b-b1c1-38cb0443cd4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\funapi\distribution">
+      <UniqueIdentifier>{7ef8e750-1e2e-4786-9c05-b9730d5c0fe9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -96,6 +99,15 @@
     <ClInclude Include="..\..\Classes\test_messages.pb.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.h">
+      <Filter>Source Files\funapi\distribution</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_rpc.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_websocket.h">
+      <Filter>Source Files\funapi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -157,6 +169,15 @@
     </ClCompile>
     <ClCompile Include="unittest_inhouse.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.cc">
+      <Filter>Source Files\funapi\distribution</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_rpc.cpp">
+      <Filter>Source Files\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_websocket.cpp">
+      <Filter>Source Files\funapi</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

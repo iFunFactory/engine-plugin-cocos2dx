@@ -8,25 +8,25 @@
 #define SRC_FUNAPI_BUILD_CONFIG_H_
 
 #define FUNAPI_COCOS2D
-// #define FUNAPI_UE4
 
-#ifdef FUNAPI_UE4
-  #if defined(_WIN32)
-  #define FUNAPI_PLATFORM_WINDOWS
-  #define FUNAPI_UE4_PLATFORM_WINDOWS
-  #endif
-#endif
-
-#ifdef FUNAPI_COCOS2D
 #define FUNAPI_API
 #define WITH_FUNAPI 1
-  #if defined(_WIN32)
-  #define FUNAPI_PLATFORM_WINDOWS
-  #define FUNAPI_COCOS2D_PLATFORM_WINDOWS
-  #endif
+
+#define FUNAPI_HAVE_DELAYED_ACK 0
+#define FUNAPI_HAVE_TCP_TLS 0
+#define FUNAPI_HAVE_RPC 0
+#define FUNAPI_HAVE_WEBSOCKET 0
+#define FUNAPI_HAVE_SODIUM 1
+#define FUNAPI_HAVE_AES128 1
+
+#if defined(_WIN32)
+#define FUNAPI_PLATFORM_WINDOWS
+#define FUNAPI_COCOS2D_PLATFORM_WINDOWS
 #endif
 
+#if COCOS2D_DEBUG > 0
 #define DEBUG_LOG
+#endif
 
 #ifdef FUNAPI_PLATFORM_WINDOWS
 #define NOMINMAX
