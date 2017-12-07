@@ -156,6 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_announcement.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_build_config.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_downloader.h" />
@@ -164,6 +165,7 @@
     <ClInclude Include="..\..\Classes\funapi\funapi_http.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_multicasting.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_plugin.h" />
+    <ClInclude Include="..\..\Classes\funapi\funapi_rpc.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_session.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_socket.h" />
     <ClInclude Include="..\..\Classes\funapi\funapi_tasks.h" />
@@ -180,11 +182,13 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.cc" />
     <ClCompile Include="..\..\Classes\funapi\funapi_announcement.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_downloader.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_encryption.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_http.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_multicasting.cpp" />
+    <ClCompile Include="..\..\Classes\funapi\funapi_rpc.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_session.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_socket.cpp" />
     <ClCompile Include="..\..\Classes\funapi\funapi_tasks.cpp" />

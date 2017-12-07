@@ -7,13 +7,8 @@
 #ifndef SRC_FUNAPI_PLUGIN_H_
 #define SRC_FUNAPI_PLUGIN_H_
 
+#ifndef FUNAPI_UE4
 #include "funapi_build_config.h"
-
-#ifdef FUNAPI_UE4
-#include "FunapiPrivatePCH.h"
-#endif
-
-#ifdef FUNAPI_COCOS2D
 #include "cocos2d.h"
 #endif
 
@@ -28,6 +23,7 @@
 #include <io.h>
 #include <direct.h>
 #else
+#ifndef FUNAPI_UE4_PLATFORM_PS4
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -36,10 +32,13 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
-#endif
+#endif // FUNAPI_UE4_PLATFORM_PS4
+#endif // FUNAPI_PLATFORM_WINDOWS
 
+#include <array>
 #include <map>
 #include <string>
+#include <vector>
 #include <list>
 #include <sstream>
 #include <functional>

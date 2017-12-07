@@ -7,13 +7,7 @@
 #ifndef SRC_FUNAPI_SESSION_H_
 #define SRC_FUNAPI_SESSION_H_
 
-#include "funapi_build_config.h"
-
-#include <memory>
-#include <functional>
-#include <vector>
-#include <string>
-
+#include "funapi_plugin.h"
 #include "funapi_transport.h"
 #include "funapi_encryption.h"
 #include "funapi/network/ping_message.pb.h"

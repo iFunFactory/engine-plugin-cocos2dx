@@ -25,6 +25,9 @@
     <Filter Include="src\funapi\md5">
       <UniqueIdentifier>{b43edf15-14d2-429b-8ebc-93179df4208c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\funapi\distribution">
+      <UniqueIdentifier>{dd382435-2ba6-4ca0-a85c-236095ded8b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -86,6 +89,15 @@
     </ClCompile>
     <ClCompile Include="..\cocos2d\external\md5\md5.c">
       <Filter>src\funapi\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.cc">
+      <Filter>src\funapi\distribution</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_rpc.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\test_dedicated_server_rpc_messages.pb.cc">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +169,15 @@
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_socket.h">
       <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.h">
+      <Filter>src\funapi\distribution</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_rpc.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\test_dedicated_server_rpc_messages.pb.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

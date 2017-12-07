@@ -20,6 +20,7 @@
 #include "funapi/funapi_encryption.h"
 
 #include "json/writer.h"
+#include "json/document.h"
 #include "json/stringbuffer.h"
 
 USING_NS_CC;

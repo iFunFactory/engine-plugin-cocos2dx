@@ -7,12 +7,7 @@
 #ifndef SRC_FUNAPI_TRANSPORT_H_
 #define SRC_FUNAPI_TRANSPORT_H_
 
-#include "funapi_build_config.h"
-
-#include <memory>
-#include <functional>
-#include <string>
-#include <assert.h>
+#include "funapi_plugin.h"
 
 namespace fun {
 
@@ -53,6 +48,7 @@ enum class FUNAPI_API TransportProtocol : int
   kTcp = 0,
   kUdp,
   kHttp,
+  kWebsocket,
   kDefault,
 };
 
@@ -75,6 +71,10 @@ inline FUNAPI_API std::string TransportProtocolToString(TransportProtocol protoc
 
     case TransportProtocol::kHttp:
       ret = "HTTP";
+      break;
+
+    case TransportProtocol::kWebsocket:
+      ret = "WEBSOCKET";
       break;
 
     default:
@@ -127,6 +127,7 @@ class FUNAPI_API FunapiError : public std::enable_shared_from_this<FunapiError> 
     kCurl,
     kSeq,
     kPing,
+    kWebsocket,
   };
 
   // legacy
@@ -160,8 +161,6 @@ class FUNAPI_API FunapiTransportOption : public std::enable_shared_from_this<Fun
  public:
   FunapiTransportOption() = default;
   virtual ~FunapiTransportOption() = default;
-
-  virtual void SetEncryptionType(const EncryptionType type) = 0;
 };
 
 
@@ -193,6 +192,16 @@ class FUNAPI_API FunapiTcpTransportOption : public FunapiTransportOption {
 
   void SetEncryptionType(const EncryptionType type, const std::string &public_key);
   std::string GetPublicKey(const EncryptionType type);
+
+  void SetUseTLS(const bool use_tls);
+  bool GetUseTLS();
+
+#ifdef FUNAPI_UE4_PLATFORM_PS4
+  void SetCACert(const std::string &cert);
+#else
+  void SetCACertFilePath(const std::string &path);
+#endif
+  const std::string& GetCACertFilePath();
 
  private:
   std::shared_ptr<FunapiTcpTransportOptionImpl> impl_;
@@ -235,11 +244,31 @@ class FUNAPI_API FunapiHttpTransportOption : public FunapiTransportOption {
   void SetEncryptionType(const EncryptionType type);
   EncryptionType GetEncryptionType();
 
+#ifdef FUNAPI_UE4_PLATFORM_PS4
+  void SetCACert(const std::string &cert);
+#else
   void SetCACertFilePath(const std::string &path);
+#endif
   const std::string& GetCACertFilePath();
 
  private:
   std::shared_ptr<FunapiHttpTransportOptionImpl> impl_;
+};
+
+
+class FunapiWebsocketTransportOptionImpl;
+class FUNAPI_API FunapiWebsocketTransportOption : public FunapiTransportOption {
+ public:
+  FunapiWebsocketTransportOption();
+  virtual ~FunapiWebsocketTransportOption() = default;
+
+  static std::shared_ptr<FunapiWebsocketTransportOption> Create();
+
+  void SetUseWss(const bool use_wss);
+  bool GetUseWss();
+
+ private:
+  std::shared_ptr<FunapiWebsocketTransportOptionImpl> impl_;
 };
 
 }  // namespace fun

@@ -34,18 +34,22 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/funapi/funapi_http.cpp \
                    ../../../Classes/funapi/funapi_utils.cpp \
                    ../../../Classes/funapi/funapi_socket.cpp \
+                   ../../../Classes/funapi/funapi_rpc.cpp \
                    ../../../Classes/funapi/management/maintenance_message.pb.cc \
                    ../../../Classes/funapi/network/fun_message.pb.cc \
                    ../../../Classes/funapi/network/ping_message.pb.cc \
                    ../../../Classes/funapi/service/multicast_message.pb.cc \
                    ../../../Classes/funapi/service/redirect_message.pb.cc \
-                   ../../../Classes/test_messages.pb.cc
+                   ../../../Classes/funapi/distribution/fun_dedicated_server_rpc_message.pb.cc \
+                   ../../../Classes/test_dedicated_server_rpc_messages.pb.cc \
+                   ../../../Classes/test_messages.pb.cc \
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes \
                     $(LOCAL_PATH)/../../../Classes/funapi \
                     $(LOCAL_PATH)/../../../Classes/funapi/management \
                     $(LOCAL_PATH)/../../../Classes/funapi/network \
                     $(LOCAL_PATH)/../../../Classes/funapi/service \
+                    $(LOCAL_PATH)/../../../Classes/funapi/distribution \
                     $(LOCAL_PATH)/libsodium/include \
                     $(LOCAL_PATH)/libprotobuf/include/ARMv7
 
@@ -67,6 +71,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes \
                     $(LOCAL_PATH)/../../../Classes/funapi/management \
                     $(LOCAL_PATH)/../../../Classes/funapi/network \
                     $(LOCAL_PATH)/../../../Classes/funapi/service \
+                    $(LOCAL_PATH)/../../../Classes/funapi/distribution \
                     $(LOCAL_PATH)/libprotobuf/include/ARMv7
 LOCAL_SHARED_LIBRARIES := MyGame_shared
 LOCAL_STATIC_LIBRARIES := googletest_main

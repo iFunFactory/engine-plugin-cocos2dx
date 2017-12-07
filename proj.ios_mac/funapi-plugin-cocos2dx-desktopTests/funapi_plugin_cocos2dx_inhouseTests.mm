@@ -1870,7 +1870,7 @@ static const std::string g_server_ip = "127.0.0.1";
     const bool is_timed_out,
     const int error_code,
     const std::string &error_string,
-    struct addrinfo *addrinfo_res)
+    std::shared_ptr<fun::FunapiAddrInfo> addrinfo_res)
   {
     if (is_failed) {
       is_ok = false;
