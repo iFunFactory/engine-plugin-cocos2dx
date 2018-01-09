@@ -76,7 +76,6 @@
 		D65713B21FD6529500D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */; };
 		D65713B31FD6529800D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
-		D6FF19891FD52B4E00796402 /* build_date.txt in Resources */ = {isa = PBXBuildFile; fileRef = D6FF19601FD52B4E00796402 /* build_date.txt */; };
 		D6FF198A1FD52B4E00796402 /* funapi_announcement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */; };
 		D6FF198B1FD52B4E00796402 /* funapi_downloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19641FD52B4E00796402 /* funapi_downloader.cpp */; };
 		D6FF198C1FD52B4E00796402 /* funapi_encryption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19661FD52B4E00796402 /* funapi_encryption.cpp */; };
@@ -262,7 +261,6 @@
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
 		D6FF195D1FD52B4E00796402 /* FunapiTestScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FunapiTestScene.h; sourceTree = "<group>"; };
 		D6FF195E1FD52B4E00796402 /* test_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_messages.pb.h; sourceTree = "<group>"; };
-		D6FF19601FD52B4E00796402 /* build_date.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build_date.txt; sourceTree = "<group>"; };
 		D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_announcement.cpp; sourceTree = "<group>"; };
 		D6FF19621FD52B4E00796402 /* funapi_announcement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_announcement.h; sourceTree = "<group>"; };
 		D6FF19631FD52B4E00796402 /* funapi_build_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_build_config.h; sourceTree = "<group>"; };
@@ -579,7 +577,6 @@
 				D6FF19791FD52B4E00796402 /* management */,
 				D6FF197C1FD52B4E00796402 /* network */,
 				D6FF19821FD52B4E00796402 /* service */,
-				D6FF19601FD52B4E00796402 /* build_date.txt */,
 				D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */,
 				D605877E1FD7BC5600D372B4 /* funapi_rpc.h */,
 				D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */,
@@ -800,7 +797,6 @@
 			files = (
 				5087E78117EB970100C73F5D /* Icon-120.png in Resources */,
 				D6FF19C01FD534D800796402 /* buttonHighlighted.png in Resources */,
-				D6FF19891FD52B4E00796402 /* build_date.txt in Resources */,
 				5087E78617EB970100C73F5D /* Icon-76.png in Resources */,
 				D6FF19C81FD534D800796402 /* check_box_active.png in Resources */,
 				5087E77F17EB970100C73F5D /* Default@2x.png in Resources */,
