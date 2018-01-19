@@ -99,6 +99,9 @@
     <ClCompile Include="..\Classes\test_dedicated_server_rpc_messages.pb.cc">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_websocket.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -178,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="..\Classes\test_dedicated_server_rpc_messages.pb.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_websocket.h">
+      <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

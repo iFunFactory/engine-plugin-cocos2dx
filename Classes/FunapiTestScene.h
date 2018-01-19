@@ -39,6 +39,7 @@ class FunapiTest : public cocos2d::Layer
   void ConnectTcp();
   void ConnectUdp();
   void ConnectHttp();
+  void ConnectWebsocket();
   void Disconnect();
   void SendEchoMessage();
 

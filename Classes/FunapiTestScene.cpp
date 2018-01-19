@@ -575,6 +575,13 @@ void FunapiTest::ConnectHttp()
   Connect(fun::TransportProtocol::kHttp);
 }
 
+void FunapiTest::ConnectWebsocket()
+{
+#if FUNAPI_HAVE_WEBSOCKET
+  Connect(fun::TransportProtocol::kWebsocket);
+#endif
+}
+
 void FunapiTest::Disconnect()
 {
   if (session_) {
@@ -819,6 +826,11 @@ void FunapiTest::Connect(const fun::TransportProtocol protocol)
     // option->SetCACertFilePath(cocos2d::FileUtils::getInstance()->fullPathForFilename("cacert.pem"));
     // session_->Connect(protocol, port, encoding, option);
   }
+#if FUNAPI_HAVE_WEBSOCKET
+  else if (protocol == fun::TransportProtocol::kWebsocket) {
+    port = with_protobuf_ ? 18022 : 18012;
+  }
+#endif
 
   if (with_session_reliability_) {
     port += 200;
