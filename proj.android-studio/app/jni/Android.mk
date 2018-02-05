@@ -24,7 +24,7 @@ LOCAL_MODULE_FILENAME := libMyGame
 LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/AppDelegate.cpp \
                    ../../../Classes/FunapiTestScene.cpp \
-                   ../../../Classes/funapi/funapi_transport.cpp \
+                   ../../../Classes/funapi/funapi_option.cpp \
                    ../../../Classes/funapi/funapi_multicasting.cpp \
                    ../../../Classes/funapi/funapi_encryption.cpp \
                    ../../../Classes/funapi/funapi_downloader.cpp \
