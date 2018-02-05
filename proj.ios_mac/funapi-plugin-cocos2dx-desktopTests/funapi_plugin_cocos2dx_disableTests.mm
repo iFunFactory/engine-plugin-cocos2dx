@@ -12,6 +12,7 @@
 #include "funapi_multicasting.h"
 #include "funapi_tasks.h"
 #include "funapi_encryption.h"
+#include "funapi_websocket.h"
 
 #include "json/document.h"
 #include "json/writer.h"
@@ -1857,6 +1858,162 @@ static const std::string g_server_ip = "127.0.0.1";
 
   while (is_working) {
     fun::FunapiTasks::UpdateAll();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+
+  XCTAssert(is_ok);
+}
+
+- (void)testFunapiWebsocketEcho {
+  std::string server_ip = "echo.websocket.org";
+  int server_port = 80;
+
+  bool is_working = true;
+  bool is_ok = false;
+
+  int recv_count = 0;
+  std::string send_string = "";
+
+  auto test_websocket = fun::FunapiWebsocket::Create();
+
+  test_websocket->Connect
+  (server_ip.c_str(),
+   server_port,
+   [&is_working, &is_ok, &send_string]
+   (const bool is_failed,
+    const int error_code,
+    const std::string &error_string)
+  {
+    if (is_failed) {
+      is_ok = false;
+      is_working = false;
+    }
+    else {
+      send_string = "websocket echo test";
+    }
+  },
+   [&is_working, &is_ok]
+   (const int error_code,
+    const std::string &error_string)
+  {
+    // close
+    is_ok = false;
+    is_working = false;
+  },
+  [&send_string, &test_websocket]()
+  {
+    // send
+    if (send_string.length() > 0) {
+      test_websocket->Send(std::vector<uint8_t>(send_string.cbegin(), send_string.cend()), false,
+                           [](const bool is_failed,
+                              const int error_code,
+                              const std::string &error_string,
+                              const int sent_length)
+                           {
+                           });
+
+      send_string = "";
+    }
+  },
+   [&recv_count, &send_string, &is_working, &is_ok]
+   (const int read_length,
+    std::vector<uint8_t> &receiving)
+  {
+    // recv
+    std::string output_string(receiving.cbegin(), receiving.cend());
+    printf ("recv=\"%s\"\n", output_string.c_str());
+
+    ++recv_count;
+    if (1 == recv_count) {
+      send_string = "LEN:2\nPVER:100\nVER:1\n\n{}";
+    }
+    else if (1 < recv_count) {
+      is_ok = true;
+      is_working = false;
+    }
+  });
+
+  while (is_working) {
+    test_websocket->Update();
+    std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
+  }
+
+  XCTAssert(is_ok);
+}
+
+- (void)testFunapiWebsocketEchoWss {
+  std::string server_ip = "echo.websocket.org";
+  int server_port = 443;
+
+  bool is_working = true;
+  bool is_ok = false;
+
+  int recv_count = 0;
+  std::string send_string = "";
+
+  auto test_websocket = fun::FunapiWebsocket::Create();
+
+  test_websocket->Connect
+  (server_ip.c_str(),
+   server_port,
+   true,
+   "",
+   [&is_working, &is_ok, &send_string]
+   (const bool is_failed,
+    const int error_code,
+    const std::string &error_string)
+  {
+     if (is_failed) {
+       is_ok = false;
+       is_working = false;
+     }
+     else {
+       send_string = "websocket echo test";
+     }
+  },
+   [&is_working, &is_ok]
+   (const int error_code,
+    const std::string &error_string)
+  {
+    // close
+    is_ok = false;
+    is_working = false;
+  },
+   [&send_string, &test_websocket]()
+  {
+    // send
+    if (send_string.length() > 0) {
+      test_websocket->Send(std::vector<uint8_t>(send_string.cbegin(), send_string.cend()), false,
+                           [](const bool is_failed,
+                              const int error_code,
+                              const std::string &error_string,
+                              const int sent_length)
+                           {
+                           });
+
+      send_string = "";
+    }
+  },
+   [&recv_count, &send_string, &is_working, &is_ok]
+   (const int read_length,
+    std::vector<uint8_t> &receiving)
+  {
+    // recv
+    std::string output_string(receiving.cbegin(), receiving.cend());
+    printf ("recv=\"%s\"\n", output_string.c_str());
+
+    ++recv_count;
+    if (1 == recv_count) {
+      send_string = "LEN:2\nPVER:100\nVER:1\n\n{}";
+    }
+    else if (1 < recv_count) {
+      is_ok = true;
+      is_working = false;
+    }
+  });
+
+  while (is_working) {
+    test_websocket->Update();
     std::this_thread::sleep_for(std::chrono::milliseconds(16)); // 60fps
   }
 
