@@ -75,11 +75,15 @@
 		D65713B11FD6529100D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139C1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm */; };
 		D65713B21FD6529500D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */; };
 		D65713B31FD6529800D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */; };
+		D6655B0E202AA60400F11D52 /* funapi_compression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6655B0B202AA60400F11D52 /* funapi_compression.cpp */; };
+		D6655B0F202AA6C600F11D52 /* funapi_compression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6655B0B202AA60400F11D52 /* funapi_compression.cpp */; };
+		D68CF60A2045263F007120FB /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D68CF60720452468007120FB /* libzstd.a */; };
 		D6B0611B1803AB670077942B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B0611A1803AB670077942B /* CoreMotion.framework */; };
 		D6D2070C2021491700738903 /* funapi_option.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6D2070A2021491600738903 /* funapi_option.cpp */; };
 		D6D2070D2021492200738903 /* funapi_option.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6D2070A2021491600738903 /* funapi_option.cpp */; };
 		D6EC5E642005962B0095CA5D /* funapi_websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */; };
 		D6EC5E6520059BDD0095CA5D /* funapi_websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */; };
+		D6FBDB1C203FCAF4008E865C /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D6FBDB1B203FCAF4008E865C /* libzstd.a */; };
 		D6FF198A1FD52B4E00796402 /* funapi_announcement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */; };
 		D6FF198B1FD52B4E00796402 /* funapi_downloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19641FD52B4E00796402 /* funapi_downloader.cpp */; };
 		D6FF198C1FD52B4E00796402 /* funapi_encryption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6FF19661FD52B4E00796402 /* funapi_encryption.cpp */; };
@@ -260,11 +264,18 @@
 		D657139C1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = funapi_plugin_cocos2dx_disableTests.mm; sourceTree = "<group>"; };
 		D65713A61FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "funapi-plugin-cocos2dx-mobileTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D65713AA1FD6526F00D7E9AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D6655B0B202AA60400F11D52 /* funapi_compression.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_compression.cpp; sourceTree = "<group>"; };
+		D6655B0D202AA60400F11D52 /* funapi_compression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_compression.h; sourceTree = "<group>"; };
+		D68CF60720452468007120FB /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = mac/libzstd/lib/libzstd.a; sourceTree = "<group>"; };
 		D6B0611A1803AB670077942B /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		D6BECEEF203A7CBA006C5528 /* libzstd.1.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libzstd.1.3.3.dylib; path = mac/zstd/lib/libzstd.1.3.3.dylib; sourceTree = "<group>"; };
 		D6D2070A2021491600738903 /* funapi_option.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_option.cpp; sourceTree = "<group>"; };
 		D6D2070B2021491600738903 /* funapi_option.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_option.h; sourceTree = "<group>"; };
 		D6EC5E612005962B0095CA5D /* funapi_websocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_websocket.h; sourceTree = "<group>"; };
 		D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_websocket.cpp; sourceTree = "<group>"; };
+		D6FBDB16203FAE09008E865C /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = ios/zstd/lib/libzstd.a; sourceTree = "<group>"; };
+		D6FBDB19203FCAE0008E865C /* libzstd.1.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libzstd.1.3.3.dylib; path = mac/libzstd/lib/libzstd.1.3.3.dylib; sourceTree = "<group>"; };
+		D6FBDB1B203FCAF4008E865C /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = ios/libzstd/lib/libzstd.a; sourceTree = "<group>"; };
 		D6FF195D1FD52B4E00796402 /* FunapiTestScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FunapiTestScene.h; sourceTree = "<group>"; };
 		D6FF195E1FD52B4E00796402 /* test_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_messages.pb.h; sourceTree = "<group>"; };
 		D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_announcement.cpp; sourceTree = "<group>"; };
@@ -322,6 +333,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D6FBDB1C203FCAF4008E865C /* libzstd.a in Frameworks */,
 				D657138A1FD63C5000D7E9AC /* libsodium.a in Frameworks */,
 				D65713881FD63C4400D7E9AC /* libprotobuf.a in Frameworks */,
 				294D0D641D0D56D500F7F5D4 /* CoreText.framework in Frameworks */,
@@ -345,6 +357,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D68CF60A2045263F007120FB /* libzstd.a in Frameworks */,
 				D6FF19AF1FD5336B00796402 /* libsodium.a in Frameworks */,
 				D6FF19AD1FD5335F00796402 /* libprotobuf.a in Frameworks */,
 				ED545A7E1B68A1FA00C3958E /* libiconv.dylib in Frameworks */,
@@ -433,6 +446,11 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D6FBDB1B203FCAF4008E865C /* libzstd.a */,
+				D68CF60720452468007120FB /* libzstd.a */,
+				D6FBDB19203FCAE0008E865C /* libzstd.1.3.3.dylib */,
+				D6FBDB16203FAE09008E865C /* libzstd.a */,
+				D6BECEEF203A7CBA006C5528 /* libzstd.1.3.3.dylib */,
 				D65713891FD63C5000D7E9AC /* libsodium.a */,
 				D65713861FD63C4400D7E9AC /* libprotobuf.a */,
 				D6FF19AE1FD5336B00796402 /* libsodium.a */,
@@ -581,6 +599,8 @@
 				D6FF19791FD52B4E00796402 /* management */,
 				D6FF197C1FD52B4E00796402 /* network */,
 				D6FF19821FD52B4E00796402 /* service */,
+				D6655B0B202AA60400F11D52 /* funapi_compression.cpp */,
+				D6655B0D202AA60400F11D52 /* funapi_compression.h */,
 				D6D2070A2021491600738903 /* funapi_option.cpp */,
 				D6D2070B2021491600738903 /* funapi_option.h */,
 				D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */,
@@ -898,6 +918,7 @@
 				503AE10217EB989F00D1A890 /* RootViewController.mm in Sources */,
 				D6FF19971FD52B4E00796402 /* multicast_message.pb.cc in Sources */,
 				503AE10117EB989F00D1A890 /* main.m in Sources */,
+				D6655B0E202AA60400F11D52 /* funapi_compression.cpp in Sources */,
 				D6FF19911FD52B4E00796402 /* funapi_tasks.cpp in Sources */,
 				D6FF198C1FD52B4E00796402 /* funapi_encryption.cpp in Sources */,
 				D60587801FD7BC5600D372B4 /* funapi_rpc.cpp in Sources */,
@@ -920,6 +941,7 @@
 				D6D2070D2021492200738903 /* funapi_option.cpp in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				D6FF19B21FD534B400796402 /* ping_message.pb.cc in Sources */,
+				D6655B0F202AA6C600F11D52 /* funapi_compression.cpp in Sources */,
 				D6FF19A81FD5322C00796402 /* funapi_socket.cpp in Sources */,
 				D6FF19A51FD5322100796402 /* funapi_http.cpp in Sources */,
 				D60587881FD7C56100D372B4 /* test_dedicated_server_rpc_messages.pb.cc in Sources */,
@@ -1002,8 +1024,9 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../Classes",
-					"$(PROJECT_DIR)/mac/libprotobuf/include",
-					"$(PROJECT_DIR)/mac/libsodium/include",
+					"$(PROJECT_DIR)/ios/libprotobuf/include",
+					"$(PROJECT_DIR)/ios/libsodium/include",
+					"$(PROJECT_DIR)/ios/libzstd/include",
 					"$(PROJECT_DIR)/../cocos2d/external/curl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
@@ -1013,6 +1036,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/ios/libprotobuf/lib",
 					"$(PROJECT_DIR)/ios/libsodium/lib",
+					"$(PROJECT_DIR)/ios/libzstd/lib",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
@@ -1047,8 +1071,9 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../Classes",
-					"$(PROJECT_DIR)/mac/libprotobuf/include",
-					"$(PROJECT_DIR)/mac/libsodium/include",
+					"$(PROJECT_DIR)/ios/libprotobuf/include",
+					"$(PROJECT_DIR)/ios/libsodium/include",
+					"$(PROJECT_DIR)/ios/libzstd/include",
 					"$(PROJECT_DIR)/../cocos2d/external/curl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
@@ -1058,6 +1083,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/ios/libprotobuf/lib",
 					"$(PROJECT_DIR)/ios/libsodium/lib",
+					"$(PROJECT_DIR)/ios/libzstd/lib",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
@@ -1096,11 +1122,13 @@
 					"$(PROJECT_DIR)/mac/libsodium/include",
 					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
+					"$(PROJECT_DIR)/mac/libzstd/include",
 				);
 				INFOPLIST_FILE = mac/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/mac/libprotobuf/lib",
 					"$(PROJECT_DIR)/mac/libsodium/lib",
+					"$(PROJECT_DIR)/mac/libzstd/lib",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_MAC_BEGIN)",
@@ -1134,11 +1162,13 @@
 					"$(PROJECT_DIR)/mac/libsodium/include",
 					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
+					"$(PROJECT_DIR)/mac/libzstd/include",
 				);
 				INFOPLIST_FILE = mac/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/mac/libprotobuf/lib",
 					"$(PROJECT_DIR)/mac/libsodium/lib",
+					"$(PROJECT_DIR)/mac/libzstd/lib",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_MAC_BEGIN)",

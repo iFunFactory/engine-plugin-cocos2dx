@@ -71,7 +71,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(EngineRoot)external\curl\include\win32;$(EngineRoot)external\websockets\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(ProjectDir)zstd-1.3.3\lib;$(EngineRoot)external\curl\include\win32;$(EngineRoot)external\websockets\include\win32;$(EngineRoot)external\zlib\include;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;COCOS2D_DEBUG=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -84,9 +84,9 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>websockets.lib;libcrypto.lib;libssl.lib;libprotobuf.lib;libsodium.lib;libcurl.lib;%(AdditionalDependencies);$(_COCOS_LIB_WIN32_BEGIN);$(_COCOS_LIB_WIN32_END)</AdditionalDependencies>
+      <AdditionalDependencies>libzstd_static.lib;websockets.lib;libcrypto.lib;libssl.lib;libprotobuf.lib;libsodium.lib;libcurl.lib;%(AdditionalDependencies);$(_COCOS_LIB_WIN32_BEGIN);$(_COCOS_LIB_WIN32_END)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\Debug;$(OutDir);%(AdditionalLibraryDirectories);$(_COCOS_LIB_PATH_WIN32_BEGIN);$(_COCOS_LIB_PATH_WIN32_END)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)zstd-1.3.3\build\VS2010\bin\Win32_Debug;$(ProjectDir)protobuf-2.6.1\vsprojects\Debug;$(OutDir);%(AdditionalLibraryDirectories);$(_COCOS_LIB_PATH_WIN32_BEGIN);$(_COCOS_LIB_PATH_WIN32_END)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -116,7 +116,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(EngineRoot)external\curl\include\win32;$(EngineRoot)external\websockets\include\win32;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(ProjectDir)zstd-1.3.3\lib;$(EngineRoot)external\curl\include\win32;$(EngineRoot)external\websockets\include\win32;$(EngineRoot)external\zlib\include;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -128,9 +128,9 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>websockets.lib;libcrypto.lib;libssl.lib;libprotobuf.lib;libsodium.lib;libcurl.lib;websockets.lib;%(AdditionalDependencies);$(_COCOS_LIB_WIN32_BEGIN);$(_COCOS_LIB_WIN32_END)</AdditionalDependencies>
+      <AdditionalDependencies>libzstd_static.lib;websockets.lib;libcrypto.lib;libssl.lib;libprotobuf.lib;libsodium.lib;libcurl.lib;websockets.lib;%(AdditionalDependencies);$(_COCOS_LIB_WIN32_BEGIN);$(_COCOS_LIB_WIN32_END)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\Release;$(OutDir);%(AdditionalLibraryDirectories);$(_COCOS_LIB_PATH_WIN32_BEGIN);$(_COCOS_LIB_PATH_WIN32_END)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)zstd-1.3.3\build\VS2010\bin\Win32_Release;$(ProjectDir)protobuf-2.6.1\vsprojects\Release;$(OutDir);%(AdditionalLibraryDirectories);$(_COCOS_LIB_PATH_WIN32_BEGIN);$(_COCOS_LIB_PATH_WIN32_END)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -151,15 +151,16 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\FunapiTestScene.cpp" />
     <ClCompile Include="..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.cc" />
     <ClCompile Include="..\Classes\funapi\funapi_announcement.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_compression.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_downloader.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_encryption.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_http.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_multicasting.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_option.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_rpc.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_session.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_socket.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_tasks.cpp" />
-    <ClCompile Include="..\Classes\funapi\funapi_transport.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_utils.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_websocket.cpp" />
     <ClCompile Include="..\Classes\funapi\management\maintenance_message.pb.cc" />
@@ -178,17 +179,18 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.h" />
     <ClInclude Include="..\Classes\funapi\funapi_announcement.h" />
     <ClInclude Include="..\Classes\funapi\funapi_build_config.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_compression.h" />
     <ClInclude Include="..\Classes\funapi\funapi_downloader.h" />
     <ClInclude Include="..\Classes\funapi\funapi_encryption.h" />
     <ClInclude Include="..\Classes\funapi\funapi_encryption_legacy.h" />
     <ClInclude Include="..\Classes\funapi\funapi_http.h" />
     <ClInclude Include="..\Classes\funapi\funapi_multicasting.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_option.h" />
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
     <ClInclude Include="..\Classes\funapi\funapi_rpc.h" />
     <ClInclude Include="..\Classes\funapi\funapi_session.h" />
     <ClInclude Include="..\Classes\funapi\funapi_socket.h" />
     <ClInclude Include="..\Classes\funapi\funapi_tasks.h" />
-    <ClInclude Include="..\Classes\funapi\funapi_transport.h" />
     <ClInclude Include="..\Classes\funapi\funapi_utils.h" />
     <ClInclude Include="..\Classes\funapi\funapi_version.h" />
     <ClInclude Include="..\Classes\funapi\funapi_websocket.h" />
