@@ -81,9 +81,6 @@
     <ClCompile Include="..\Classes\funapi\funapi_tasks.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_transport.cpp">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\funapi\funapi_utils.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
@@ -102,6 +99,12 @@
     <ClCompile Include="..\Classes\funapi\funapi_websocket.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_compression.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_option.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -114,9 +117,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h">
-      <Filter>src\funapi</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\funapi\funapi_transport.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_utils.h">
@@ -183,6 +183,12 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_websocket.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_compression.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_option.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>

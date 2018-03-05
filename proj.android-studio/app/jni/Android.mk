@@ -11,6 +11,11 @@ LOCAL_SRC_FILES := libprotobuf/lib/ARMv7/libprotobuf.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := libzstd
+LOCAL_SRC_FILES := libzstd/lib/ARMv7/libzstd.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
 
 $(call import-add-path,$(LOCAL_PATH)/../../../cocos2d)
 $(call import-add-path,$(LOCAL_PATH)/../../../cocos2d/external)
@@ -27,6 +32,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/funapi/funapi_option.cpp \
                    ../../../Classes/funapi/funapi_multicasting.cpp \
                    ../../../Classes/funapi/funapi_encryption.cpp \
+                   ../../../Classes/funapi/funapi_compression.cpp \
                    ../../../Classes/funapi/funapi_downloader.cpp \
                    ../../../Classes/funapi/funapi_session.cpp \
                    ../../../Classes/funapi/funapi_tasks.cpp \
@@ -52,12 +58,13 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes \
                     $(LOCAL_PATH)/../../../Classes/funapi/service \
                     $(LOCAL_PATH)/../../../Classes/funapi/distribution \
                     $(LOCAL_PATH)/libsodium/include \
-                    $(LOCAL_PATH)/libprotobuf/include/ARMv7
+                    $(LOCAL_PATH)/libprotobuf/include/ARMv7 \
+                    $(LOCAL_PATH)/libzstd/include/ARMv7
 
 # _COCOS_HEADER_ANDROID_BEGIN
 # _COCOS_HEADER_ANDROID_END
 
-LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf cocos_curl_static
+LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf libzstd cocos_curl_static
 
 # _COCOS_LIB_ANDROID_BEGIN
 # _COCOS_LIB_ANDROID_END
