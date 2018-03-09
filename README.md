@@ -110,6 +110,9 @@ LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf cocos_curl_stati
 아래 설명의 버전보다 낮은 버전의 플러그인을 사용하고 있다면 아래 내용을 참고해 주세요.
 괄호안은 지원하는 서버 버전입니다.
 
+### v98 experimental (2626 experimental)
+압축 기능 추가
+
 ### v90 experimental (2544 experimental)
 Delayed Ack
 
