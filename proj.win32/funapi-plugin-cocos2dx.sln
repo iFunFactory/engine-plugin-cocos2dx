@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "funapi-plugin-cocos2dx", "funapi-plugin-cocos2dx.vcxproj", "{76A39BB2-9B84-4C65-98A5-654D86B86F2A}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -23,8 +23,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libprotobuf", "protobuf-2.6.1\vsprojects\libprotobuf.vcxproj", "{3E283F37-A4ED-41B7-A3E6-A2D89D131A30}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "funapi-plugin-cocos2dx-Test", "funapi-plugin-cocos2dx-Test\funapi-plugin-cocos2dx-Test.vcxproj", "{B47F562E-8BF8-420A-919F-0EB8D8605C6B}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libzstd", "zstd-1.3.3\build\VS2010\libzstd\libzstd.vcxproj", "{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,16 +84,11 @@ Global
 		{B47F562E-8BF8-420A-919F-0EB8D8605C6B}.Release|Win32.Build.0 = Release|Win32
 		{B47F562E-8BF8-420A-919F-0EB8D8605C6B}.Release|x64.ActiveCfg = Release|x64
 		{B47F562E-8BF8-420A-919F-0EB8D8605C6B}.Release|x64.Build.0 = Release|x64
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Debug|Win32.ActiveCfg = Debug|Win32
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Debug|Win32.Build.0 = Debug|Win32
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Debug|x64.ActiveCfg = Debug|x64
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Debug|x64.Build.0 = Debug|x64
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Release|Win32.ActiveCfg = Release|Win32
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Release|Win32.Build.0 = Release|Win32
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Release|x64.ActiveCfg = Release|x64
-		{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FE96DEE0-506A-481A-9D0F-CBF3A2202BA0}
 	EndGlobalSection
 EndGlobal
