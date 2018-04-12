@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="..\..\Classes\funapi\funapi_announcement.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_compression.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_downloader.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_encryption.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_http.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_multicasting.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_option.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_rpc.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_session.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_socket.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_tasks.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_utils.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\funapi_websocket.cpp">
+      <Filter>funapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.cc">
+      <Filter>funapi\distribution</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\management\maintenance_message.pb.cc">
+      <Filter>funapi\management</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cocos2d\external\md5\md5.c">
+      <Filter>funapi\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\network\fun_message.pb.cc">
+      <Filter>funapi\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\network\ping_message.pb.cc">
+      <Filter>funapi\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\service\multicast_message.pb.cc">
+      <Filter>funapi\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\funapi\service\redirect_message.pb.cc">
+      <Filter>funapi\service</Filter>
+    </ClCompile>
+    <ClCompile Include="unittest.cpp" />
+    <ClCompile Include="..\..\Classes\test_messages.pb.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="..\..\Classes\funapi\funapi_announcement.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_build_config.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_compression.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_downloader.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_encryption.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_encryption_legacy.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_http.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_multicasting.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_option.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_plugin.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_rpc.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_session.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_socket.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_tasks.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_utils.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_version.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\funapi_websocket.h">
+      <Filter>funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\distribution\fun_dedicated_server_rpc_message.pb.h">
+      <Filter>funapi\distribution</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\management\maintenance_message.pb.h">
+      <Filter>funapi\management</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\network\fun_message.pb.h">
+      <Filter>funapi\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\network\ping_message.pb.h">
+      <Filter>funapi\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\service\multicast_message.pb.h">
+      <Filter>funapi\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\funapi\service\redirect_message.pb.h">
+      <Filter>funapi\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\test_messages.pb.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="funapi">
+      <UniqueIdentifier>{11c2b7e1-5d3f-44d3-a616-90d1ead2773f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="funapi\distribution">
+      <UniqueIdentifier>{a82805ae-311d-4126-8d1f-2b9e20609749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="funapi\management">
+      <UniqueIdentifier>{6e7478e4-d472-476c-a2ae-c575a6c9697a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="funapi\md5">
+      <UniqueIdentifier>{98996999-ee16-4d11-b717-0ef3ea2126c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="funapi\network">
+      <UniqueIdentifier>{3a0ee95c-bf88-4191-9cd3-c4ed98f9e464}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="funapi\service">
+      <UniqueIdentifier>{44248508-dbdf-47bd-bd56-f5aecb886209}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>
