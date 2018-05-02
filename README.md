@@ -33,7 +33,7 @@ Funapi plugin cocos2d-x
 
 서드파트 라이브러리 ``libcurl``, ``libsodium``, ``libprotobuf`` 를 프로젝트에 포함해야 합니다. 
 
-## libcurl
+1. libcurl
 
 cocos2d-x 최신버전에서는 iOS 와 안드로이드 프로젝트에서 ``libcurl`` 의존성이 없어졌기 때문에 따로 추가해야 합니다. 
 
@@ -53,7 +53,7 @@ $(call import-module,curl/prebuilt/android)
 ``cocos2d/external/curl/prebuilt`` 에 있는
 ``libcrypto.a`` ``libssl.a`` ``libcurl.a`` 를 추가합니다.
 
-## libsodium, libprotobuf
+2. libsodium, libprotobuf, libzstd
 
 ### iOS
 
@@ -61,15 +61,19 @@ $(call import-module,curl/prebuilt/android)
 
 ``proj.ios_mac/ios/libprotobuf/lib`` 에 있는 ``libprotobuf.a`` 를 추가합니다.
 
+``proj.ios_mac/ios/libzstd/lib`` 에 있는 ``libzstd.a`` 를 추가합니다.
+
 ### 안드로이드
 
-``proj.android/jni/libsodium`` 을 복사합니다.
+``proj.android-studio/jni/libsodium`` 을 복사합니다.
 
-``proj.android/jni/protobuf`` 를 복사합니다.
+``proj.android-studio/jni/protobuf`` 를 복사합니다.
 
-``proj.android/jni`` 의 ``Android.mk`` 파일에 ``libsodium``, ``libprotobuf`` 를 추가합니다
+``proj.android-studio/jni/libzstd`` 를 복사합니다.
 
-```
+``proj.android-studio/jni`` 의 ``Android.mk`` 파일에 ``libsodium``, ``libprotobuf``, ``libzstd`` 를 추가합니다
+
+```makefile
 include $(CLEAR_VARS)
 LOCAL_MODULE := libsodium
 LOCAL_SRC_FILES := libsodium/lib/libsodium.a
@@ -80,7 +84,12 @@ LOCAL_MODULE := libprotobuf
 LOCAL_SRC_FILES := libprotobuf/lib/ARMv7/libprotobuf.a
 include $(PREBUILT_STATIC_LIBRARY)
 
-LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf cocos_curl_static
+include $(CLEAR_VARS)
+LOCAL_MODULE := libzstd
+LOCAL_SRC_FILES := libzstd/lib/ARMv7/libzstd.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf libzstd cocos_curl_static
 ```
 
 ### win32
@@ -89,11 +98,15 @@ LOCAL_STATIC_LIBRARIES := cocos2dx_static libsodium libprotobuf cocos_curl_stati
 
 ``proj.win32/protobuf-2.6.1/vsprojects`` 의 ``libprotobuf.vcxproj`` 를 게임 프로젝트 솔루션 파일에 추가합니다.
 
-### mac
+``proj.win32/zstd-1.3.3/build/VS2017/libzstd`` 의 ``libzstd.vcxproj`` 를 게임 프로젝트 솔루션 파일에 추가합니다.
+
+### macOS
 
 ``proj.ios_mac/mac/libsodium/lib`` 에 있는 ``libsodium.a`` 를 추가합니다.
 
 ``proj.ios_mac/mac/libprotobuf/lib`` 에 있는 ``libprotobuf.a`` 를 추가합니다.
+
+``proj.ios_mac/mac/libzstd/lib`` 에 있는 ``libzstd.a` 를 추가합니다.
 
 # 도움말
 
