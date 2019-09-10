@@ -1,3 +1,4 @@
+.DS_Store
 bin/
 
 cocos2d/cocos/platform/android/java/gen/
@@ -10,6 +11,7 @@ proj.android/obj/
 
 proj.ios_mac/funapi-plugin-cocos2dx.xcodeproj/xcuserdata/
 proj.ios_mac/funapi-plugin-cocos2dx.xcodeproj/project.xcworkspace/xcuserdata/
+proj.ios_mac/funapi-plugin-cocos2dx.xcodeproj/project.xcworkspace/xcshareddata/
 cocos2d/build/cocos2d_libs.xcodeproj/xcuserdata/
 
 cocos2d/cocos/platform/android/java/local.properties
@@ -20,10 +22,15 @@ proj.ios_mac/build/
 
 cocos2d/cocos/platform/android/libcocos2dx/build
 proj.android-studio/.idea
-
-.DS_Store
-
-
 proj.android-studio/app/funapi-plugin-cocos2dx.iml
-
 proj.android-studio/proj.android-studio.iml
+
+proj.win32/.vs/
+proj.win32/Debug.win32/
+proj.win32/libsodium-1.0.10/Debug.win32/
+proj.win32/libsodium-1.0.10/test/default/aead_aes256gcm.obj
+
+cocos2d/cocos/2d/Debug.win32/
+cocos2d/cocos/editor-support/spine/proj.win32/Debug.win32/
+cocos2d/external/Box2D/proj.win32/Debug.win32/
+cocos2d/external/recast/proj.win32/Debug.win32/

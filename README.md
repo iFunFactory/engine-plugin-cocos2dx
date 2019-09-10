@@ -31,11 +31,11 @@ Funapi plugin cocos2d-x
 
 ``Class`` 폴더의 ``funapi`` 폴더를 사용할 프로젝트에 복사합니다.
 
-서드파트 라이브러리 ``libcurl``, ``libsodium``, ``libprotobuf`` 를 프로젝트에 포함해야 합니다. 
+서드파트 라이브러리 ``libcurl``, ``libsodium``, ``libprotobuf`` 를 프로젝트에 포함해야 합니다.
 
 1. libcurl
 
-cocos2d-x 최신버전에서는 iOS 와 안드로이드 프로젝트에서 ``libcurl`` 의존성이 없어졌기 때문에 따로 추가해야 합니다. 
+cocos2d-x 최신버전에서는 iOS 와 안드로이드 프로젝트에서 ``libcurl`` 의존성이 없어졌기 때문에 따로 추가해야 합니다.
 
 ### 안드로이드
 
