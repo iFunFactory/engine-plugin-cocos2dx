@@ -3583,6 +3583,13 @@ void FunapiSessionImpl::OnSessionClose(const TransportProtocol protocol,
                                        const std::shared_ptr<FunapiMessage> message) {
   // DebugUtils::Log("Session timed out. Resetting my session id. The server will send me another one next time.");
 
+  // NOTE(sungjin) : 리다이렉션 상태 일떄는 세션 Close이벤트를 무시한다.
+  if (IsRedirecting())
+  {
+    DebugUtils::Log("The session close event is ignoring on redirection state");
+    return;
+  }
+
   auto encoding = GetEncoding(protocol);
 
   std::string temp_session_id = GetSessionId(FunEncoding::kJson);
