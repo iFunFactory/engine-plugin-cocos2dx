@@ -807,6 +807,7 @@ class FunapiSessionImpl : public std::enable_shared_from_this<FunapiSessionImpl>
 
  private:
   void Initialize();
+  void ResetSession();
 
   void OnClose();
   void OnClose(const TransportProtocol protocol);
@@ -3334,6 +3335,28 @@ void FunapiSessionImpl::Initialize()
 }
 
 
+void FunapiSessionImpl::ResetSession()
+{
+    {
+        std::unique_lock<std::mutex> lock(transports_mutex_);
+        for (auto i : v_protocols_)
+        {
+            transports_[static_cast<int>(i)] = nullptr;
+        }
+    }
+
+    send_queues_[static_cast<int>(TransportProtocol::kTcp)] = FunapiQueue::Create();
+    send_queues_[static_cast<int>(TransportProtocol::kUdp)] = FunapiQueue::Create();
+    send_queues_[static_cast<int>(TransportProtocol::kHttp)] = FunapiQueue::Create();
+#if FUNAPI_HAVE_WEBSOCKET
+    send_queues_[static_cast<int>(TransportProtocol::kWebsocket)] = FunapiQueue::Create();
+#endif
+
+    tasks_ = FunapiTasks::Create();
+    session_id_ = FunapiSessionId::Create();
+}
+
+
 void FunapiSessionImpl::Connect(const std::weak_ptr<FunapiSession>& session, const TransportProtocol protocol, int port, FunEncoding encoding, std::shared_ptr<FunapiTransportOption> option) {
   session_ = session;
 
@@ -3832,38 +3855,23 @@ void FunapiSessionImpl::OnSessionOpen(const TransportProtocol protocol,
 void FunapiSessionImpl::OnSessionClose(const TransportProtocol protocol,
                                        const std::string &msg_type,
                                        const std::vector<uint8_t>&v_body,
-                                       const std::shared_ptr<FunapiMessage> message) {
-  // DebugUtils::Log("Session timed out. Resetting my session id. The server will send me another one next time.");
+                                       const std::shared_ptr<FunapiMessage> message)
+{
+    // DebugUtils::Log("Session timed out. Resetting my session id. The server will send me another one next time.");
 
-  // NOTE(sungjin) : 리다이렉션 상태 일떄는 세션 Close이벤트를 무시한다.
-  if (IsRedirecting())
-  {
-    DebugUtils::Log("The session close event is ignoring on redirection state");
-    return;
-  }
-
-  auto encoding = GetEncoding(protocol);
-
-  std::string temp_session_id = GetSessionId(FunEncoding::kJson);
-
-  {
-    std::unique_lock<std::mutex> lock(transports_mutex_);
-    for (auto i : v_protocols_) {
-      transports_[static_cast<int>(i)] = nullptr;
+    // NOTE(sungjin) : 리다이렉션 상태 일떄는 세션 Close이벤트를 무시한다.
+    if (IsRedirecting())
+    {
+      DebugUtils::Log("The session close event is ignoring on redirection state");
+      return;
     }
-  }
 
-  send_queues_[static_cast<int>(TransportProtocol::kTcp)] = FunapiQueue::Create();
-  send_queues_[static_cast<int>(TransportProtocol::kUdp)] = FunapiQueue::Create();
-  send_queues_[static_cast<int>(TransportProtocol::kHttp)] = FunapiQueue::Create();
-#if FUNAPI_HAVE_WEBSOCKET
-  send_queues_[static_cast<int>(TransportProtocol::kWebsocket)] = FunapiQueue::Create();
-#endif
+    ResetSession();
 
-  tasks_ = FunapiTasks::Create();
-  session_id_ = FunapiSessionId::Create();
+    auto encoding = GetEncoding(protocol);
+    std::string temp_session_id = GetSessionId(FunEncoding::kJson);
 
-  OnSessionEvent(protocol, encoding, SessionEventType::kClosed, temp_session_id, nullptr);
+    OnSessionEvent(protocol, encoding, SessionEventType::kClosed, temp_session_id, nullptr);
 }
 
 
@@ -4028,18 +4036,11 @@ void FunapiSessionImpl::OnRedirect()
         redirect_message = msg->MutableExtension(_sc_redirect);
     }
 
-    token_ = redirect_message->token();
-
-    {
-        std::unique_lock<std::mutex> lock(transports_mutex_);
-        for (auto i : v_protocols_)
-        {
-            transports_[static_cast<int>(i)] = nullptr;
-        }
-    }
-
     std::string old_session_id = GetSessionId(FunEncoding::kJson);
-    session_id_ = FunapiSessionId::Create();
+
+    ResetSession();
+
+    token_ = redirect_message->token();
 
     hostname_or_ip_ = redirect_message->host();
     std::string flavor = redirect_message->flavor();
@@ -4143,7 +4144,7 @@ void FunapiSessionImpl::OnRedirectMessage(const TransportProtocol protocol,
     {
         if (auto transport = GetTransport(i))
         {
-            transport->Stop();
+            transport->Stop(true);
         }
     }
 }
@@ -4660,8 +4661,8 @@ void FunapiSessionImpl::SendRedirectConenectMessage(const TransportProtocol prot
     message = FunapiMessage::Create(msg, encryption_type);
   }
 
-  message->SetUseSentQueue(false);
-  message->SetUseSeq(false);
+  message->SetUseSeq(true);
+  message->SetUseSentQueue(IsReliableSession());
 
   SendMessage(message, protocol);
 }
@@ -4872,6 +4873,11 @@ void FunapiSessionImpl::SendUnsentQueueMessages()
     for (auto protocol : v_protocols_)
     {
         std::shared_ptr<FunapiUnsentQueue> queue = redirect_queues_[static_cast<int>(protocol)];
+        if (queue->Empty())
+        {
+            continue;
+        }
+
         const std::string str_protocol = TransportProtocolToString(protocol);
 
         DebugUtils::Log("%s has %d unsent message(s).", str_protocol.c_str(), queue->Size());
