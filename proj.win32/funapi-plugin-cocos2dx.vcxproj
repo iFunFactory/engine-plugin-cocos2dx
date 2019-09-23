@@ -74,7 +74,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(ProjectDir)zstd-1.3.3\lib;$(EngineRoot)external\curl\include\win32;$(EngineRoot)external\websockets\include\win32;$(EngineRoot)external\win32-specific\zlib\include;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)protobuf-2.6.1\vsprojects\include;$(ProjectDir)libsodium-1.0.10\src\libsodium\include;$(ProjectDir)zstd-1.3.3\lib;$(EngineRoot)external\curl\include\win32;$(EngineRoot)external\websockets\include\win32;$(EngineRoot)external\win32-specific\zlib\include;$(EngineRoot)cocos\audio\include;$(EngineRoot)external;$(EngineRoot)external\chipmunk\include\chipmunk;$(EngineRoot)extensions;$(EngineRoot)external\uv\include;..\Classes;..;%(AdditionalIncludeDirectories);$(_COCOS_HEADER_WIN32_BEGIN);$(_COCOS_HEADER_WIN32_END)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USE_MATH_DEFINES;GL_GLEXT_PROTOTYPES;CC_ENABLE_CHIPMUNK_INTEGRATION=1;COCOS2D_DEBUG=1;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -106,8 +106,8 @@
   <ItemDefinitionGroup>
     <CustomBuildStep>
       <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
-xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
-      </Command>
+xcopy "$(ProjectDir)..\Resources" "$(OutDir)\Resources\" /D /E /I /F /Y
+</Command>
       <Outputs>$(TargetName).cab</Outputs>
       <Inputs>$(TargetFileName)</Inputs>
     </CustomBuildStep>

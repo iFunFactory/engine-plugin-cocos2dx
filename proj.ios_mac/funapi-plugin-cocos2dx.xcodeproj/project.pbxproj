@@ -11,6 +11,8 @@
 		1AC6FB30180E99EB004C840B /* libcocos2d iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AC6FB07180E9839004C840B /* libcocos2d iOS.a */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		23ABE56C2339B7090011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE5692339B5BC0011D9DB /* libcurl.a */; };
+		23ABE56D2339B7760011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE56B2339B5D60011D9DB /* libcurl.a */; };
 		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
 		294D0D641D0D56D500F7F5D4 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 294D0D631D0D56D500F7F5D4 /* CoreText.framework */; };
 		46880B7B19C43A67006E1F66 /* CloseNormal.png in Resources */ = {isa = PBXBuildFile; fileRef = 46880B7619C43A67006E1F66 /* CloseNormal.png */; };
@@ -200,6 +202,8 @@
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "funapi-plugin-cocos2dx-mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		23ABE5692339B5BC0011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
+		23ABE56B2339B5D60011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/mac/libcurl.a; sourceTree = "<group>"; };
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		294D0D631D0D56D500F7F5D4 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/CoreText.framework; sourceTree = DEVELOPER_DIR; };
 		46880B7619C43A67006E1F66 /* CloseNormal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CloseNormal.png; sourceTree = "<group>"; };
@@ -344,6 +348,7 @@
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */,
+				23ABE56C2339B7090011D9DB /* libcurl.a in Frameworks */,
 				BF171245129291EC00B8313A /* OpenGLES.framework in Frameworks */,
 				BF1712471292920000B8313A /* libz.dylib in Frameworks */,
 				BF1C47F01293687400B63C5D /* QuartzCore.framework in Frameworks */,
@@ -362,6 +367,7 @@
 				D6FF19AD1FD5335F00796402 /* libprotobuf.a in Frameworks */,
 				ED545A7E1B68A1FA00C3958E /* libiconv.dylib in Frameworks */,
 				1AC6FB21180E996B004C840B /* libcocos2d Mac.a in Frameworks */,
+				23ABE56D2339B7760011D9DB /* libcurl.a in Frameworks */,
 				5087E76717EB910900C73F5D /* libz.dylib in Frameworks */,
 				8262943E1AAF051F00CB7CF7 /* Security.framework in Frameworks */,
 				503AE11B17EB9C5A00D1A890 /* IOKit.framework in Frameworks */,
@@ -446,6 +452,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				23ABE5692339B5BC0011D9DB /* libcurl.a */,
+				23ABE56B2339B5D60011D9DB /* libcurl.a */,
 				D6FBDB1B203FCAF4008E865C /* libzstd.a */,
 				D68CF60720452468007120FB /* libzstd.a */,
 				D6FBDB19203FCAE0008E865C /* libzstd.1.3.3.dylib */,
@@ -1030,6 +1038,7 @@
 					"$(PROJECT_DIR)/../cocos2d/external/curl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/uv/include",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1037,6 +1046,7 @@
 					"$(PROJECT_DIR)/ios/libprotobuf/lib",
 					"$(PROJECT_DIR)/ios/libsodium/lib",
 					"$(PROJECT_DIR)/ios/libzstd/lib",
+					"$(PROJECT_DIR)/../cocos2d/external/curl/prebuilt/ios",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
@@ -1077,6 +1087,7 @@
 					"$(PROJECT_DIR)/../cocos2d/external/curl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
 					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/uv/include",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1084,6 +1095,7 @@
 					"$(PROJECT_DIR)/ios/libprotobuf/lib",
 					"$(PROJECT_DIR)/ios/libsodium/lib",
 					"$(PROJECT_DIR)/ios/libzstd/lib",
+					"$(PROJECT_DIR)/../cocos2d/external/curl/prebuilt/ios",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
@@ -1120,8 +1132,10 @@
 					"$(PROJECT_DIR)/../Classes",
 					"$(PROJECT_DIR)/mac/libprotobuf/include",
 					"$(PROJECT_DIR)/mac/libsodium/include",
-					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
-					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/curl/include/mac",
+					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/mac",
+					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/mac",
+					"$(PROJECT_DIR)/../cocos2d/external/uv/include",
 					"$(PROJECT_DIR)/mac/libzstd/include",
 				);
 				INFOPLIST_FILE = mac/Info.plist;
@@ -1129,6 +1143,7 @@
 					"$(PROJECT_DIR)/mac/libprotobuf/lib",
 					"$(PROJECT_DIR)/mac/libsodium/lib",
 					"$(PROJECT_DIR)/mac/libzstd/lib",
+					"$(PROJECT_DIR)/../cocos2d/external/curl/prebuilt/mac",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_MAC_BEGIN)",
@@ -1160,8 +1175,10 @@
 					"$(PROJECT_DIR)/../Classes",
 					"$(PROJECT_DIR)/mac/libprotobuf/include",
 					"$(PROJECT_DIR)/mac/libsodium/include",
-					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/ios",
-					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/ios",
+					"$(PROJECT_DIR)/../cocos2d/external/curl/include/mac",
+					"$(PROJECT_DIR)/../cocos2d/external/openssl/include/mac",
+					"$(PROJECT_DIR)/../cocos2d/external/websockets/include/mac",
+					"$(PROJECT_DIR)/../cocos2d/external/uv/include",
 					"$(PROJECT_DIR)/mac/libzstd/include",
 				);
 				INFOPLIST_FILE = mac/Info.plist;
@@ -1169,6 +1186,7 @@
 					"$(PROJECT_DIR)/mac/libprotobuf/lib",
 					"$(PROJECT_DIR)/mac/libsodium/lib",
 					"$(PROJECT_DIR)/mac/libzstd/lib",
+					"$(PROJECT_DIR)/../cocos2d/external/curl/prebuilt/mac",
 				);
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_MAC_BEGIN)",
