@@ -1089,6 +1089,7 @@ void FunapiTest::DownloaderTest()
 
       downloader_ = nullptr;
     });
+    downloader_->SetTimeoutPerFile(5);
 
     downloader_->Start();
   }
