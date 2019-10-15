@@ -55,10 +55,13 @@
 #include <assert.h>
 
 #ifdef FUNAPI_COCOS2D
+#ifndef FUNAPI_PLATFORM_WINDOWS
+#include <sys/stat.h>
+#endif
 #include "json/stringbuffer.h"
 #include "json/writer.h"
 #include "json/document.h"
-#endif
+#endif // FUNAPI_COCOS2D
 
 #ifdef FUNAPI_UE4
 #include "rapidjson/stringbuffer.h"
