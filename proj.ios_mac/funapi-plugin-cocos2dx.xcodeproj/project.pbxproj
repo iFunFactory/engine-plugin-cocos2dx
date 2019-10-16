@@ -202,6 +202,7 @@
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "funapi-plugin-cocos2dx-mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		2377BFCF235FEC2A002B6887 /* funapi_std_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = funapi_std_allocator.h; sourceTree = "<group>"; };
 		23ABE5692339B5BC0011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		23ABE56B2339B5D60011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/mac/libcurl.a; sourceTree = "<group>"; };
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -617,6 +618,7 @@
 				D605877E1FD7BC5600D372B4 /* funapi_rpc.h */,
 				D6FF19611FD52B4E00796402 /* funapi_announcement.cpp */,
 				D6FF19621FD52B4E00796402 /* funapi_announcement.h */,
+				2377BFCF235FEC2A002B6887 /* funapi_std_allocator.h */,
 				D6FF19631FD52B4E00796402 /* funapi_build_config.h */,
 				D6FF19641FD52B4E00796402 /* funapi_downloader.cpp */,
 				D6FF19651FD52B4E00796402 /* funapi_downloader.h */,
