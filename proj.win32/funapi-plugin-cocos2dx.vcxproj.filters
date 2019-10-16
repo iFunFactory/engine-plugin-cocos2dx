@@ -191,6 +191,9 @@
     <ClInclude Include="..\Classes\funapi\funapi_option.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_std_allocator.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc">

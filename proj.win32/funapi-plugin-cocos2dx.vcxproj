@@ -193,6 +193,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)\Resources\" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\funapi_rpc.h" />
     <ClInclude Include="..\Classes\funapi\funapi_session.h" />
     <ClInclude Include="..\Classes\funapi\funapi_socket.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_std_allocator.h" />
     <ClInclude Include="..\Classes\funapi\funapi_tasks.h" />
     <ClInclude Include="..\Classes\funapi\funapi_utils.h" />
     <ClInclude Include="..\Classes\funapi\funapi_version.h" />
