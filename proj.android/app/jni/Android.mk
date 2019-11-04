@@ -43,6 +43,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/funapi/funapi_socket_win.cpp \
                    ../../../Classes/funapi/funapi_websocket.cpp \
                    ../../../Classes/funapi/funapi_rpc.cpp \
+                   ../../../Classes/funapi/funapi_send_flag_manager.cpp \
                    ../../../Classes/funapi/management/maintenance_message.pb.cc \
                    ../../../Classes/funapi/network/fun_message.pb.cc \
                    ../../../Classes/funapi/network/ping_message.pb.cc \

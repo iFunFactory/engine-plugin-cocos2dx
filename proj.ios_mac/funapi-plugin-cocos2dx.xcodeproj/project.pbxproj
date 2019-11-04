@@ -15,6 +15,10 @@
 		2362FC9E237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
 		2362FC9F237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
 		2362FCA0237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
+		2362FCA32371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
+		2362FCA42371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
+		2362FCA52371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
+		2362FCA62371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
 		23ABE56C2339B7090011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE5692339B5BC0011D9DB /* libcurl.a */; };
 		23ABE56D2339B7760011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE56B2339B5D60011D9DB /* libcurl.a */; };
 		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
@@ -207,6 +211,8 @@
 		1D6058910D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "funapi-plugin-cocos2dx-mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		2362FC9B237117750040963E /* funapi_socket_win.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_socket_win.cpp; sourceTree = "<group>"; };
+		2362FCA12371179B0040963E /* funapi_send_flag_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_send_flag_manager.h; sourceTree = "<group>"; };
+		2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_send_flag_manager.cpp; sourceTree = "<group>"; };
 		2377BFCF235FEC2A002B6887 /* funapi_std_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = funapi_std_allocator.h; sourceTree = "<group>"; };
 		23ABE5692339B5BC0011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		23ABE56B2339B5D60011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/mac/libcurl.a; sourceTree = "<group>"; };
@@ -619,6 +625,8 @@
 				D6D2070B2021491600738903 /* funapi_option.h */,
 				2362FC9B237117750040963E /* funapi_socket_win.cpp */,
 				D6EC5E632005962B0095CA5D /* funapi_websocket.cpp */,
+				2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */,
+				2362FCA12371179B0040963E /* funapi_send_flag_manager.h */,
 				D6EC5E612005962B0095CA5D /* funapi_websocket.h */,
 				D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */,
 				D605877E1FD7BC5600D372B4 /* funapi_rpc.h */,
@@ -913,6 +921,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2362FCA32371179B0040963E /* funapi_send_flag_manager.cpp in Sources */,
 				D6FF198E1FD52B4E00796402 /* funapi_multicasting.cpp in Sources */,
 				D6FF19951FD52B4E00796402 /* fun_message.pb.cc in Sources */,
 				D6FF19941FD52B4E00796402 /* maintenance_message.pb.cc in Sources */,
@@ -959,6 +968,7 @@
 				D6D2070D2021492200738903 /* funapi_option.cpp in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				D6FF19B21FD534B400796402 /* ping_message.pb.cc in Sources */,
+				2362FCA42371179B0040963E /* funapi_send_flag_manager.cpp in Sources */,
 				D6655B0F202AA6C600F11D52 /* funapi_compression.cpp in Sources */,
 				D6FF19A81FD5322C00796402 /* funapi_socket.cpp in Sources */,
 				D6FF19A51FD5322100796402 /* funapi_http.cpp in Sources */,
@@ -981,6 +991,7 @@
 			files = (
 				D657139D1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */,
 				D657139F1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */,
+				2362FCA62371179B0040963E /* funapi_send_flag_manager.cpp in Sources */,
 				2362FCA0237117750040963E /* funapi_socket_win.cpp in Sources */,
 				D657139E1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */,
 			);
@@ -992,6 +1003,7 @@
 			files = (
 				D65713B21FD6529500D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */,
 				D65713B11FD6529100D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */,
+				2362FCA52371179B0040963E /* funapi_send_flag_manager.cpp in Sources */,
 				2362FC9F237117750040963E /* funapi_socket_win.cpp in Sources */,
 				D65713B31FD6529800D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */,
 			);

@@ -108,6 +108,9 @@
     <ClCompile Include="..\Classes\funapi\funapi_socket_win.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\funapi\funapi_send_flag_manager.cpp">
+      <Filter>src\funapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -195,6 +198,9 @@
       <Filter>src\funapi</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\funapi\funapi_std_allocator.h">
+      <Filter>src\funapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\funapi\funapi_send_flag_manager.h">
       <Filter>src\funapi</Filter>
     </ClInclude>
   </ItemGroup>
