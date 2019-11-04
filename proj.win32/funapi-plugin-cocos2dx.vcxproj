@@ -163,6 +163,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)\Resources\" /D /E /I /F /Y
     <ClCompile Include="..\Classes\funapi\funapi_rpc.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_session.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_socket.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_socket_win.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_tasks.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_utils.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_websocket.cpp" />
