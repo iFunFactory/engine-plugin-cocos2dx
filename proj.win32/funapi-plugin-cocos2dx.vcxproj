@@ -161,6 +161,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)\Resources\" /D /E /I /F /Y
     <ClCompile Include="..\Classes\funapi\funapi_multicasting.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_option.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_rpc.cpp" />
+    <ClCompile Include="..\Classes\funapi\funapi_send_flag_manager.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_session.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_socket.cpp" />
     <ClCompile Include="..\Classes\funapi\funapi_socket_win.cpp" />
@@ -192,6 +193,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)\Resources\" /D /E /I /F /Y
     <ClInclude Include="..\Classes\funapi\funapi_option.h" />
     <ClInclude Include="..\Classes\funapi\funapi_plugin.h" />
     <ClInclude Include="..\Classes\funapi\funapi_rpc.h" />
+    <ClInclude Include="..\Classes\funapi\funapi_send_flag_manager.h" />
     <ClInclude Include="..\Classes\funapi\funapi_session.h" />
     <ClInclude Include="..\Classes\funapi\funapi_socket.h" />
     <ClInclude Include="..\Classes\funapi\funapi_std_allocator.h" />
