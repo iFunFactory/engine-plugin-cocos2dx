@@ -4,6 +4,8 @@
 // must not be used, disclosed, copied, or distributed without the prior
 // consent of iFunFactory Inc.
 
+#include "funapi_build_config.h"
+
 #ifdef FUNAPI_PLATFORM_WINDOWS
 
 #ifdef FUNAPI_UE4
