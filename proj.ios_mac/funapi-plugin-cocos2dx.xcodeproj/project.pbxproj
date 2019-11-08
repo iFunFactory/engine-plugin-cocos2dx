@@ -13,14 +13,11 @@
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		2362FC9D237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
 		2362FC9E237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
-		2362FC9F237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
-		2362FCA0237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
 		2362FCA32371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
 		2362FCA42371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
-		2362FCA52371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
-		2362FCA62371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
 		23ABE56C2339B7090011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE5692339B5BC0011D9DB /* libcurl.a */; };
 		23ABE56D2339B7760011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE56B2339B5D60011D9DB /* libcurl.a */; };
+		23E041E3237511F5000FCCCB /* funapi_plugin_cocos2dx_desktopTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 23E041E2237511F4000FCCCB /* funapi_plugin_cocos2dx_desktopTests.mm */; };
 		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
 		294D0D641D0D56D500F7F5D4 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 294D0D631D0D56D500F7F5D4 /* CoreText.framework */; };
 		46880B7B19C43A67006E1F66 /* CloseNormal.png in Resources */ = {isa = PBXBuildFile; fileRef = 46880B7619C43A67006E1F66 /* CloseNormal.png */; };
@@ -79,12 +76,6 @@
 		D605878A1FD7C57500D372B4 /* funapi_rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D605877F1FD7BC5600D372B4 /* funapi_rpc.cpp */; };
 		D65713881FD63C4400D7E9AC /* libprotobuf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65713861FD63C4400D7E9AC /* libprotobuf.a */; };
 		D657138A1FD63C5000D7E9AC /* libsodium.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65713891FD63C5000D7E9AC /* libsodium.a */; };
-		D657139D1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */; };
-		D657139E1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */; };
-		D657139F1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139C1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm */; };
-		D65713B11FD6529100D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139C1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm */; };
-		D65713B21FD6529500D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */; };
-		D65713B31FD6529800D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */; };
 		D6655B0E202AA60400F11D52 /* funapi_compression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6655B0B202AA60400F11D52 /* funapi_compression.cpp */; };
 		D6655B0F202AA6C600F11D52 /* funapi_compression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6655B0B202AA60400F11D52 /* funapi_compression.cpp */; };
 		D68CF60A2045263F007120FB /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D68CF60720452468007120FB /* libzstd.a */; };
@@ -181,19 +172,12 @@
 			remoteGlobalIDString = A07A4C241783777C0073F6A7;
 			remoteInfo = "cocos2dx iOS";
 		};
-		D65713951FD642A800D7E9AC /* PBXContainerItemProxy */ = {
+		23E041D82375118E000FCCCB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 5087E73D17EB910900C73F5D;
 			remoteInfo = "funapi-plugin-cocos2dx-desktop";
-		};
-		D65713AB1FD6526F00D7E9AC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1D6058900D05DD3D006BFB54;
-			remoteInfo = "funapi-plugin-cocos2dx-mobile";
 		};
 		D6FF195B1FD52A1500796402 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -216,6 +200,9 @@
 		2377BFCF235FEC2A002B6887 /* funapi_std_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = funapi_std_allocator.h; sourceTree = "<group>"; };
 		23ABE5692339B5BC0011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/ios/libcurl.a; sourceTree = "<group>"; };
 		23ABE56B2339B5D60011D9DB /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../cocos2d/external/curl/prebuilt/mac/libcurl.a; sourceTree = "<group>"; };
+		23E041D32375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "funapi-plugin-cocos2dx-desktopTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		23E041D72375118E000FCCCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		23E041E2237511F4000FCCCB /* funapi_plugin_cocos2dx_desktopTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = funapi_plugin_cocos2dx_desktopTests.mm; sourceTree = "<group>"; };
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		294D0D631D0D56D500F7F5D4 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/CoreText.framework; sourceTree = DEVELOPER_DIR; };
 		46880B7619C43A67006E1F66 /* CloseNormal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CloseNormal.png; sourceTree = "<group>"; };
@@ -273,13 +260,6 @@
 		D60587861FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_dedicated_server_rpc_messages.pb.h; sourceTree = "<group>"; };
 		D65713861FD63C4400D7E9AC /* libprotobuf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprotobuf.a; path = ios/libprotobuf/lib/libprotobuf.a; sourceTree = "<group>"; };
 		D65713891FD63C5000D7E9AC /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = ios/libsodium/lib/libsodium.a; sourceTree = "<group>"; };
-		D65713901FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "funapi-plugin-cocos2dx-desktopTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D65713941FD642A800D7E9AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = funapi_plugin_cocos2dx_Tests.mm; sourceTree = "<group>"; };
-		D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = funapi_plugin_cocos2dx_inhouseTests.mm; sourceTree = "<group>"; };
-		D657139C1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = funapi_plugin_cocos2dx_disableTests.mm; sourceTree = "<group>"; };
-		D65713A61FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "funapi-plugin-cocos2dx-mobileTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D65713AA1FD6526F00D7E9AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D6655B0B202AA60400F11D52 /* funapi_compression.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = funapi_compression.cpp; sourceTree = "<group>"; };
 		D6655B0D202AA60400F11D52 /* funapi_compression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funapi_compression.h; sourceTree = "<group>"; };
 		D68CF60720452468007120FB /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = mac/libzstd/lib/libzstd.a; sourceTree = "<group>"; };
@@ -370,6 +350,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		23E041D02375118E000FCCCB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5087E75C17EB910900C73F5D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -390,20 +377,6 @@
 				5087E76917EB910900C73F5D /* OpenAL.framework in Frameworks */,
 				5087E76A17EB910900C73F5D /* AVFoundation.framework in Frameworks */,
 				5087E76B17EB910900C73F5D /* AudioToolbox.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D657138D1FD642A800D7E9AC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D65713A31FD6526F00D7E9AC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -429,8 +402,7 @@
 			children = (
 				1D6058910D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile.app */,
 				5087E76F17EB910900C73F5D /* funapi-plugin-cocos2dx-desktop.app */,
-				D65713901FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests.xctest */,
-				D65713A61FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests.xctest */,
+				23E041D32375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -445,14 +417,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		23E041D42375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests */ = {
+			isa = PBXGroup;
+			children = (
+				23E041E2237511F4000FCCCB /* funapi_plugin_cocos2dx_desktopTests.mm */,
+				23E041D72375118E000FCCCB /* Info.plist */,
+			);
+			path = "funapi-plugin-cocos2dx-desktopTests";
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
 				46880B8319C43A87006E1F66 /* Classes */,
 				46880B7519C43A67006E1F66 /* Resources */,
 				1AC6FAE5180E9839004C840B /* cocos2d_libs.xcodeproj */,
-				D65713911FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests */,
-				D65713A71FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests */,
+				23E041D42375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				080E96DDFE201D6D7F000001 /* ios */,
 				503AE10617EB990700D1A890 /* mac */,
@@ -593,25 +573,6 @@
 			path = distribution;
 			sourceTree = "<group>";
 		};
-		D65713911FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests */ = {
-			isa = PBXGroup;
-			children = (
-				D657139C1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm */,
-				D657139B1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm */,
-				D657139A1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm */,
-				D65713941FD642A800D7E9AC /* Info.plist */,
-			);
-			path = "funapi-plugin-cocos2dx-desktopTests";
-			sourceTree = "<group>";
-		};
-		D65713A71FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests */ = {
-			isa = PBXGroup;
-			children = (
-				D65713AA1FD6526F00D7E9AC /* Info.plist */,
-			);
-			path = "funapi-plugin-cocos2dx-mobileTests";
-			sourceTree = "<group>";
-		};
 		D6FF195F1FD52B4E00796402 /* funapi */ = {
 			isa = PBXGroup;
 			children = (
@@ -709,6 +670,24 @@
 			productReference = 1D6058910D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile.app */;
 			productType = "com.apple.product-type.application";
 		};
+		23E041D22375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 23E041DA2375118E000FCCCB /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-desktopTests" */;
+			buildPhases = (
+				23E041CF2375118E000FCCCB /* Sources */,
+				23E041D02375118E000FCCCB /* Frameworks */,
+				23E041D12375118E000FCCCB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				23E041D92375118E000FCCCB /* PBXTargetDependency */,
+			);
+			name = "funapi-plugin-cocos2dx-desktopTests";
+			productName = "funapi-plugin-cocos2dx-desktopTests";
+			productReference = 23E041D32375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		5087E73D17EB910900C73F5D /* funapi-plugin-cocos2dx-desktop */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5087E76C17EB910900C73F5D /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-desktop" */;
@@ -727,42 +706,6 @@
 			productReference = 5087E76F17EB910900C73F5D /* funapi-plugin-cocos2dx-desktop.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D657138F1FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D65713971FD642A800D7E9AC /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-desktopTests" */;
-			buildPhases = (
-				D657138C1FD642A800D7E9AC /* Sources */,
-				D657138D1FD642A800D7E9AC /* Frameworks */,
-				D657138E1FD642A800D7E9AC /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D65713961FD642A800D7E9AC /* PBXTargetDependency */,
-			);
-			name = "funapi-plugin-cocos2dx-desktopTests";
-			productName = "funapi-plugin-cocos2dx-desktopTests";
-			productReference = D65713901FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		D65713A51FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D65713B01FD6526F00D7E9AC /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-mobileTests" */;
-			buildPhases = (
-				D65713A21FD6526F00D7E9AC /* Sources */,
-				D65713A31FD6526F00D7E9AC /* Frameworks */,
-				D65713A41FD6526F00D7E9AC /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D65713AC1FD6526F00D7E9AC /* PBXTargetDependency */,
-			);
-			name = "funapi-plugin-cocos2dx-mobileTests";
-			productName = "funapi-plugin-cocos2dx-mobileTests";
-			productReference = D65713A61FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -774,17 +717,11 @@
 					1D6058900D05DD3D006BFB54 = {
 						DevelopmentTeam = C73SP65XNZ;
 					};
-					D657138F1FD642A800D7E9AC = {
-						CreatedOnToolsVersion = 9.2;
-						DevelopmentTeam = C73SP65XNZ;
+					23E041D22375118E000FCCCB = {
+						CreatedOnToolsVersion = 10.3;
+						DevelopmentTeam = 6D65ZXL5W4;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 5087E73D17EB910900C73F5D;
-					};
-					D65713A51FD6526F00D7E9AC = {
-						CreatedOnToolsVersion = 9.2;
-						DevelopmentTeam = C73SP65XNZ;
-						ProvisioningStyle = Automatic;
-						TestTargetID = 1D6058900D05DD3D006BFB54;
 					};
 				};
 			};
@@ -810,8 +747,7 @@
 			targets = (
 				1D6058900D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile */,
 				5087E73D17EB910900C73F5D /* funapi-plugin-cocos2dx-desktop */,
-				D65713A51FD6526F00D7E9AC /* funapi-plugin-cocos2dx-mobileTests */,
-				D657138F1FD642A800D7E9AC /* funapi-plugin-cocos2dx-desktopTests */,
+				23E041D22375118E000FCCCB /* funapi-plugin-cocos2dx-desktopTests */,
 			);
 		};
 /* End PBXProject section */
@@ -879,6 +815,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		23E041D12375118E000FCCCB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5087E74817EB910900C73F5D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -897,20 +840,6 @@
 				503AE0F817EB97AB00D1A890 /* Icon.icns in Resources */,
 				46880B7C19C43A67006E1F66 /* CloseNormal.png in Resources */,
 				46880B7E19C43A67006E1F66 /* CloseSelected.png in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D657138E1FD642A800D7E9AC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D65713A41FD6526F00D7E9AC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -952,6 +881,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		23E041CF2375118E000FCCCB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23E041E3237511F5000FCCCB /* funapi_plugin_cocos2dx_desktopTests.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5087E75617EB910900C73F5D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -985,30 +922,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D657138C1FD642A800D7E9AC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D657139D1FD642E300D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */,
-				D657139F1FD642E300D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */,
-				2362FCA62371179B0040963E /* funapi_send_flag_manager.cpp in Sources */,
-				2362FCA0237117750040963E /* funapi_socket_win.cpp in Sources */,
-				D657139E1FD642E300D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D65713A21FD6526F00D7E9AC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D65713B21FD6529500D7E9AC /* funapi_plugin_cocos2dx_inhouseTests.mm in Sources */,
-				D65713B11FD6529100D7E9AC /* funapi_plugin_cocos2dx_disableTests.mm in Sources */,
-				2362FCA52371179B0040963E /* funapi_send_flag_manager.cpp in Sources */,
-				2362FC9F237117750040963E /* funapi_socket_win.cpp in Sources */,
-				D65713B31FD6529800D7E9AC /* funapi_plugin_cocos2dx_Tests.mm in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1022,15 +935,10 @@
 			name = "cocos2dx iOS";
 			targetProxy = 1AC6FB24180E99E1004C840B /* PBXContainerItemProxy */;
 		};
-		D65713961FD642A800D7E9AC /* PBXTargetDependency */ = {
+		23E041D92375118E000FCCCB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5087E73D17EB910900C73F5D /* funapi-plugin-cocos2dx-desktop */;
-			targetProxy = D65713951FD642A800D7E9AC /* PBXContainerItemProxy */;
-		};
-		D65713AC1FD6526F00D7E9AC /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1D6058900D05DD3D006BFB54 /* funapi-plugin-cocos2dx-mobile */;
-			targetProxy = D65713AB1FD6526F00D7E9AC /* PBXContainerItemProxy */;
+			targetProxy = 23E041D82375118E000FCCCB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1131,6 +1039,113 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "$(_COCOS_HEADER_IOS_BEGIN) $(_COCOS_HEADER_IOS_END)";
 				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Release;
+		};
+		23E041DB2375118E000FCCCB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 6D65ZXL5W4;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../Classes",
+					"$(PROJECT_DIR)/ios/libprotobuf/include",
+					"$(PROJECT_DIR)/ios/libsodium/include",
+					"$(PROJECT_DIR)/ios/libzstd/include",
+					"$(SRCROOT)/../cocos2d",
+					"$(SRCROOT)/../cocos2d/cocos/audio/include",
+					"$(SRCROOT)/../cocos2d/cocos",
+					"$(SRCROOT)/../cocos2d/extensions",
+					"$(SRCROOT)/../cocos2d/external",
+					"$(SRCROOT)/../cocos2d/external/chipmunk/include/chipmunk",
+					"$(SRCROOT)/../cocos2d/cocos/editor-support",
+					"$(SRCROOT)/../cocos2d/external/glfw3/include/mac",
+				);
+				INFOPLIST_FILE = "funapi-plugin-cocos2dx-desktopTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sungjin.funapi-plugin-cocos2dx-desktopTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funapi-plugin-cocos2dx-desktop.app/Contents/MacOS/funapi-plugin-cocos2dx-desktop";
+			};
+			name = Debug;
+		};
+		23E041DC2375118E000FCCCB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 6D65ZXL5W4;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../Classes",
+					"$(PROJECT_DIR)/ios/libprotobuf/include",
+					"$(PROJECT_DIR)/ios/libsodium/include",
+					"$(PROJECT_DIR)/ios/libzstd/include",
+					"$(SRCROOT)/../cocos2d",
+					"$(SRCROOT)/../cocos2d/cocos/audio/include",
+					"$(SRCROOT)/../cocos2d/cocos",
+					"$(SRCROOT)/../cocos2d/extensions",
+					"$(SRCROOT)/../cocos2d/external",
+					"$(SRCROOT)/../cocos2d/external/chipmunk/include/chipmunk",
+					"$(SRCROOT)/../cocos2d/cocos/editor-support",
+					"$(SRCROOT)/../cocos2d/external/glfw3/include/mac",
+				);
+				INFOPLIST_FILE = "funapi-plugin-cocos2dx-desktopTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sungjin.funapi-plugin-cocos2dx-desktopTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funapi-plugin-cocos2dx-desktop.app/Contents/MacOS/funapi-plugin-cocos2dx-desktop";
 			};
 			name = Release;
 		};
@@ -1317,200 +1332,6 @@
 			};
 			name = Release;
 		};
-		D65713981FD642A800D7E9AC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = C73SP65XNZ;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../cocos2d",
-					"$(SRCROOT)/../cocos2d/cocos/audio/include",
-					"$(SRCROOT)/../cocos2d/cocos",
-					"$(SRCROOT)/../cocos2d/extensions",
-					"$(SRCROOT)/../cocos2d/external",
-					"$(SRCROOT)/../cocos2d/external/chipmunk/include/chipmunk",
-					"$(SRCROOT)/../cocos2d/cocos/editor-support",
-					"$(PROJECT_DIR)/../cocos2d/external/glfw3/include/mac",
-					"$(PROJECT_DIR)/../Classes",
-					"$(PROJECT_DIR)/mac/libsodium/include",
-					"$(PROJECT_DIR)/mac/libprotobuf/include",
-				);
-				INFOPLIST_FILE = "funapi-plugin-cocos2dx-desktopTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ifunfactory.test.funapi-plugin-cocos2dx-desktopTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funapi-plugin-cocos2dx-desktop.app/Contents/MacOS/funapi-plugin-cocos2dx-desktop";
-			};
-			name = Debug;
-		};
-		D65713991FD642A800D7E9AC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = C73SP65XNZ;
-				ENABLE_NS_ASSERTIONS = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../cocos2d",
-					"$(SRCROOT)/../cocos2d/cocos/audio/include",
-					"$(SRCROOT)/../cocos2d/cocos",
-					"$(SRCROOT)/../cocos2d/extensions",
-					"$(SRCROOT)/../cocos2d/external",
-					"$(SRCROOT)/../cocos2d/external/chipmunk/include/chipmunk",
-					"$(SRCROOT)/../cocos2d/cocos/editor-support",
-					"$(PROJECT_DIR)/../cocos2d/external/glfw3/include/mac",
-					"$(PROJECT_DIR)/../Classes",
-					"$(PROJECT_DIR)/mac/libsodium/include",
-					"$(PROJECT_DIR)/mac/libprotobuf/include",
-				);
-				INFOPLIST_FILE = "funapi-plugin-cocos2dx-desktopTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ifunfactory.test.funapi-plugin-cocos2dx-desktopTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funapi-plugin-cocos2dx-desktop.app/Contents/MacOS/funapi-plugin-cocos2dx-desktop";
-			};
-			name = Release;
-		};
-		D65713AD1FD6526F00D7E9AC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = C73SP65XNZ;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../cocos2d",
-					"$(SRCROOT)/../cocos2d/cocos/audio/include",
-					"$(SRCROOT)/../cocos2d/cocos",
-					"$(SRCROOT)/../cocos2d/extensions",
-					"$(SRCROOT)/../cocos2d/external",
-					"$(SRCROOT)/../cocos2d/external/chipmunk/include/chipmunk",
-					"$(SRCROOT)/../cocos2d/cocos/editor-support",
-					"$(PROJECT_DIR)/../Classes",
-					"$(PROJECT_DIR)/mac/libprotobuf/include",
-					"$(PROJECT_DIR)/mac/libsodium/include",
-				);
-				INFOPLIST_FILE = "funapi-plugin-cocos2dx-mobileTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ifunfactory.test.funapi-plugin-cocos2dx-mobileTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funapi-plugin-cocos2dx-mobile.app/funapi-plugin-cocos2dx-mobile";
-			};
-			name = Debug;
-		};
-		D65713AE1FD6526F00D7E9AC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = C73SP65XNZ;
-				ENABLE_NS_ASSERTIONS = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../cocos2d",
-					"$(SRCROOT)/../cocos2d/cocos/audio/include",
-					"$(SRCROOT)/../cocos2d/cocos",
-					"$(SRCROOT)/../cocos2d/extensions",
-					"$(SRCROOT)/../cocos2d/external",
-					"$(SRCROOT)/../cocos2d/external/chipmunk/include/chipmunk",
-					"$(SRCROOT)/../cocos2d/cocos/editor-support",
-					"$(PROJECT_DIR)/../Classes",
-					"$(PROJECT_DIR)/mac/libprotobuf/include",
-					"$(PROJECT_DIR)/mac/libsodium/include",
-				);
-				INFOPLIST_FILE = "funapi-plugin-cocos2dx-mobileTests/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ifunfactory.test.funapi-plugin-cocos2dx-mobileTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funapi-plugin-cocos2dx-mobile.app/funapi-plugin-cocos2dx-mobile";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1519,6 +1340,15 @@
 			buildConfigurations = (
 				1D6058940D05DD3E006BFB54 /* Debug */,
 				1D6058950D05DD3E006BFB54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		23E041DA2375118E000FCCCB /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-desktopTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				23E041DB2375118E000FCCCB /* Debug */,
+				23E041DC2375118E000FCCCB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -1537,24 +1367,6 @@
 			buildConfigurations = (
 				C01FCF4F08A954540054247B /* Debug */,
 				C01FCF5008A954540054247B /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		D65713971FD642A800D7E9AC /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-desktopTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D65713981FD642A800D7E9AC /* Debug */,
-				D65713991FD642A800D7E9AC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		D65713B01FD6526F00D7E9AC /* Build configuration list for PBXNativeTarget "funapi-plugin-cocos2dx-mobileTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D65713AD1FD6526F00D7E9AC /* Debug */,
-				D65713AE1FD6526F00D7E9AC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
