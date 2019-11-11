@@ -278,15 +278,10 @@ bool FunapiHttpDownloaderImpl::CheckDirectory(const fun::string& file_path)
     }
 
     fun::string dir_path = file_path.substr(0, pos);
-#ifdef FUNAPI_COCOS2D
-    if (access(dir_path.c_str(), 0) == F_OK)
-        return true;
-#else
-    IPlatformFile& platform_file = FPlatformFileManager::Get().GetPlatformFile();
-    if (platform_file.DirectoryExists(UTF8_TO_TCHAR(dir_path.c_str()))) {
+    if (FunapiUtil::IsDirectoryExists(dir_path))
+    {
       return true;
     }
-#endif
 
     // Gets folders name.
     size_t len = path_.size();
@@ -300,27 +295,19 @@ bool FunapiHttpDownloaderImpl::CheckDirectory(const fun::string& file_path)
     fun::string dirname;
     while (std::getline(iss, dirname, '/'))
     {
-        ss << dirname << "/";
-        const fun::string& path = ss.str();
-#ifdef FUNAPI_COCOS2D
-        if (access(path.c_str(), 0) != F_OK)
+      ss << dirname << "/";
+      const fun::string& path = ss.str();
+      if (!FunapiUtil::IsDirectoryExists(dir_path))
+      {
+        if (!FunapiUtil::CreateDirectory(path))
         {
-            if (mkdir(path.c_str(), 644) != F_OK)
-            {
-              DebugUtils::Log("Error: Failed to create directory. path: %s", path.c_str());
-              return false;
-            }
+          fun::stringstream error;
+          error << "Error: Failed to create directory. ";
+          error << "Please check directory permissions or the corret download path " << path.c_str();
+          DebugUtils::Log("%s", error.str().c_str());
+          return false;
         }
-#else
-        if (!platform_file.DirectoryExists(UTF8_TO_TCHAR(path.c_str())))
-        {
-          if (!platform_file.CreateDirectory(UTF8_TO_TCHAR(path.c_str())))
-          {
-            DebugUtils::Log("Error: Failed to create directory. path: %s", path.c_str());
-            return false;
-          }
-        }
-#endif
+      }
     }
     return true;
 }
