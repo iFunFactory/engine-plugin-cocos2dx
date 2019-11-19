@@ -297,7 +297,7 @@ bool FunapiHttpDownloaderImpl::CheckDirectory(const fun::string& file_path)
     {
       ss << dirname << "/";
       const fun::string& path = ss.str();
-      if (!FunapiUtil::IsDirectoryExists(dir_path))
+      if (!FunapiUtil::IsDirectoryExists(path))
       {
         if (!FunapiUtil::CreateDirectory(path))
         {
