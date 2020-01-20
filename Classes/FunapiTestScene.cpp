@@ -1108,7 +1108,8 @@ void FunapiTest::RequestAnnouncements()
                                                 const fun::FunapiAnnouncement::ResultCode result){
       if (result == fun::FunapiAnnouncement::ResultCode::kSucceed) {
         for (auto i : info) {
-          fun::DebugUtils::Log("date=%s message=%s subject=%s file_path=%s", i->GetDate().c_str(), i->GetMessageText().c_str(), i->GetSubject().c_str(), i->GetFilePath().c_str());
+          fun::DebugUtils::Log("date=%s message=%s subject=%s file_path=%s kind=%s",
+              i->GetDate().c_str(), i->GetMessageText().c_str(), i->GetSubject().c_str(), i->GetFilePath().c_str(), i->GetKind().c_str());
         }
       }
 
