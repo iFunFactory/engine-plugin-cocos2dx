@@ -1107,9 +1107,26 @@ void FunapiTest::RequestAnnouncements()
                                                 const std::vector<std::shared_ptr<fun::FunapiAnnouncementInfo>>&info,
                                                 const fun::FunapiAnnouncement::ResultCode result){
       if (result == fun::FunapiAnnouncement::ResultCode::kSucceed) {
-        for (auto i : info) {
-          fun::DebugUtils::Log("date=%s message=%s subject=%s file_path=%s kind=%s",
-              i->GetDate().c_str(), i->GetMessageText().c_str(), i->GetSubject().c_str(), i->GetFilePath().c_str(), i->GetKind().c_str());
+        for (auto &i : info) {
+
+          fun::stringstream ss;
+
+          ss << "FunapiAnnounce reponse : " << "data=" << i->GetDate() << " ";
+          ss << "message=" << i->GetMessageText() << " ";
+          ss << "subject=" << i->GetSubject() << " ";
+          ss << "file_path=" << i->GetFilePath() << " ";
+          ss << "kind=" << i->GetKind() << " ";
+          ss << "extra_image_path={";
+
+          auto extra_image_infos = i->GetExtraImageInfos();
+          for (auto &extra_info : extra_image_infos)
+          {
+            ss << extra_info->GetFilePath() << " ";
+          }
+
+          ss << "}";
+
+          fun::DebugUtils::Log("%s", ss.str().c_str());
         }
       }
 
