@@ -5,6 +5,11 @@
 // consent of iFunFactory Inc.
 
 #include "funapi_send_flag_manager.h"
+
+#ifdef FUNAPI_UE4
+#include "FunapiPrivatePCH.h"
+#endif
+
 #include "funapi_utils.h"
 
 
