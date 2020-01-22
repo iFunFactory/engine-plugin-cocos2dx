@@ -939,33 +939,6 @@ void FunapiTest::CreateMulticast()
         multicast_ = nullptr;
       }
     });
-
-    // add callback
-    multicast_->AddJsonChannelMessageCallback
-    (kMulticastTestChannel,
-     [this]
-     (const std::shared_ptr<fun::FunapiMulticast>& funapi_multicast,
-      const std::string &channel_id,
-      const std::string &sender,
-      const std::string &json_string)
-    {
-      fun::DebugUtils::Log("channel_id=%s, sender=%s, body=%s", channel_id.c_str(), sender.c_str(), json_string.c_str());
-    });
-
-    multicast_->AddProtobufChannelMessageCallback
-    (kMulticastTestChannel,
-     [this]
-     (const std::shared_ptr<fun::FunapiMulticast> &funapi_multicast,
-      const std::string &channel_id,
-      const std::string &sender,
-      const FunMessage& message)
-    {
-      FunMulticastMessage mcast_msg = message.GetExtension(multicast);
-      FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
-      std::string text = chat_msg.text();
-
-      fun::DebugUtils::Log("channel_id=%s, sender=%s, message=%s", channel_id.c_str(), sender.c_str(), text.c_str());
-    });
   }
 
   multicast_->Connect();
@@ -973,11 +946,62 @@ void FunapiTest::CreateMulticast()
 
 void FunapiTest::JoinMulticastChannel()
 {
-  fun::DebugUtils::Log("(Button)JoinMulticastChannel");
-  if (multicast_) {
-    if (!multicast_->IsInChannel(kMulticastTestChannel)) {
-      multicast_->JoinChannel(kMulticastTestChannel);
+  auto json_msg_handler =
+    [this](const std::shared_ptr<fun::FunapiMulticast>& funapi_multicast,
+      const fun::string &channel_id,
+      const fun::string &sender_string,
+      const fun::string &json_string)
+  {
+    fun::DebugUtils::Log("Arrived the chatting message. channel_id = %s, sender = %s, body = %s",
+      channel_id.c_str(), sender_string.c_str(), json_string.c_str());
+  };
+
+  auto protobuf_msg_handler =
+    [this](const std::shared_ptr<fun::FunapiMulticast> &funapi_multicast,
+      const fun::string &channel_id,
+      const fun::string &sender_string,
+      const FunMessage& message)
+  {
+    if (message.HasExtension(multicast))
+    {
+      FunMulticastMessage mcast_msg = message.GetExtension(multicast);
+      if (mcast_msg.HasExtension(chat)) {
+        FunChatMessage chat_msg = mcast_msg.GetExtension(chat);
+        fun::string text = chat_msg.text();
+        fun::DebugUtils::Log("Arrived the chatting message. channel_id = %s, sender = %s, message = %s", channel_id.c_str(), sender_string.c_str(), text.c_str());
+      }
     }
+  };
+
+  fun::DebugUtils::Log("JoinMulticastChannel button was clicked.");
+  if (multicast_ == nullptr)
+  {
+    fun::DebugUtils::Log("Afunapi_tester::JoinMulticastChannel was called, but the FunapiMulticast instance is not created yet");
+    return;
+  }
+
+  if (!multicast_->IsConnected())
+  {
+    fun::DebugUtils::Log("Afunapi_tester::JoinMulticastChannel was called, but the FunapiMulticast instance is not connected yet");
+    return;
+  }
+
+  if (multicast_->IsInChannel(kMulticastTestChannel))
+  {
+    fun::DebugUtils::Log(
+      "Afunapi_tester::JoinMulticastChannel was called, but the FunapiMulticast instance was already joined %s channel",
+      kMulticastTestChannel.c_str());
+    return;
+  }
+
+  auto encoding = multicast_->GetEncoding();
+  if (encoding == fun::FunEncoding::kJson)
+  {
+    multicast_->JoinChannel(kMulticastTestChannel, json_msg_handler);
+  }
+  else if (encoding == fun::FunEncoding::kProtobuf)
+  {
+    multicast_->JoinChannel(kMulticastTestChannel, protobuf_msg_handler);
   }
 }
 
