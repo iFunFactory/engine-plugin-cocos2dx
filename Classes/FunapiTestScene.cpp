@@ -11,6 +11,7 @@
 #include "funapi/funapi_multicasting.h"
 #include "funapi/funapi_downloader.h"
 #include "funapi/funapi_announcement.h"
+#include "funapi/funapi_send_flag_manager.h"
 
 #include "test_messages.pb.h"
 #include "funapi/management/maintenance_message.pb.h"
@@ -53,6 +54,9 @@ class LambdaEditBoxDelegate : public EditBoxDelegate {
 
 Scene* FunapiTest::createScene()
 {
+  // funapi plugin's manager init
+  fun::FunapiSendFlagManager::Init();
+
   // 'scene' is an autorelease object
   auto scene = Scene::create();
 
