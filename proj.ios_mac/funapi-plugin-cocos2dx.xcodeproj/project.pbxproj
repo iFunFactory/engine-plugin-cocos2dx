@@ -11,8 +11,6 @@
 		1AC6FB30180E99EB004C840B /* libcocos2d iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AC6FB07180E9839004C840B /* libcocos2d iOS.a */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
-		2362FC9D237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
-		2362FC9E237117750040963E /* funapi_socket_win.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FC9B237117750040963E /* funapi_socket_win.cpp */; };
 		2362FCA32371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
 		2362FCA42371179B0040963E /* funapi_send_flag_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2362FCA22371179B0040963E /* funapi_send_flag_manager.cpp */; };
 		23ABE56C2339B7090011D9DB /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23ABE5692339B5BC0011D9DB /* libcurl.a */; };
@@ -862,7 +860,6 @@
 				D6FF19961FD52B4E00796402 /* ping_message.pb.cc in Sources */,
 				503AE10017EB989F00D1A890 /* AppController.mm in Sources */,
 				D6FF19901FD52B4E00796402 /* funapi_socket.cpp in Sources */,
-				2362FC9D237117750040963E /* funapi_socket_win.cpp in Sources */,
 				D60587871FD7C54800D372B4 /* test_dedicated_server_rpc_messages.pb.cc in Sources */,
 				D6FF199A1FD52B4E00796402 /* test_messages.pb.cc in Sources */,
 				D6FF198D1FD52B4E00796402 /* funapi_http.cpp in Sources */,
@@ -900,7 +897,6 @@
 				D6EC5E6520059BDD0095CA5D /* funapi_websocket.cpp in Sources */,
 				D60587891FD7C56800D372B4 /* fun_dedicated_server_rpc_message.pb.cc in Sources */,
 				D6FF19AB1FD5323600796402 /* funapi_utils.cpp in Sources */,
-				2362FC9E237117750040963E /* funapi_socket_win.cpp in Sources */,
 				D6FF19A01FD5320900796402 /* FunapiTestScene.cpp in Sources */,
 				D6D2070D2021492200738903 /* funapi_option.cpp in Sources */,
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,

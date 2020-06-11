@@ -32,6 +32,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
+#include <poll.h>
 #endif // FUNAPI_UE4_PLATFORM_PS4
 #endif // FUNAPI_PLATFORM_WINDOWS
 

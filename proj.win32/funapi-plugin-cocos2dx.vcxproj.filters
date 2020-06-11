@@ -105,9 +105,6 @@
     <ClCompile Include="..\Classes\funapi\funapi_option.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\funapi\funapi_socket_win.cpp">
-      <Filter>src\funapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\funapi\funapi_send_flag_manager.cpp">
       <Filter>src\funapi</Filter>
     </ClCompile>
