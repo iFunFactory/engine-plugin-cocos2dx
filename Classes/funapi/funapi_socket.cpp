@@ -1140,22 +1140,21 @@ void FunapiTcpImpl::OnRecv() {
     nRead = static_cast<int>(recv(socket_, reinterpret_cast<char*>(buffer.data()), kBufferSize, 0));
   }
 
-  /*
   if (nRead == 0) {
-    DebugUtils::Log("Socket [%d] closed.", socket_);
+    recv_handler_(true, 0, "Peer closed the TCP transport", nRead, buffer);
+    CloseSocket();
+    return;
   }
-  */
 
-  if (nRead <= 0) {
+  if (nRead < 0) {
     int error_code = FunapiUtil::GetSocketErrorCode();
     fun::string error_string = FunapiUtil::GetSocketErrorString(error_code);
     recv_handler_(true, error_code, error_string, nRead, buffer);
     CloseSocket();
     return;
   }
-  else {
-    recv_handler_(false, 0, "", nRead, buffer);
-  }
+
+  recv_handler_(false, 0, "", nRead, buffer);
 }
 
 
@@ -1279,21 +1278,20 @@ void FunapiUdpImpl::OnRecv() {
                                         (&addrinfo_res_->ai_addrlen)));
 #endif // FUNAPI_PLATFORM_WINDOWS
 
-  /*
   if (nRead == 0) {
-    DebugUtils::Log("Socket [%d] closed.", socket_);
+    recv_handler_(true, 0, "Peer closed the TCP transport", nRead, receiving_vector);
+    CloseSocket();
+    return;
   }
-  */
 
-  if (nRead <= 0) {
+  if (nRead < 0) {
     int error_code = FunapiUtil::GetSocketErrorCode();
     fun::string error_string = FunapiUtil::GetSocketErrorString(error_code);
     recv_handler_(true, error_code, error_string, nRead, receiving_vector);
     CloseSocket();
   }
-  else {
-    recv_handler_(false, 0, "", nRead, receiving_vector);
-  }
+
+  recv_handler_(false, 0, "", nRead, receiving_vector);
 }
 
 
